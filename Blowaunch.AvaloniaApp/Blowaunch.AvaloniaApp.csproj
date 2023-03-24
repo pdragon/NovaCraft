@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net6.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <PlatformTarget>x64</PlatformTarget>
+        <Description>Запускальщик minecraft</Description>
+    </PropertyGroup>
+    <ItemGroup>
+        <Folder Include="Models\" />
+        <AvaloniaResource Include="Assets\**" />
+        <None Remove=".gitignore" />
+    </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Avalonia" Version="0.10.13" />
+        <PackageReference Include="Avalonia.Desktop" Version="0.10.13" />
+        <PackageReference Include="Avalonia.Diagnostics" Version="0.10.13" />
+        <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
+        <PackageReference Include="Avalonia.ReactiveUI" Version="0.10.13" />
+        <PackageReference Include="Deadpikle.AvaloniaProgressRing" Version="0.9.7" />
+        <PackageReference Include="Hardware.Info" Version="10.0.0" />
+        <PackageReference Include="MessageBox.Avalonia" Version="2.0.0" />
+        <PackageReference Include="Serilog" Version="2.10.0" />
+        <PackageReference Include="Serilog.Sinks.Console" Version="4.0.1" />
+        <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
+    </ItemGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\Blowaunch.Library\Blowaunch.Library.csproj" />
+    </ItemGroup>
+</Project>

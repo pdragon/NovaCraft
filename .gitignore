@@ -1,0 +1,6 @@
+.idea/
+*.DotSettings.user
+bin/
+obj/
+.vs/
+/readme_orig.md
