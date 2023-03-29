@@ -52,6 +52,7 @@ public class MainWindow : Window
     private Button _microsoftLoginButton;
 
     private TextBlock _loadingTextBlock;
+    private Panel _modPackPanel;
 
     // Settings
     private ToggleSwitch _customWindowSize;
@@ -68,6 +69,8 @@ public class MainWindow : Window
     private ToggleSwitch _minecraftDemo;
     private Button _saveChanges;
     private Button _revertChanges;
+
+    private ToggleSwitch _customWindowSize0;
     #endregion
     #region Other stuff
     /// <summary>
@@ -248,6 +251,9 @@ public class MainWindow : Window
         _revertChanges = this.FindControl<Button>("RevertChanges");
         _ramSlider = this.FindControl<Slider>("RamSlider");
         _loadingTextBlock = this.FindControl<TextBlock>("LoadingTextBlock");
+        _modPackPanel = this.FindControl<Panel>("ModPackAdd");
+
+        _customWindowSize0 = this.FindControl<ToggleSwitch>("CustomWindowSize0");
 
 
         _ramManual.ValueChanged += (_, e) => {
@@ -849,6 +855,25 @@ public class MainWindow : Window
             UseShellExecute = true,
             Verb = "open"
         });
+    public void AddModpack(object? sender, RoutedEventArgs e)
+         => Process.Start(new ProcessStartInfo
+         {
+             FileName = FilesManager.Directories.Root,
+             UseShellExecute = true,
+             Verb = "open"
+         });
+
+    /// <summary>
+    /// Close Modpack panel
+    /// </summary>
+    public void CloseModPackPanel(object? sender, RoutedEventArgs e)
+        => _modPackPanel.IsVisible = false;
+
+    /// <summary>
+    /// Open Modpack panel
+    /// </summary>
+    public void OpenModpackPanel(object? sender, RoutedEventArgs e)
+        => _modPackPanel.IsVisible = true;
     #endregion
     #region Runner
 

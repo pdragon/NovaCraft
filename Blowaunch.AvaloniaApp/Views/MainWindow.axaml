@@ -358,10 +358,262 @@
                                 Modpacks
                             </TextBlock>
                         </TabItem.Header>
-                    </TabItem>
+						<Border Background="Black"
+                            Opacity="50"
+                            CornerRadius="5"
+                            Margin="20 0 20 10">
+						   <StackPanel Orientation="Vertical" Width="300">
+                                <StackPanel Orientation="Horizontal" Width="240">
+	                                <ComboBox HorizontalAlignment="Center"
+		                                Width="200" SelectedIndex="0"
+		                                VirtualizationMode="Simple"
+		                                Name="ModPacks">
+		                                <ComboBox.ItemTemplate>
+			                                <DataTemplate>
+				                                <TextBlock Text="{Binding Name}" />
+			                                </DataTemplate>
+		                                </ComboBox.ItemTemplate>
+		                                <ComboBoxItem>
+			                                <TextBlock Text="Loading..."/>
+		                                </ComboBoxItem>
+	                                </ComboBox>
+                                </StackPanel>
+								<StackPanel Orientation="Horizontal"  
+											HorizontalAlignment="Right" 
+											Height="32"
+											Margin="180 -32 0 0">
+									<Button HorizontalAlignment="Right"
+										Height="32" Width="32"
+										Background="#808080"
+										Opacity="20" Click="OpenModpackPanel"
+										CornerRadius="0 5 5 0">
+										<PathIcon Data="{StaticResource Add}"
+												    Opacity="10"/>
+									</Button>
+								</StackPanel>
+							</StackPanel>
+						</Border>
+						</TabItem>
                 </TabControl>
             </Grid>
         </SplitView>
+
+		<!-- Modpack overlay -->
+		<Panel Name="ModPackAdd"
+               IsVisible="False">
+			<Rectangle HorizontalAlignment="Stretch"
+                       VerticalAlignment="Stretch"
+                       Fill="Black" Opacity="30"/>
+
+			<StackPanel Orientation="Vertical">
+				<StackPanel Orientation="Horizontal">
+					<Border Background="Black"
+							BorderBrush="White"
+							Opacity="50"
+							BorderThickness="2"
+							CornerRadius="3"
+							Padding="10"
+							Margin="0 0 5 0">
+						<StackPanel Orientation="Vertical"
+									Width="200">
+							<TextBlock HorizontalAlignment="Center"
+									   FontSize="18">
+								Window Size
+							</TextBlock>
+							<ToggleSwitch OffContent="Custom Window Size"
+										  OnContent="Custom Window Size"
+										  Name="CustomWindowSize0">
+							</ToggleSwitch>
+							<StackPanel Orientation="Horizontal">
+								<TextBlock HorizontalAlignment="Center"
+										   VerticalAlignment="Center"
+										   FontSize="14" Margin="0 0 10 0">
+									Width:
+								</TextBlock>
+								<NumericUpDown Watermark="Width" Width="145"
+											   Margin="0 5 0 5"
+											   Name="WindowWidth0"/>
+							</StackPanel>
+							<StackPanel Orientation="Horizontal">
+								<TextBlock HorizontalAlignment="Center"
+										   VerticalAlignment="Center"
+										   FontSize="14" Margin="0 0 10 0">
+									Height:
+								</TextBlock>
+								<NumericUpDown Watermark="Height" Width="140"
+											   Margin="0 5 0 10"
+											   Name="WindowHeight0"/>
+							</StackPanel>
+						</StackPanel>
+					</Border>
+					<Border Background="Black"
+														   BorderBrush="White"
+														   Opacity="50"
+														   BorderThickness="2"
+														   CornerRadius="3"
+														   Padding="10">
+						<StackPanel Orientation="Vertical"
+									Width="240">
+							<TextBlock HorizontalAlignment="Center"
+									   FontSize="18" Margin="0 0 0 5">
+								Runner Settings
+							</TextBlock>
+							<TextBox Width="240" Watermark="Java Arguments"
+									 Margin="0 0 10 5"
+									 Name="JavaArguments0">
+							</TextBox>
+							<TextBox Width="240" Watermark="Game Arguments"
+									 Margin="0 0 10 10"
+									 Name="GameArguments0">
+							</TextBox>
+							<StackPanel Orientation="Horizontal"
+										HorizontalAlignment="Center">
+								<TextBlock HorizontalAlignment="Center"
+										   VerticalAlignment="Center"
+										   FontSize="14">
+									RAM allocation
+								</TextBlock>
+								<NumericUpDown Width="125" Watermark="Manual"
+										 Margin="10 0 0 0"
+										 Name="RamManual0">
+								</NumericUpDown>
+							</StackPanel>
+							<Slider Margin="0 -15 0 -15"
+									Name="RamSlider0"/>
+						</StackPanel>
+					</Border>
+					<Border Background="Black"
+														   BorderBrush="White"
+														   Opacity="50"
+														   BorderThickness="2"
+														   CornerRadius="3"
+														   Padding="10">
+						<StackPanel Orientation="Vertical"
+									Width="240">
+							<TextBlock Text="Minecraft version:"
+                               HorizontalAlignment="Center"
+                               Margin="0 30 0 10"/>
+							<ComboBox HorizontalAlignment="Center"
+									  Width="200" SelectedIndex="0"
+									  VirtualizationMode="Simple"
+									  Name="Versions0">
+								<ComboBox.ItemTemplate>
+									<DataTemplate>
+										<TextBlock Text="{Binding 
+                                Name}" />
+									</DataTemplate>
+								</ComboBox.ItemTemplate>
+								<ComboBoxItem>
+									<TextBlock Text="Loading..."/>
+								</ComboBoxItem>
+							</ComboBox>
+							<TextBlock Text="Modding:"
+									   HorizontalAlignment="Center"
+									   Margin="0 20 0 10"/>
+							<ComboBox HorizontalAlignment="Center"
+									  Width="200" SelectedIndex="0">
+								<ComboBoxItem Name="Vanilla0">
+									<TextBlock Text="None"
+											   HorizontalAlignment="Left"/>
+								</ComboBoxItem>
+								<ComboBoxItem Name="Forge0">
+									<TextBlock Text="Forge"
+											   HorizontalAlignment="Left"/>
+								</ComboBoxItem>
+								<ComboBoxItem Name="Fabric0">
+									<TextBlock Text="Fabric"
+											   HorizontalAlignment="Left"/>
+								</ComboBoxItem>
+							</ComboBox>
+						</StackPanel>
+					</Border>
+					
+				</StackPanel>
+			</StackPanel>
+			<StackPanel Orientation="Vertical">
+				<StackPanel Orientation="Horizontal">
+			<Border Background="Black"
+                                    BorderBrush="White"
+                                    Opacity="50"
+                                    BorderThickness="2"
+                                    CornerRadius="3"
+                                    Padding="10"
+                                    Margin="200 380 0 0"
+                                    HorizontalAlignment="Left">
+				<StackPanel Orientation="Horizontal"
+							Opacity="10">
+					<Button Height="35" Width="110"
+							Background="#1fa803"
+							Opacity="20"
+							CornerRadius="5"
+							HorizontalAlignment="Center"
+							Margin="0 0 10 0"
+							Name="SaveChanges0"
+							Click="SaveChanges">
+						<Button.Styles>
+							<Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+								<Setter Property="Background"
+										Value="#22cb00"/>
+							</Style>
+						</Button.Styles>
+						<TextBlock Text="Save changes"
+								   HorizontalAlignment="Center"
+								   VerticalAlignment="Center"/>
+					</Button>
+					<Button Height="35" Width="125"
+							Background="#ebcd38"
+							Opacity="20"
+							CornerRadius="5"
+							HorizontalAlignment="Center"
+							Margin="0 0 10 0"
+							Name="RevertChanges0"
+							Click="RevertChanges">
+						<Button.Styles>
+							<Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+								<Setter Property="Background"
+										Value="#ab952b"/>
+							</Style>
+						</Button.Styles>
+						<TextBlock Text="Revert changes"
+								   HorizontalAlignment="Center"
+								   VerticalAlignment="Center"/>
+					</Button>
+					<Button Height="35" Width="120"
+							Background="#eb4034"
+							Opacity="20"
+							CornerRadius="5"
+							HorizontalAlignment="Center"
+							Click="ResetSettings">
+						<Button.Styles>
+							<Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+								<Setter Property="Background"
+										Value="#ad2d24"/>
+							</Style>
+						</Button.Styles>
+						<TextBlock Text="Back to default"
+								   HorizontalAlignment="Center"
+								   VerticalAlignment="Center"/>
+					</Button>
+				</StackPanel>
+			</Border>
+				</StackPanel>
+			</StackPanel>
+			
+					<Button HorizontalAlignment="Right"
+                    VerticalAlignment="Top"
+                    Width="35" Height="35"
+                    Background="#00FF0000"
+                    Click="CloseModPackPanel">
+				<Button.Styles>
+					<Style Selector="Button:pointerover /template/ ContentPresenter">
+						<Setter Property="Background"
+                                Value="#50FF0000"/>
+					</Style>
+				</Button.Styles>
+				<PathIcon Data="{StaticResource Close}"
+                          Opacity="100"/>
+			</Button>
+		</Panel>
         
         <!-- Authentication overlay -->
         <Panel Name="Authentication" 

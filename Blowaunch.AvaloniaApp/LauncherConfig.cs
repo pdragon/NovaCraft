@@ -17,8 +17,19 @@ public class LauncherConfig
 {
     public class VersionClass
     {
-        [JsonProperty("name")] public string Name { get; set; }
-        [JsonProperty("id")] public string Id { get; set; }
+        [JsonProperty("name")] public string? Name { get; set; }
+        [JsonProperty("id")] public string? Id { get; set; }
+    }
+    public class ModPack
+    {
+        [JsonProperty("version")] public VersionClass Version = new VersionClass() { Id = "1.7.10", Name = "Realese 1.7.10" };
+        [JsonProperty("jvmArgs")] public string JvmArgs = "";
+        [JsonProperty("maxRam")] public string RamMax = "2048";
+        [JsonProperty("customResolution")] public bool CustomWindowSize { get; set; }
+        [JsonProperty("windowSize")] public Vector2 WindowSize = new(200, 200);
+        [JsonProperty("gameArgs")] public string GameArgs = "";
+        [JsonProperty("packPath")] public string PackPath = "";
+
     }
 
     static VersionClass DefaultVersion = new VersionClass(){Id = "1.7.10", Name = "Realese 1.7.10" };
@@ -36,6 +47,5 @@ public class LauncherConfig
     [JsonProperty("showAlpha")] public bool ShowAlpha;                                                                         // [+]
     [JsonProperty("showBeta")] public bool ShowBeta;                                                                           // [+]
     [JsonProperty("isDemo")] public bool DemoUser;                                                                             // [ ]
-
-    //public 
+    [JsonProperty("modPacks")] public List<ModPack> ModPacks = new();
 }
