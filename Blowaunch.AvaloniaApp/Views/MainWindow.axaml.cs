@@ -21,6 +21,7 @@ using MessageBox.Avalonia;
 using MessageBox.Avalonia.DTO;
 using MessageBox.Avalonia.Enums;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
 using Serilog;
 using Serilog.Core;
@@ -70,7 +71,18 @@ public class MainWindow : Window
     private Button _saveChanges;
     private Button _revertChanges;
 
-    private ToggleSwitch _customWindowSize0;
+    private ToggleSwitch _modPackCustomWindowSize;
+    private NumericUpDown _modPackWindowWidth;
+    private NumericUpDown _modPackWindowHeight;
+    private TextBox _modPackJavaArguments;
+    private TextBox _modPackGameArguments;
+    private NumericUpDown _modPackRamManual;
+    private Slider _modPackRamSlider;
+    private TextBox _modPackId;
+    private ComboBox _modPacksCombo;
+    private ComboBox _modPackVersionsCombo;
+    private TextBox _modPackName;
+
     #endregion
     #region Other stuff
     /// <summary>
@@ -100,6 +112,12 @@ public class MainWindow : Window
     /// Did the SelectionChanged event was set?
     /// </summary>
     private bool _selectionChanged;
+
+    private class VersionsReturn
+    {
+        public List<LauncherConfig.VersionClass> Versions = new List<LauncherConfig.VersionClass>();
+        public bool IsOffline = false;
+    }
 
     /// <summary>
     /// Show progress actions modal
@@ -177,6 +195,7 @@ public class MainWindow : Window
             await Dispatcher.UIThread.InvokeAsync(() => {
                 LoadSettings();
                 ReloadAccounts();
+                ReloadModPacks();
                 _loadingPanel.IsVisible = false;
                 _progressPanel.IsVisible = false;
                 _progressBar.IsIndeterminate = false;
@@ -253,8 +272,17 @@ public class MainWindow : Window
         _loadingTextBlock = this.FindControl<TextBlock>("LoadingTextBlock");
         _modPackPanel = this.FindControl<Panel>("ModPackAdd");
 
-        _customWindowSize0 = this.FindControl<ToggleSwitch>("CustomWindowSize0");
-
+        _modPackCustomWindowSize = this.FindControl<ToggleSwitch>("ModPackCustomWindowSize");
+        _modPackWindowWidth = this.FindControl<NumericUpDown>("ModPackWindowWidth");
+        _modPackWindowHeight = this.FindControl<NumericUpDown>("ModPackWindowHeight");
+        _modPackRamManual = this.FindControl<NumericUpDown>("ModPackRamManual");
+        _modPackJavaArguments = this.FindControl<TextBox>("ModPackJavaArguments");
+        _modPackGameArguments = this.FindControl<TextBox>("ModPackGameArguments");
+        _modPackId = this.FindControl<TextBox>("ModPackId");
+        _modPackRamSlider = this.FindControl<Slider>("ModPackRamSlider");
+        _modPacksCombo = this.FindControl<ComboBox>("ModPacks");
+        _modPackVersionsCombo = this.FindControl<ComboBox>("ModPackVersions");
+        _modPackName = this.FindControl<TextBox>("ModPackName"); 
 
         _ramManual.ValueChanged += (_, e) => {
             // ReSharper disable once CompareOfFloatsByEqualityOperator
@@ -267,7 +295,19 @@ public class MainWindow : Window
             
             _ramSlider.Value = e.NewValue;
         };
-        
+
+        _modPackRamManual.ValueChanged += (_, e) => {
+            // ReSharper disable once CompareOfFloatsByEqualityOperator
+            if (_modPackRamSlider.Value == _modPackRamManual.Value)
+                return;
+            if (e.NewValue > _modPackRamSlider.Maximum)
+                _modPackRamManual.Value = _modPackRamSlider.Maximum;
+            else if (e.NewValue < 0)
+                _modPackRamManual.Value = 0;
+
+            _modPackRamSlider.Value = e.NewValue;
+        };
+
         _windowWidth.ValueChanged += (_, e) => {
             if (e.NewValue < 0)
                 _windowWidth.Value = 0;
@@ -278,13 +318,13 @@ public class MainWindow : Window
                 _windowHeight.Value = 0;
         };
 
-        _ramSlider.PropertyChanged += (_, _) => {
-            if (_ramSlider.Value % 1 != 0)
-                _ramSlider.Value = Math.Floor(_ramSlider.Value);
+        _modPackRamSlider.PropertyChanged += (_, _) => {
+            if (_modPackRamSlider.Value % 1 != 0)
+                _modPackRamSlider.Value = Math.Floor(_modPackRamSlider.Value);
             // ReSharper disable once CompareOfFloatsByEqualityOperator
-            if (_ramSlider.Value == _ramManual.Value)
+            if (_modPackRamSlider.Value == _modPackRamManual.Value)
                 return;
-            _ramManual.Value = _ramSlider.Value;
+            _modPackRamManual.Value = _modPackRamSlider.Value;
         };
     }
     #endregion
@@ -294,6 +334,7 @@ public class MainWindow : Window
     /// </summary>
     private async Task LoadVersions()
     {
+        /*
         Logger.Information("Loading versions...");
         var versions = new List<LauncherConfig.VersionClass>();
         if (CheckForInternet()) {
@@ -345,6 +386,7 @@ public class MainWindow : Window
             OfflineMode = true;
         }
 
+        
         Logger.Information("Loading custom versions...");
         foreach (var i in Directory.GetDirectories(
                      FilesManager.Directories.VersionsRoot)) {
@@ -391,12 +433,32 @@ public class MainWindow : Window
                 Logger.Error("Unable to load the version! {0}", e);
             }
         }
-        
-        var index = versions.FindIndex(
+        */
+        var versions = GetVersions();
+        if (versions.IsOffline)
+        {
+            Logger.Warning("Internet unavailable!");
+            await Dispatcher.UIThread.InvokeAsync(() => {
+                var msBoxStandardWindow = MessageBoxManager
+                    .GetMessageBoxStandardWindow(new MessageBoxStandardParams
+                    {
+                        Icon = MessageBox.Avalonia.Enums.Icon.Warning,
+                        ButtonDefinitions = ButtonEnum.Ok,
+                        ContentMessage = "Offline mode enabled - " +
+                                         "integrity checks would be " +
+                                         "skipped.",
+                        ContentTitle = "No internet connection!"
+                    });
+                msBoxStandardWindow.Show();
+            });
+        }
+        var index = versions.Versions.FindIndex(
             x => x.Id == Config.Version.Id 
                  && x.Name == Config.Version.Name);
+       
+        
         await Dispatcher.UIThread.InvokeAsync(() => {
-            _versionsCombo.Items = versions;
+            _versionsCombo.Items = versions.Versions;
             _versionsCombo.SelectedIndex = index;
             if (_selectionChanged) return;
             _versionsCombo.SelectionChanged += (_, e) => {
@@ -407,6 +469,130 @@ public class MainWindow : Window
             };
             _selectionChanged = true;
         });
+    }
+
+    private VersionsReturn GetVersions()
+    {
+        Logger.Information("Loading versions...");
+        var versions = new List<LauncherConfig.VersionClass>();
+        if (CheckForInternet())
+        {
+            Logger.Information("Internet available, fetching");
+            var json = MojangFetcher.GetVersions();
+            foreach (var i in json.Versions)
+            {
+                try
+                {
+                    var sb = new StringBuilder();
+                    switch (i.Type)
+                    {
+                        case BlowaunchMainJson.JsonType.release:
+                            sb.Append("Release ");
+                            break;
+                        case BlowaunchMainJson.JsonType.snapshot:
+                            if (!Config.ShowSnapshots) continue;
+                            sb.Append("Snapshot ");
+                            break;
+                        case BlowaunchMainJson.JsonType.old_beta:
+                            if (!Config.ShowBeta) continue;
+                            sb.Append("Beta ");
+                            break;
+                        case BlowaunchMainJson.JsonType.old_alpha:
+                            if (!Config.ShowAlpha) continue;
+                            sb.Append("Alpha ");
+                            break;
+                    }
+
+                    sb.Append(i.Id);
+                    var item = new LauncherConfig.VersionClass
+                    { Name = sb.ToString(), Id = i.Id };
+                    versions.Add(item);
+                }
+                catch (Exception e)
+                {
+                    Logger.Error($"Unable to load {i.Id}! {0}", e);
+                }
+            }
+        }
+        else
+        {
+            Logger.Warning("Internet unavailable!");
+            /*
+            await Dispatcher.UIThread.InvokeAsync(() => {
+                var msBoxStandardWindow = MessageBoxManager
+                    .GetMessageBoxStandardWindow(new MessageBoxStandardParams
+                    {
+                        Icon = MessageBox.Avalonia.Enums.Icon.Warning,
+                        ButtonDefinitions = ButtonEnum.Ok,
+                        ContentMessage = "Offline mode enabled - " +
+                                         "integrity checks would be " +
+                                         "skipped.",
+                        ContentTitle = "No internet connection!"
+                    });
+                msBoxStandardWindow.Show();
+            });
+            */
+            OfflineMode = true;
+        }
+
+
+        Logger.Information("Loading custom versions...");
+        foreach (var i in Directory.GetDirectories(
+                     FilesManager.Directories.VersionsRoot))
+        {
+            var name = Path.GetFileName(i);
+            if (versions.Any(x => x.Id == name))
+                continue;
+
+            Logger.Information($"Processing {name}");
+            try
+            {
+                var jsonPath = Path.Combine(i + "\\", $"{name}.json");
+                var json = File.ReadAllText(jsonPath);
+                dynamic d = JObject.Parse(json);
+                if (MojangMainJson.IsMojangJson(d))
+                    json = JsonConvert.SerializeObject(
+                        BlowaunchMainJson.MojangToBlowaunch(
+                            JsonConvert.DeserializeObject
+                                <MojangMainJson>(json)));
+                var actualJson = JsonConvert.DeserializeObject
+                    <BlowaunchMainJson>(json);
+                var sb = new StringBuilder();
+                switch (actualJson!.Type)
+                {
+                    case BlowaunchMainJson.JsonType.release:
+                        sb.Append("Release ");
+                        break;
+                    case BlowaunchMainJson.JsonType.snapshot:
+                        if (!Config.ShowSnapshots) continue;
+                        sb.Append("Snapshot ");
+                        break;
+                    case BlowaunchMainJson.JsonType.old_beta:
+                        if (!Config.ShowBeta) continue;
+                        sb.Append("Beta ");
+                        break;
+                    case BlowaunchMainJson.JsonType.old_alpha:
+                        if (!Config.ShowAlpha) continue;
+                        sb.Append("Alpha ");
+                        break;
+                }
+
+                sb.Append(actualJson.Version);
+                var item = new LauncherConfig.VersionClass
+                { Name = sb.ToString(), Id = name };
+                versions.Add(item);
+            }
+            catch (Exception e)
+            {
+                Logger.Error("Unable to load the version! {0}", e);
+            }
+        }
+        return new VersionsReturn()
+        {
+            Versions = versions,
+            IsOffline = OfflineMode
+
+        };
     }
     #endregion
     #region Configuration
@@ -464,9 +650,13 @@ public class MainWindow : Window
     /// </summary>
     private void SaveConfig()
     {
-        try { File.WriteAllText("config.json",
+        try { 
+            File.WriteAllText("config.json",
             JsonConvert.SerializeObject(
-                Config)); }
+                Config, Formatting.Indented,
+           new JsonConverter[] { new StringEnumConverter() }
+                ));
+        }
         catch (Exception e) {
             Logger.Error("Unable to save config! {0}", e);
             /*
@@ -558,7 +748,23 @@ public class MainWindow : Window
         }
     }
 
-   
+    private void ReloadModPacks()
+    {
+        Logger.Information("Loading modpacks...");
+        var modPacks = Config.ModPacks;
+        //modPacks["New Instance"] = new() {Name = "New Instance" };
+        List<LauncherConfig.ModPack> modPacksList = new();
+        modPacksList.Add(new(){ Name = "New Instance" });
+        modPacksList.AddRange(Config.ModPacks.ToList());
+        _modPacksCombo.Items = modPacksList; // Config.ModPacks.ToList();
+
+        var modpack = Config.ModPacks.Where(x =>
+                x.Id == Config.SelectedModPackId)
+            .ToList();
+        _modPacksCombo.SelectedItem = modpack;
+    }
+
+
 
     /// <summary>
     /// Delete selected account
@@ -764,6 +970,11 @@ public class MainWindow : Window
         _forceOffline.IsChecked = Config.ForceOffline;
         _minecraftDemo.IsChecked = Config.DemoUser;
 
+        _modPackRamSlider.Maximum = _info.MemoryList.Sum(
+            x => (long)x.Capacity) / 1000000;
+        _modPackRamManual.Value = int.Parse(Config.RamMax);
+        _modPackRamSlider.Value = int.Parse(Config.RamMax);
+
         if (Config.ForceOffline)
             OfflineMode = true;
     }
@@ -809,6 +1020,72 @@ public class MainWindow : Window
                 _loadingPanel.IsVisible = false;
                 _progressPanel.IsVisible = false;
                 _progressBar.IsIndeterminate = false;
+            });
+        }).Start();
+    }
+
+    /// <summary>
+    /// Save instance
+    /// </summary>
+    public void ModPackSaveChanges(object? sender, RoutedEventArgs e)
+    {
+        //var config = Config.ModPacks[_modPackId.Text];
+        string id = _modPackId.Text;
+        if(id == "")
+        {
+            id = (Config.ModPacks.Count+1).ToString();
+            Logger.Information("Creating new instance");
+        }
+        LauncherConfig.ModPack modpackConfig = new LauncherConfig.ModPack();
+        Logger.Information("Saving instance settings...");
+        modpackConfig.CustomWindowSize = _customWindowSize.IsChecked!.Value;
+        modpackConfig.WindowSize = new Vector2(
+            (int)_modPackWindowWidth.Value,
+            (int)_modPackWindowHeight.Value);
+        modpackConfig.JvmArgs = _modPackJavaArguments.Text;
+        modpackConfig.GameArgs = _modPackGameArguments.Text;
+        modpackConfig.RamMax = _modPackRamManual.Value.ToString(CultureInfo.InvariantCulture);
+        if (_modPackVersionsCombo.SelectedItem is LauncherConfig.VersionClass)
+        {
+            modpackConfig.Version = (LauncherConfig.VersionClass)_modPackVersionsCombo.SelectedItem;
+        }
+        modpackConfig.Id = id;
+        modpackConfig.Name = _modPackName.Text;
+        //config.ShowSnapshots = _showSnaphots.IsChecked!.Value;
+        //config.ShowAlpha = _showAlpha.IsChecked!.Value;
+        //config.ShowBeta = _showBeta.IsChecked!.Value;
+        //config.ForceOffline = _forceOffline.IsChecked!.Value;
+        //config.DemoUser = _minecraftDemo.IsChecked!.Value;
+        
+        var index = Config.ModPacks.FindIndex(mp => mp.Id == modpackConfig.Id);
+        if (index != -1)
+        {
+            Config.ModPacks[index] = modpackConfig;
+        }
+        else
+        {
+            Config.ModPacks.Add(modpackConfig);
+        }
+        SaveConfig();
+        ReloadModPacks();
+
+
+
+        _loadingPanel.IsVisible = true;
+        _progressPanel.IsVisible = true;
+        _progressBar.IsIndeterminate = true;
+
+        new Thread(async () => {
+            await Dispatcher.UIThread.InvokeAsync(() => {
+                _progressInfo.Text = "Loading versions...";
+                _progressFiles.Text = "Step 1 out of 1";
+            });
+            await LoadVersions();
+            await Dispatcher.UIThread.InvokeAsync(() => {
+                _loadingPanel.IsVisible = false;
+                _progressPanel.IsVisible = false;
+                _progressBar.IsIndeterminate = false;
+                _modPackPanel.IsVisible = false;
             });
         }).Start();
     }
@@ -873,7 +1150,40 @@ public class MainWindow : Window
     /// Open Modpack panel
     /// </summary>
     public void OpenModpackPanel(object? sender, RoutedEventArgs e)
-        => _modPackPanel.IsVisible = true;
+    {
+        if (_modPacksCombo != null && _modPacksCombo.SelectedItem != null)
+        {
+            int index = 1;
+            string? id = ((LauncherConfig.ModPack)_modPacksCombo.SelectedItem).Id == null ? "" : _modPacksCombo.SelectedItem.ToString();
+            _modPackId.Text = id == "New Instance" ? "" : id;
+            _modPackPanel.IsVisible = true;
+            var versionsClass = GetVersions();
+            if (versionsClass != null)
+            {
+                if (id != "")
+                {
+                    index = versionsClass.Versions.FindIndex(
+                        x => x.Id == Config.Version.Id
+                             && x.Name == Config.Version.Name);
+                }
+
+                Dispatcher.UIThread.InvokeAsync(() => {
+                    _modPackVersionsCombo.Items = versionsClass.Versions;
+                    _modPackVersionsCombo.SelectedIndex = index;
+                    if (_selectionChanged) return;
+
+                    //_modPackVersionsCombo.SelectionChanged += (_, e) => {
+                    //    if (e.AddedItems.Count == 0) return;
+                    //    Config.Version = (e.AddedItems[0]
+                    //        as LauncherConfig.VersionClass)!;
+                    //    SaveConfig();
+                    //};
+                    //_selectionChanged = true;
+                });
+            }
+        }
+    }
+        
     #endregion
     #region Runner
 

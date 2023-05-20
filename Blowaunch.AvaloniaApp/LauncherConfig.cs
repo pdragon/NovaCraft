@@ -22,6 +22,8 @@ public class LauncherConfig
     }
     public class ModPack
     {
+        [JsonProperty("id")] public string? Id { get; set; }
+        [JsonProperty("name")] public string? Name { get; set; }
         [JsonProperty("version")] public VersionClass Version = new VersionClass() { Id = "1.7.10", Name = "Realese 1.7.10" };
         [JsonProperty("jvmArgs")] public string JvmArgs = "";
         [JsonProperty("maxRam")] public string RamMax = "2048";
@@ -48,4 +50,5 @@ public class LauncherConfig
     [JsonProperty("showBeta")] public bool ShowBeta;                                                                           // [+]
     [JsonProperty("isDemo")] public bool DemoUser;                                                                             // [ ]
     [JsonProperty("modPacks")] public List<ModPack> ModPacks = new();
+    [JsonProperty("selectedModPackId")] public string SelectedModPackId = "";
 }

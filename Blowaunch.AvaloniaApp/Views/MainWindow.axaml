@@ -422,7 +422,7 @@
 							</TextBlock>
 							<ToggleSwitch OffContent="Custom Window Size"
 										  OnContent="Custom Window Size"
-										  Name="CustomWindowSize0">
+										  Name="ModPackCustomWindowSize">
 							</ToggleSwitch>
 							<StackPanel Orientation="Horizontal">
 								<TextBlock HorizontalAlignment="Center"
@@ -432,7 +432,7 @@
 								</TextBlock>
 								<NumericUpDown Watermark="Width" Width="145"
 											   Margin="0 5 0 5"
-											   Name="WindowWidth0"/>
+											   Name="ModPackWindowWidth"/>
 							</StackPanel>
 							<StackPanel Orientation="Horizontal">
 								<TextBlock HorizontalAlignment="Center"
@@ -442,7 +442,7 @@
 								</TextBlock>
 								<NumericUpDown Watermark="Height" Width="140"
 											   Margin="0 5 0 10"
-											   Name="WindowHeight0"/>
+											   Name="ModPackWindowHeight"/>
 							</StackPanel>
 						</StackPanel>
 					</Border>
@@ -460,11 +460,11 @@
 							</TextBlock>
 							<TextBox Width="240" Watermark="Java Arguments"
 									 Margin="0 0 10 5"
-									 Name="JavaArguments0">
+									 Name="ModPackJavaArguments">
 							</TextBox>
 							<TextBox Width="240" Watermark="Game Arguments"
 									 Margin="0 0 10 10"
-									 Name="GameArguments0">
+									 Name="ModPackGameArguments">
 							</TextBox>
 							<StackPanel Orientation="Horizontal"
 										HorizontalAlignment="Center">
@@ -475,11 +475,11 @@
 								</TextBlock>
 								<NumericUpDown Width="125" Watermark="Manual"
 										 Margin="10 0 0 0"
-										 Name="RamManual0">
+										 Name="ModPackRamManual">
 								</NumericUpDown>
 							</StackPanel>
 							<Slider Margin="0 -15 0 -15"
-									Name="RamSlider0"/>
+									Name="ModPackRamSlider"/>
 						</StackPanel>
 					</Border>
 					<Border Background="Black"
@@ -496,7 +496,7 @@
 							<ComboBox HorizontalAlignment="Center"
 									  Width="200" SelectedIndex="0"
 									  VirtualizationMode="Simple"
-									  Name="Versions0">
+									  Name="ModPackVersions">
 								<ComboBox.ItemTemplate>
 									<DataTemplate>
 										<TextBlock Text="{Binding 
@@ -512,15 +512,15 @@
 									   Margin="0 20 0 10"/>
 							<ComboBox HorizontalAlignment="Center"
 									  Width="200" SelectedIndex="0">
-								<ComboBoxItem Name="Vanilla0">
+								<ComboBoxItem Name="ModPackVanilla">
 									<TextBlock Text="None"
 											   HorizontalAlignment="Left"/>
 								</ComboBoxItem>
-								<ComboBoxItem Name="Forge0">
+								<ComboBoxItem Name="ModPackForge">
 									<TextBlock Text="Forge"
 											   HorizontalAlignment="Left"/>
 								</ComboBoxItem>
-								<ComboBoxItem Name="Fabric0">
+								<ComboBoxItem Name="ModPackFabric">
 									<TextBlock Text="Fabric"
 											   HorizontalAlignment="Left"/>
 								</ComboBoxItem>
@@ -529,7 +529,38 @@
 					</Border>
 					
 				</StackPanel>
+				<StackPanel Orientation="Horizontal">
+					<Border Background="Black"
+														   BorderBrush="White"
+														   Opacity="50"
+														   BorderThickness="2"
+														   CornerRadius="3"
+														   Padding="10">
+						<StackPanel Orientation="Vertical"
+									Width="240">
+							<TextBlock HorizontalAlignment="Center"
+									   FontSize="18" Margin="0 0 0 5">
+								Misc
+							</TextBlock>
+							<TextBox Width="240" Watermark="Path to instance"
+									 Margin="0 0 10 5"
+									 Name="ModPackPathInstance">
+							</TextBox>
+							<TextBox Width="240" Watermark="Name of instance"
+									 Margin="0 0 10 5"
+									 Name="ModPackName">
+							</TextBox>
+							<TextBox Width="240" Watermark="Instance Id"
+									 IsVisible="True"
+								Margin="0 0 10 5"
+								Name="ModPackId">1
+							</TextBox>
+						</StackPanel>
+					</Border>
+				</StackPanel>
 			</StackPanel>
+
+		
 			<StackPanel Orientation="Vertical">
 				<StackPanel Orientation="Horizontal">
 			<Border Background="Black"
@@ -548,8 +579,8 @@
 							CornerRadius="5"
 							HorizontalAlignment="Center"
 							Margin="0 0 10 0"
-							Name="SaveChanges0"
-							Click="SaveChanges">
+							Name="ModPackSaveChanges"
+							Click="ModPackSaveChanges">
 						<Button.Styles>
 							<Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
 								<Setter Property="Background"
