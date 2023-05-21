@@ -31,6 +31,7 @@ public class LauncherConfig
         [JsonProperty("windowSize")] public Vector2 WindowSize = new(200, 200);
         [JsonProperty("gameArgs")] public string GameArgs = "";
         [JsonProperty("packPath")] public string PackPath = "";
+        [JsonProperty("ModProxy")] public string ModProxy = "";
 
     }
 

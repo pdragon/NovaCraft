@@ -26,6 +26,7 @@ using Newtonsoft.Json.Linq;
 using Serilog;
 using Serilog.Core;
 using Spectre.Console;
+using static Blowaunch.AvaloniaApp.LauncherConfig;
 using Panel = Avalonia.Controls.Panel;
 
 namespace Blowaunch.AvaloniaApp.Views;
@@ -82,6 +83,8 @@ public class MainWindow : Window
     private ComboBox _modPacksCombo;
     private ComboBox _modPackVersionsCombo;
     private TextBox _modPackName;
+    private ComboBox _modPackModProxyCombo;
+    private TextBox _modPackPathInstance;
 
     #endregion
     #region Other stuff
@@ -112,6 +115,12 @@ public class MainWindow : Window
     /// Did the SelectionChanged event was set?
     /// </summary>
     private bool _selectionChanged;
+
+    private Dictionary<int, string> ProxyDict = new Dictionary<int, string>() {
+            { 0 , "ModPackVanilla" },
+            { 1 , "ModPackForge" },
+            { 2 , "ModPackFabric" },
+        };
 
     private class VersionsReturn
     {
@@ -282,7 +291,9 @@ public class MainWindow : Window
         _modPackRamSlider = this.FindControl<Slider>("ModPackRamSlider");
         _modPacksCombo = this.FindControl<ComboBox>("ModPacks");
         _modPackVersionsCombo = this.FindControl<ComboBox>("ModPackVersions");
-        _modPackName = this.FindControl<TextBox>("ModPackName"); 
+        _modPackName = this.FindControl<TextBox>("ModPackName");
+        _modPackModProxyCombo = this.FindControl<ComboBox>("ModPackModProxyCombo");
+        _modPackPathInstance = this.FindControl<TextBox>("ModPackPathInstance");
 
         _ramManual.ValueChanged += (_, e) => {
             // ReSharper disable once CompareOfFloatsByEqualityOperator
@@ -325,6 +336,13 @@ public class MainWindow : Window
             if (_modPackRamSlider.Value == _modPackRamManual.Value)
                 return;
             _modPackRamManual.Value = _modPackRamSlider.Value;
+        };
+
+        _modPacksCombo.SelectionChanged += (_, e) => {
+            var modPack = (LauncherConfig.ModPack?)_modPacksCombo.SelectedItem;
+            if (modPack == null || modPack.Name == "New Instance") return;
+            Config.SelectedModPackId = modPack.Id ?? "";
+            SaveConfig();
         };
     }
     #endregion
@@ -754,14 +772,15 @@ public class MainWindow : Window
         var modPacks = Config.ModPacks;
         //modPacks["New Instance"] = new() {Name = "New Instance" };
         List<LauncherConfig.ModPack> modPacksList = new();
-        modPacksList.Add(new(){ Name = "New Instance" });
+        modPacksList.Add(new(){ Name = "New Instance", Id = "New Instance" });
         modPacksList.AddRange(Config.ModPacks.ToList());
         _modPacksCombo.Items = modPacksList; // Config.ModPacks.ToList();
 
         var modpack = Config.ModPacks.Where(x =>
                 x.Id == Config.SelectedModPackId)
-            .ToList();
+            .FirstOrDefault();
         _modPacksCombo.SelectedItem = modpack;
+
     }
 
 
@@ -1029,11 +1048,10 @@ public class MainWindow : Window
     /// </summary>
     public void ModPackSaveChanges(object? sender, RoutedEventArgs e)
     {
-        //var config = Config.ModPacks[_modPackId.Text];
         string id = _modPackId.Text;
         if(id == "")
         {
-            id = (Config.ModPacks.Count+1).ToString();
+            id = Guid.NewGuid().ToString();
             Logger.Information("Creating new instance");
         }
         LauncherConfig.ModPack modpackConfig = new LauncherConfig.ModPack();
@@ -1051,12 +1069,19 @@ public class MainWindow : Window
         }
         modpackConfig.Id = id;
         modpackConfig.Name = _modPackName.Text;
+        modpackConfig.RamMax = _modPackRamSlider.Value.ToString(CultureInfo.InvariantCulture);
+        modpackConfig.PackPath = _modPackPathInstance.Text;
         //config.ShowSnapshots = _showSnaphots.IsChecked!.Value;
         //config.ShowAlpha = _showAlpha.IsChecked!.Value;
         //config.ShowBeta = _showBeta.IsChecked!.Value;
         //config.ForceOffline = _forceOffline.IsChecked!.Value;
         //config.DemoUser = _minecraftDemo.IsChecked!.Value;
-        
+
+
+        if (_modPackModProxyCombo.SelectedIndex > -1)
+        {
+            modpackConfig.ModProxy = ProxyDict[_modPackModProxyCombo.SelectedIndex];
+        }
         var index = Config.ModPacks.FindIndex(mp => mp.Id == modpackConfig.Id);
         if (index != -1)
         {
@@ -1065,6 +1090,11 @@ public class MainWindow : Window
         else
         {
             Config.ModPacks.Add(modpackConfig);
+        }
+        if (modpackConfig.Name == null || modpackConfig.Name == "")
+        {
+            ShowMessage("Name can't be empty", "Error occured");
+            return;
         }
         SaveConfig();
         ReloadModPacks();
@@ -1151,11 +1181,34 @@ public class MainWindow : Window
     /// </summary>
     public void OpenModpackPanel(object? sender, RoutedEventArgs e)
     {
+
         if (_modPacksCombo != null && _modPacksCombo.SelectedItem != null)
         {
+            LauncherConfig.ModPack modPack = Config.ModPacks.Find(mp => mp.Id == ((LauncherConfig.ModPack)_modPacksCombo.SelectedItem).Id) ?? new LauncherConfig.ModPack();
+            if(modPack.Id == null)
+            {
+                ShowMessage("Something wrong", "Error occured");
+            }
             int index = 1;
-            string? id = ((LauncherConfig.ModPack)_modPacksCombo.SelectedItem).Id == null ? "" : _modPacksCombo.SelectedItem.ToString();
+            string? id = ((LauncherConfig.ModPack)_modPacksCombo.SelectedItem).Id == null ? Guid.NewGuid().ToString() : modPack.Id;
             _modPackId.Text = id == "New Instance" ? "" : id;
+            if (modPack.ModProxy != "")
+            {
+                var proxyIndex = ProxyDict.FirstOrDefault(x => x.Value == modPack.ModProxy).Key;
+                if(proxyIndex != -1){
+                    _modPackModProxyCombo.SelectedIndex = proxyIndex;
+                }
+            }
+            _modPackName.Text =  modPack.Name;
+            _modPackRamSlider.Value = Convert.ToDouble(modPack.RamMax);
+            _modPackPathInstance.Text = modPack.PackPath;
+            //_modPackVersionsCombo.Items.F = (LauncherConfig.VersionClass?)modPack.Version;
+            //LauncherConfig.VersionClass? a = _modPackVersionsCombo.FirstOrDefault(modPack.Version);
+            //_modPackVersionsCombo.SelectedItem = modPack.Version;
+            if (id == "")
+            {
+                return;
+            }
             _modPackPanel.IsVisible = true;
             var versionsClass = GetVersions();
             if (versionsClass != null)
@@ -1163,13 +1216,14 @@ public class MainWindow : Window
                 if (id != "")
                 {
                     index = versionsClass.Versions.FindIndex(
-                        x => x.Id == Config.Version.Id
-                             && x.Name == Config.Version.Name);
+                        x => x.Id == modPack.Version.Id
+                             && x.Name == modPack.Version.Name);
                 }
 
                 Dispatcher.UIThread.InvokeAsync(() => {
                     _modPackVersionsCombo.Items = versionsClass.Versions;
                     _modPackVersionsCombo.SelectedIndex = index;
+                    //_modPackVersionsCombo.SelectedItem = modPack.Version;
                     if (_selectionChanged) return;
 
                     //_modPackVersionsCombo.SelectionChanged += (_, e) => {
@@ -1246,6 +1300,35 @@ public class MainWindow : Window
         }
         else
         {
+            var currentModpack =  (LauncherConfig.ModPack?)_modPacksCombo.SelectedItem;
+            if (currentModpack == null || currentModpack.Id == null || currentModpack.Id == "") {
+                ShowMessage("Error","Error");
+                return;
+            }
+            // TODO: Create Root Dir Input
+            //if(currentModpack.PackPath != "")
+            //{
+                //FilesManager.Directories.Root = currentModpack.PackPath;
+            //}
+            Runner.Configuration config = new Runner.Configuration()
+            {
+                RamMax = currentModpack.RamMax,
+                JvmArgs = currentModpack.JvmArgs,
+                GameArgs = currentModpack.GameArgs,
+                CustomWindowSize = currentModpack.CustomWindowSize,
+                WindowSize = currentModpack.WindowSize,//new(320, 200),
+                Version = currentModpack.Version.Id,//version,
+                Type = Runner.Configuration.VersionType.OfficialMojang,
+                ForceOffline = Config.ForceOffline,
+                DemoUser = Config.DemoUser,
+                Account = new Account()
+                {
+                    Id = Config.SelectedAccountId,
+                    Type = Account.AuthType.None,
+                    Name = User.Name
+                }
+            };
+            /*
             Runner.Configuration config = new Runner.Configuration()
             {
                 RamMax = Config.RamMax,
@@ -1264,7 +1347,9 @@ public class MainWindow : Window
                     Name = User.Name
                 }
             };
-            string startStr = Runner.GenerateCommand(MojangFetcher.GetMain(Config.Version.Id), config);
+            */
+            //string startStr = Runner.GenerateCommand(MojangFetcher.GetMain(Config.Version.Id), config);
+            string startStr = Runner.GenerateCommand(MojangFetcher.GetMain(config.Version), config);
             AnsiConsole.WriteLine("[INF] Running The Game");
 
             ProcessStartInfo JavaProcessStartInfo = new ProcessStartInfo
@@ -1283,6 +1368,37 @@ public class MainWindow : Window
             JavaProcess.WaitForExit();
             AnsiConsole.WriteLine("[INF] Stopping The Game");
         }
+    }
+    #endregion
+
+    #region Helpers
+    private ButtonResult ShowMessage(
+        string message, 
+        string title, 
+        ButtonEnum button = ButtonEnum.Ok, 
+        Icon icon = MessageBox.Avalonia.Enums.Icon.Error,
+        string progressInfoText = ""
+    )
+    {
+        new Thread(async () =>
+        {
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                _progressBar.IsIndeterminate = false;
+                _progressPanel.IsVisible = false;
+                _progressInfo.Text = "";
+                var msBoxStandardWindow = MessageBoxManager
+                    .GetMessageBoxStandardWindow(new MessageBoxStandardParams
+                    {
+                        Icon = icon,
+                        ButtonDefinitions = button,
+                        ContentMessage = message,
+                        ContentTitle = title
+                    });
+                return msBoxStandardWindow.Show();
+            });
+        }).Start();
+        return new ButtonResult();
     }
     #endregion
 }

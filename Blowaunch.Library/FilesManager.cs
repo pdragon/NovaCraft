@@ -19,6 +19,8 @@ public static class FilesManager
     /// </summary>
     public static class Directories
     {
+        //public static string Root =
+        //    Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), ".blowaunch");
         public static readonly string Root =
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), ".blowaunch");
         public static readonly string AssetsRoot =

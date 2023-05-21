@@ -511,7 +511,7 @@
 									   HorizontalAlignment="Center"
 									   Margin="0 20 0 10"/>
 							<ComboBox HorizontalAlignment="Center"
-									  Width="200" SelectedIndex="0">
+									  Width="200" SelectedIndex="0"  Name="ModPackModProxyCombo">
 								<ComboBoxItem Name="ModPackVanilla">
 									<TextBlock Text="None"
 											   HorizontalAlignment="Left"/>
