@@ -61,7 +61,8 @@ public static class FilesManager
             mainJSON = (MojangFetcher.GetMain(version));
         }
         var path = Path.Combine(Directories.AssetsObject, mainJSON.Assets.ShaHash.Substring(0, 2), mainJSON.Assets.ShaHash);
-        var indexPath = Path.Combine(Directories.AssetsRoot, "indexes", String.Join(".", version.Split(".").SkipLast(1)) + ".json");
+        //var indexPath = Path.Combine(Directories.AssetsRoot, "indexes", String.Join(".", version.Split(".").SkipLast(1)) + ".json");
+        var indexPath = Path.Combine(Directories.AssetsRoot, "indexes", String.Join(".", version) + ".json");
         if (!File.Exists(path)){
             if (online)
                 DownloadMojangAssetsJson(version, true);

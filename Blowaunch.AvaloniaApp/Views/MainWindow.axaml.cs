@@ -568,7 +568,8 @@ public class MainWindow : Window
                 var jsonPath = Path.Combine(i + "\\", $"{name}.json");
                 var json = File.ReadAllText(jsonPath);
                 dynamic d = JObject.Parse(json);
-                if (MojangMainJson.IsMojangJson(d))
+                // TODO: check for forge json
+                if (MojangMainJson.IsNotBlowaunchJson(d))
                     json = JsonConvert.SerializeObject(
                         BlowaunchMainJson.MojangToBlowaunch(
                             JsonConvert.DeserializeObject
@@ -1267,20 +1268,27 @@ public class MainWindow : Window
 
     private async Task LoadData(bool online)
     {
-        BlowaunchMainJson main = (MojangFetcher.GetMain(Config.Version.Id));
+        var currentModpack = (LauncherConfig.ModPack?)_modPacksCombo.SelectedItem;
+        if (currentModpack == null)
+        {
+            ShowMessage("Please select modPack", "Error");
+            return;
+        }
+        BlowaunchMainJson main = (MojangFetcher.GetMain(currentModpack.Version.Id));
         ProgressModal("Loading client", "please wait");
         FilesManager.DownloadClient(main, online);
         AnsiConsole.MarkupLine($"[grey] checking and downdloadeing needed libraries " + $"[/]");
         int itemsDownloaded = 0;
+        
         foreach (BlowaunchMainJson.JsonLibrary library in main.Libraries)
         {
             AnsiConsole.MarkupLine($"[grey] library {library.Name} " + $"[/]");
             itemsDownloaded++;
             ProgressModal("Loading libraries...", (int)((float)itemsDownloaded / main.Libraries.Length * 100) + " %");
-            FilesManager.DownloadLibrary(library, Config.Version.Id, online);
+            FilesManager.DownloadLibrary(library, currentModpack.Version.Id, online);
         }
 
-        var MojangJson = FilesManager.LoadMojangAssets(Config.Version.Id, true, main);
+        var MojangJson = FilesManager.LoadMojangAssets(currentModpack.Version.Id, true, main);
         BlowaunchAssetsJson assetsJson = BlowaunchAssetsJson.MojangToBlowaunch(MojangJson);
 
         for(int i = 0; i < assetsJson.Assets.Length; i++)

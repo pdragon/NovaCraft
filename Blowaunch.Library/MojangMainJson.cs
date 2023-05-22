@@ -175,7 +175,7 @@ public class MojangMainJson
     /// </summary>
     /// <param name="json">Dynamic JSON</param>
     /// <returns>Boolean value</returns>
-    public static bool IsMojangJson(dynamic json)
+    public static bool IsNotBlowaunchJson(dynamic json)
         => !Helper.HasProperty(json, "author")
             || string.IsNullOrEmpty(json.author);
 }
