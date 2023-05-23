@@ -565,7 +565,18 @@ public class MainWindow : Window
             Logger.Information($"Processing {name}");
             try
             {
-                var jsonPath = Path.Combine(i + "\\", $"{name}.json");
+                string? dirName = i;
+                string jsonPath;
+                if (ForgeJson.IsForgeJSONFilename(name))
+                {
+                    continue;
+                    //dirName = i.Split("-forge-")[0];
+                    //jsonPath = Path.Combine(dirName + "\\", $"{name.Split("-forge-")[0]}.json");
+                }
+                else
+                {
+                    jsonPath = Path.Combine(dirName + "\\", $"{name}.json");
+                }
                 var json = File.ReadAllText(jsonPath);
                 dynamic d = JObject.Parse(json);
                 // TODO: check for forge json

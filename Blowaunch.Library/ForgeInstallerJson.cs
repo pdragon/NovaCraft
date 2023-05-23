@@ -23,4 +23,8 @@ public class ForgeInstallerJson
     [JsonProperty("Data")] public Dictionary<string, JsonServerClientPair> Data;
     [JsonProperty("libraries")] public MojangMainJson.JsonLibrary[] Libraries;
     [JsonProperty("processors")] public JsonProcessor[] Processors;
+
+    //------------------------------------------------------------------------
+
+
 }

@@ -57,113 +57,131 @@ public class BlowaunchMainJson
     {
         gameArguments = new List<JsonArgument>();
         jvmArguments = new List<JsonArgument>();
-        foreach (var obj in mojang.Arguments.Game) {
-            var arg = new JsonArgument {
-                Allow = Array.Empty<string>(),
-                Disallow = Array.Empty<string>(),
-                ValueList = Array.Empty<string>(),
-                Value = ""
-            };
-            if (obj is JObject a) {
-                var nonstring = JsonConvert.DeserializeObject<MojangMainJson.JsonNonStringArgument>(a.ToString());
-                if (nonstring.Value is JArray o) {
-                    var collection = JsonConvert.DeserializeObject<string[]>(o.ToString());
-                    if (collection != null) arg.ValueList = collection;
-                }
-                else arg.Value = (string) nonstring.Value;
-
-                var list1 = new List<string>();
-                var list2 = new List<string>();
-                foreach (var rule in nonstring.Rules) {
-                    switch (rule.Action) {
-                        case MojangMainJson.JsonAction.allow:
-                            if (rule.Os != null) {
-                                if (rule.Os.Name != null)
-                                    list1.Add($"os-name:{rule.Os.Name}");
-                                if (rule.Os.Version != null)
-                                    list1.Add($"os-version:{rule.Os.Version}");
-                            }
-
-                            if (rule.Features != null)
-                                foreach (var pair in rule.Features)
-                                    list1.Add(pair.Key);
-                            break;
-                        case MojangMainJson.JsonAction.disallow:
-                            if (rule.Os != null) {
-                                if (rule.Os.Name != null)
-                                    list2.Add($"os-name:{rule.Os.Name}");
-                                if (rule.Os.Version != null)
-                                    list2.Add($"os-version:{rule.Os.Version}");
-                            }
-
-                            if (rule.Features != null)
-                                foreach (var pair in rule.Features)
-                                    list2.Add(pair.Key);
-                            break;
-                    }
-                }
-
-                arg.Allow = list1.ToArray();
-                arg.Disallow = list2.ToArray();
-            }
-            else arg.Value = (string) obj;
-
-            gameArguments.Add(arg);
-        }
-
-        foreach (var obj in mojang.Arguments.Java)
+        if (mojang.Arguments != null)
         {
-            var arg = new JsonArgument {
-                Allow = Array.Empty<string>(),
-                Disallow = Array.Empty<string>(),
-                ValueList = Array.Empty<string>(),
-                Value = ""
-            };
-            if (obj is JObject a) {
-                var nonstring = JsonConvert.DeserializeObject<MojangMainJson.JsonNonStringArgument>(a.ToString());
-                if (nonstring.Value is JArray o) {
-                    var collection = JsonConvert.DeserializeObject<string[]>(o.ToString());
-                    if (collection != null) arg.ValueList = collection;
-                }
-                else arg.Value = (string) nonstring.Value;
-
-                var list1 = new List<string>();
-                var list2 = new List<string>();
-                foreach (var rule in nonstring.Rules) {
-                    switch (rule.Action) {
-                        case MojangMainJson.JsonAction.allow:
-                            if (rule.Os != null) {
-                                if (rule.Os.Name != null)
-                                    list1.Add($"os-name:{rule.Os.Name}");
-                                if (rule.Os.Version != null)
-                                    list1.Add($"os-version:{rule.Os.Version}");
-                            }
-
-                            if (rule.Features != null)
-                                foreach (var pair in rule.Features)
-                                    list1.Add(pair.Key);
-                            break;
-                        case MojangMainJson.JsonAction.disallow:
-                            if (rule.Os != null) {
-                                if (rule.Os.Name != null)
-                                    list2.Add($"os-name:{rule.Os.Name}");
-                                if (rule.Os.Version != null)
-                                    list2.Add($"os-version:{rule.Os.Version}");
-                            }
-
-                            if (rule.Features != null)
-                                foreach (var pair in rule.Features)
-                                    list2.Add(pair.Key);
-                            break;
+            foreach (var obj in mojang.Arguments.Game)
+            {
+                var arg = new JsonArgument
+                {
+                    Allow = Array.Empty<string>(),
+                    Disallow = Array.Empty<string>(),
+                    ValueList = Array.Empty<string>(),
+                    Value = ""
+                };
+                if (obj is JObject a)
+                {
+                    var nonstring = JsonConvert.DeserializeObject<MojangMainJson.JsonNonStringArgument>(a.ToString());
+                    if (nonstring.Value is JArray o)
+                    {
+                        var collection = JsonConvert.DeserializeObject<string[]>(o.ToString());
+                        if (collection != null) arg.ValueList = collection;
                     }
+                    else arg.Value = (string)nonstring.Value;
+
+                    var list1 = new List<string>();
+                    var list2 = new List<string>();
+                    foreach (var rule in nonstring.Rules)
+                    {
+                        switch (rule.Action)
+                        {
+                            case MojangMainJson.JsonAction.allow:
+                                if (rule.Os != null)
+                                {
+                                    if (rule.Os.Name != null)
+                                        list1.Add($"os-name:{rule.Os.Name}");
+                                    if (rule.Os.Version != null)
+                                        list1.Add($"os-version:{rule.Os.Version}");
+                                }
+
+                                if (rule.Features != null)
+                                    foreach (var pair in rule.Features)
+                                        list1.Add(pair.Key);
+                                break;
+                            case MojangMainJson.JsonAction.disallow:
+                                if (rule.Os != null)
+                                {
+                                    if (rule.Os.Name != null)
+                                        list2.Add($"os-name:{rule.Os.Name}");
+                                    if (rule.Os.Version != null)
+                                        list2.Add($"os-version:{rule.Os.Version}");
+                                }
+
+                                if (rule.Features != null)
+                                    foreach (var pair in rule.Features)
+                                        list2.Add(pair.Key);
+                                break;
+                        }
+                    }
+
+                    arg.Allow = list1.ToArray();
+                    arg.Disallow = list2.ToArray();
                 }
+                else arg.Value = (string)obj;
 
-                arg.Allow = list1.ToArray();
-                arg.Disallow = list2.ToArray();
+                gameArguments.Add(arg);
             }
-            else arg.Value = (string) obj;
 
-            jvmArguments.Add(arg);
+            foreach (var obj in mojang.Arguments.Java)
+            {
+                var arg = new JsonArgument
+                {
+                    Allow = Array.Empty<string>(),
+                    Disallow = Array.Empty<string>(),
+                    ValueList = Array.Empty<string>(),
+                    Value = ""
+                };
+                if (obj is JObject a)
+                {
+                    var nonstring = JsonConvert.DeserializeObject<MojangMainJson.JsonNonStringArgument>(a.ToString());
+                    if (nonstring.Value is JArray o)
+                    {
+                        var collection = JsonConvert.DeserializeObject<string[]>(o.ToString());
+                        if (collection != null) arg.ValueList = collection;
+                    }
+                    else arg.Value = (string)nonstring.Value;
+
+                    var list1 = new List<string>();
+                    var list2 = new List<string>();
+                    foreach (var rule in nonstring.Rules)
+                    {
+                        switch (rule.Action)
+                        {
+                            case MojangMainJson.JsonAction.allow:
+                                if (rule.Os != null)
+                                {
+                                    if (rule.Os.Name != null)
+                                        list1.Add($"os-name:{rule.Os.Name}");
+                                    if (rule.Os.Version != null)
+                                        list1.Add($"os-version:{rule.Os.Version}");
+                                }
+
+                                if (rule.Features != null)
+                                    foreach (var pair in rule.Features)
+                                        list1.Add(pair.Key);
+                                break;
+                            case MojangMainJson.JsonAction.disallow:
+                                if (rule.Os != null)
+                                {
+                                    if (rule.Os.Name != null)
+                                        list2.Add($"os-name:{rule.Os.Name}");
+                                    if (rule.Os.Version != null)
+                                        list2.Add($"os-version:{rule.Os.Version}");
+                                }
+
+                                if (rule.Features != null)
+                                    foreach (var pair in rule.Features)
+                                        list2.Add(pair.Key);
+                                break;
+                        }
+                    }
+
+                    arg.Allow = list1.ToArray();
+                    arg.Disallow = list2.ToArray();
+                }
+                else arg.Value = (string)obj;
+
+                jvmArguments.Add(arg);
+            }
         }
     }
 
