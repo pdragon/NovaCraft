@@ -9,6 +9,9 @@
         <AssemblyVersion>0.0.0.1</AssemblyVersion>
         <FileVersion>0.0.1</FileVersion>
         <AnalysisLevel>none</AnalysisLevel>
+        <StartupObject>Blowaunch.AvaloniaApp.Program</StartupObject>
+        <ApplicationIcon>minecraft.ico</ApplicationIcon>
+        <AssemblyName>BlowaunchLauncher</AssemblyName>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
       <FileAlignment>1024</FileAlignment>
@@ -20,6 +23,9 @@
         <Folder Include="Models\" />
         <AvaloniaResource Include="Assets\**" />
         <None Remove=".gitignore" />
+    </ItemGroup>
+    <ItemGroup>
+      <Content Include="minecraft.ico" />
     </ItemGroup>
     <ItemGroup>
         <PackageReference Include="Avalonia" Version="0.10.13" />
@@ -35,6 +41,7 @@
         <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
     </ItemGroup>
     <ItemGroup>
+      <ProjectReference Include="..\Blowaunch.ConsoleApp\Blowaunch.ConsoleApp.csproj" />
       <ProjectReference Include="..\Blowaunch.Library\Blowaunch.Library.csproj" />
     </ItemGroup>
 </Project>

@@ -59,10 +59,15 @@ namespace Blowaunch.ConsoleApp
                     ? $"[green]Internet connection present, online mode[/]"
                     : $"[yellow]No internet, offline mode[/]");
 
-            if (!online && json.Auth.Type != Runner.Configuration.AuthClass.AuthType.None)
+            //if (!online && json.Auth.Type != Runner.Configuration.AuthClass.AuthType.None)
+            if (!online && json.Account.Type != Account.AuthType.None)
                 AnsiConsole.MarkupLine("[yellow]No authentication will be performed in offline mode![/]");
             else {
-                switch (json.Auth.Type) {
+                //switch (json.Auth.Type) {
+                //Temporaly comment because I can't have microsoft account to check and edit this one
+                /*
+                switch (json.Account.Type)
+                {
                     case Runner.Configuration.AuthClass.AuthType.Microsoft:
                         if (File.Exists("microsoft.json")) {
                             if (!MicrosoftAuth.Authenticate(File.ReadAllText(
@@ -82,6 +87,7 @@ namespace Blowaunch.ConsoleApp
                             .SerializeObject(new Runner.Configuration(), Formatting.Indented));
                         break;
                 }
+                */
             }
 
             var mainJsonPath =

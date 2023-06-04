@@ -128,9 +128,11 @@ public class BlowaunchAddonJson
         
     [JsonProperty("legacy")] public bool Legacy;
     [JsonProperty("baseVersion")] public string BaseVersion;
+    [JsonProperty("fullVersion")] public string FullVersion;
     [JsonProperty("author")] public string Author;
     [JsonProperty("info")] public string Information;
     [JsonProperty("libraries")] public BlowaunchMainJson.JsonLibrary[] Libraries;
     [JsonProperty("args")] public BlowaunchMainJson.JsonArguments Arguments;
     [JsonProperty("mainClass")] public string MainClass;
+
 }

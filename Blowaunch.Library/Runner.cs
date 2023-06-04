@@ -85,6 +85,17 @@ public static class Runner
     {
         AnsiConsole.WriteLine("[Runner] Generating command");
         var sb = new StringBuilder();
+
+        var forgeVersionName = FilesManager.GetFirstForgeVersion(main.Version);
+        //TODO: Add forge libraries path to -cp
+        var forgeLibrariesList = FilesManager.GetForgeLibrariesPaths(forgeVersionName);
+        if (forgeLibrariesList.Count != 0)
+        {
+            var tmpSourceList = main.Libraries.ToList();
+            tmpSourceList.AddRange(forgeLibrariesList);
+            main.Libraries = tmpSourceList.ToArray();
+        }
+
         sb.Append(string.IsNullOrEmpty(config.JvmArgs)
             ? $"-Xms{config.RamMax}M -Xmx{config.RamMax}M "
             : $"-Xms{config.RamMax}M -Xmx{config.RamMax}M {config.JvmArgs} ");
@@ -146,8 +157,22 @@ public static class Runner
     private static string GenerateClasspath(BlowaunchMainJson main, Configuration config)
     {
         var sb = new StringBuilder();
+        //BlowaunchMainJson.JsonLibrary[] jsonlibraries = new BlowaunchMainJson.JsonLibrary[0];
         var separator = Environment.OSVersion.Platform == PlatformID.Unix ? ":" : ";";
-        sb.Append($"\"{Path.Combine(FilesManager.Directories.VersionsRoot, main.Version, $"{main.Version}.jar")}{separator}");
+        switch (config.Type)
+        {
+            case Configuration.VersionType.OfficialWithForgeModLoader:
+                var forgeVersionName = FilesManager.GetFirstForgeVersion(main.Version);
+                sb.Append($"\"{Path.Combine(FilesManager.Directories.VersionsRoot, forgeVersionName, $"{forgeVersionName}.jar")}{separator}");
+                break;
+            default:
+                sb.Append($"\"{Path.Combine(FilesManager.Directories.VersionsRoot, main.Version, $"{main.Version}.jar")}{separator}");
+                break;
+        }
+
+        
+
+
         for (var index = 0; index < main.Libraries.Length; index++) {
             var lib = main.Libraries[index];
             if (lib.Extract) continue;
@@ -229,8 +254,8 @@ public static class Runner
             .Replace("${assets_root}", FilesManager.Directories.AssetsRoot)
             .Replace("${game_directory}", FilesManager.Directories.Root)
             .Replace("${version_type}", main.Type.ToString().ToLower())
-            //.Replace("${assets_index_name}", main.Assets.Id).Replace("${version_name}", main.Version)
-            .Replace("${assets_index_name}", main.Version).Replace("${version_name}", main.Version)
+            .Replace("${assets_index_name}", main.Assets.Id).Replace("${version_name}", main.Version)
+           // .Replace("${assets_index_name}", main.Version).Replace("${version_name}", main.Version)
 
 
             .Replace("${user_properties}", "{}");

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Blowaunch.Library;
 
@@ -25,6 +26,10 @@ public class ForgeInstallerJson
     [JsonProperty("processors")] public JsonProcessor[] Processors;
 
     //------------------------------------------------------------------------
-
+    public static bool IsOwnJson(dynamic json)
+    {
+        return true;
+    }
+    
 
 }

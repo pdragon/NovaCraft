@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Compression;
@@ -19,10 +20,10 @@ public static class FilesManager
     /// </summary>
     public static class Directories
     {
-        //public static string Root =
-        //    Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), ".blowaunch");
         public static readonly string Root =
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), ".blowaunch");
+        //public static readonly string Root =
+        //    Path.Combine(Path.Combine("r:\\public\\share\\"), ".blowaunch");
         public static readonly string AssetsRoot =
             Path.Combine(Root, "assets");
         public static readonly string AssetsObjects =
@@ -61,8 +62,8 @@ public static class FilesManager
             mainJSON = (MojangFetcher.GetMain(version));
         }
         var path = Path.Combine(Directories.AssetsObject, mainJSON.Assets.ShaHash.Substring(0, 2), mainJSON.Assets.ShaHash);
-        //var indexPath = Path.Combine(Directories.AssetsRoot, "indexes", String.Join(".", version.Split(".").SkipLast(1)) + ".json");
-        var indexPath = Path.Combine(Directories.AssetsRoot, "indexes", String.Join(".", version) + ".json");
+        var indexPath = Path.Combine(Directories.AssetsRoot, "indexes", String.Join(".", version.Split(".").SkipLast(1)) + ".json");
+        //var indexPath = Path.Combine(Directories.AssetsRoot, "indexes", String.Join(".", version) + ".json");
         if (!File.Exists(path)){
             if (online)
                 DownloadMojangAssetsJson(version, true);
@@ -71,6 +72,10 @@ public static class FilesManager
         }
         if (!File.Exists(indexPath))
         {
+            if (!Directory.Exists(Path.Combine(Directories.AssetsRoot, "indexes")))
+            {
+                Directory.CreateDirectory(Path.Combine(Directories.AssetsRoot, "indexes"));
+            }
             File.Copy(path, indexPath);
         }
         var json = File.ReadAllText(path);
@@ -129,6 +134,14 @@ public static class FilesManager
     /// <returns>Path</returns>
     public static string GetLibraryPath(BlowaunchMainJson.JsonLibrary library)
         => Path.Combine(Directories.LibrariesRoot, library.Path.Replace('/', Path.DirectorySeparatorChar));
+
+    /// <summary>
+    /// Get library path
+    /// </summary>
+    /// <param name="library">Mojang Library JSON</param>
+    /// <returns>Path</returns>
+    public static string GetMojangLibraryPath( MojangMainJson.JsonLibrary library)
+        => Path.Combine(Directories.LibrariesRoot, library.Downloads.Artifact.Path.Replace('/', Path.DirectorySeparatorChar));
 
     /// <summary>
     /// Downloads a library
@@ -201,5 +214,160 @@ public static class FilesManager
             } else AnsiConsole.MarkupLine($"[yellow]{logging} hash mismatch: {hash2} and {main.Logging.Download.ShaHash}, " +
                                           $"can't redownload in offline mode![/]");
         }
+    }
+
+    public static void DownloadForge(string version, bool online)
+    {
+        var forgeInstall = GetForgeInstallData(version);
+        var dirName = Path.Combine(Directories.VersionsRoot + Path.DirectorySeparatorChar.ToString(), version);
+        if (forgeInstall != null)
+        {
+            AnsiConsole.MarkupLine($"[green] Donwnloading forge[/]");
+            foreach (var library in forgeInstall.Libraries)
+            {
+                if (library.Downloads.Artifact != null && library.Downloads.Artifact.Url != null && library.Downloads.Artifact.Path != null) {
+                    if (library.Downloads.Artifact.Url != "")
+                    {
+                        //TODO: check for exist
+                        var path = GetMojangLibraryPath(library);
+                        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+                        if (!File.Exists(path))
+                        {
+                            AnsiConsole.MarkupLine($"[green] Donwnloading forge library: {library.Downloads.Artifact.Path}[/]");
+                            Fetcher.Download(library.Downloads.Artifact.Url, path);
+                        }
+                    }
+                    else
+                    {
+                        var filename = library.Downloads.Artifact.Path.Split("/").ToList().Last();
+                        //var extractPath = Path.Combine(Directories.LibrariesRoot, library.Downloads.Artifact.Path.Replace('/', Path.DirectorySeparatorChar), filename);
+                        var extractPath = Path.Combine(dirName, filename);
+                        if (!File.Exists(extractPath))
+                        {
+                            ExtractFile(Path.Combine(dirName, $"{version}-installer.jar"), "maven/"+library.Downloads.Artifact.Path, extractPath);
+                        }
+                    }
+                }
+               
+            }
+        }
+        
+    }
+
+    /// <summary>
+    /// Get libraries from json file 
+    /// </summary>
+    public static ForgeInstallerJson GetForgeInstallData(string versionStr)
+    {
+        List<string> installFiles = new List<string> { "install_profile.json", "version.json" };
+        //string versionStr = "1.12.2-forge-14.23.5.2859";
+        FetchLinkToForgeInstallFile("1.12.2");
+        //string sourceInstallFileName = "version";
+        ForgeInstallerJson actualJson = new ForgeInstallerJson();
+        var dirName = Path.Combine(Directories.VersionsRoot + Path.DirectorySeparatorChar.ToString(), versionStr);
+        //ExtractFile(Path.Combine(dirName, $"{versionStr}-installer.jar"), $"{versionStr}.jar", null);
+        if (!Directory.Exists(dirName))
+        {
+            Directory.CreateDirectory(dirName);
+        }
+        var libraries = new List<MojangMainJson.JsonLibrary>();
+        var forgeInstallerJson = new ForgeInstallerJson();
+        foreach (string filename in installFiles)
+        {
+            ExtractFile(Path.Combine(dirName, $"{versionStr}-installer.jar"), filename, Path.Combine(dirName, $"{filename}"));
+            //var jsonPath = Path.Combine(dirName, $"{filename}.json");
+            var jsonPath = Path.Combine(dirName, $"{filename}");
+            var json = File.ReadAllText(jsonPath);
+            dynamic d = JObject.Parse(json);
+            if (ForgeInstallerJson.IsOwnJson(d)) {
+                actualJson = JsonConvert.DeserializeObject<ForgeInstallerJson>(json);
+                
+                foreach (var library in actualJson.Libraries)
+                {
+                    libraries.Add(library);
+                }
+            }
+        }
+        forgeInstallerJson.Libraries = libraries.ToArray();
+        return forgeInstallerJson;
+    }
+
+    //public static ZipArchiveEntry ExtractFile(string filename, string path)
+    public static void ExtractFile(string filename, string pathInArchive, string extractPath)
+    {
+        if(extractPath == null)
+        {
+            throw new ArgumentNullException("extract path is empty");
+        }
+        if(filename == null)
+        {
+            throw new ArgumentNullException("filename is empty");
+        }
+        using (ZipArchive archive = new ZipArchive(File.Open(filename, FileMode.Open)))
+        {
+            //TODO: realize erase all files button (if some files will have size = 0 in some cases)
+            foreach (ZipArchiveEntry entry in archive.Entries)
+            {
+                if(entry.FullName == pathInArchive && !File.Exists(extractPath))
+                {
+                    entry.ExtractToFile(extractPath);
+                }
+            }
+        }
+    }
+
+    public static void FetchLinkToForgeInstallFile(string version)
+    {
+        
+    }
+
+    public static string GetFirstForgeVersion(string version)
+    {
+        var pattern = "forge-" + version + "-*";
+        var directories = Directory.GetDirectories(Directories.VersionsRoot, pattern);
+        var result = directories.ToList<string>();
+        if(directories.Count() > 0)
+        {
+
+            return directories[0].Split(Path.DirectorySeparatorChar).Last();
+        }
+        return null;
+    }
+
+    public static List<BlowaunchMainJson.JsonLibrary> GetForgeLibrariesPaths(string version)
+    {
+        var result = new List<BlowaunchMainJson.JsonLibrary>();
+        
+        var ext = new List<string> { "json" };
+        var dir = Path.Combine(Directories.VersionsRoot, version);
+        var installFiles = Directory
+            .EnumerateFiles(dir, "*.*", SearchOption.AllDirectories)
+            .Where(s => ext.Contains(Path.GetExtension(s).TrimStart('.').ToLowerInvariant()));
+
+        var libraries = new List<BlowaunchMainJson.JsonLibrary>();
+        var forgeInstallerJson = new ForgeInstallerJson();
+        foreach (string filename in installFiles)
+        {
+            var jsonPath = Path.Combine(dir, $"{filename}");
+            var json = File.ReadAllText(jsonPath);
+            dynamic d = JObject.Parse(json);
+            if (ForgeInstallerJson.IsOwnJson(d))
+            {
+                var actualJson = JsonConvert.DeserializeObject<ForgeInstallerJson>(json);
+
+                foreach (var library in actualJson.Libraries)
+                {
+
+                    result.Add(new BlowaunchMainJson.JsonLibrary
+                    {
+                        Path = library.Downloads.Artifact.Path,
+                        Name = library.Name,
+                        Allow = new String[0],
+                        Disallow = new String[0],
+                    });
+                }
+            }
+        }
+        return result;
     }
 }

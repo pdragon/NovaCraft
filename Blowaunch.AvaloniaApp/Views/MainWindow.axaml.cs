@@ -27,7 +27,9 @@ using Serilog;
 using Serilog.Core;
 using Spectre.Console;
 using static Blowaunch.AvaloniaApp.LauncherConfig;
+using static Blowaunch.Library.Runner;
 using Panel = Avalonia.Controls.Panel;
+using ForgeThingy = Blowaunch.ConsoleApp.ForgeThingy;
 
 namespace Blowaunch.AvaloniaApp.Views;
 #pragma warning disable CS8618
@@ -555,6 +557,10 @@ public class MainWindow : Window
 
 
         Logger.Information("Loading custom versions...");
+        if (!Directory.Exists(FilesManager.Directories.VersionsRoot))
+        {
+            Directory.CreateDirectory(FilesManager.Directories.VersionsRoot);
+        }
         foreach (var i in Directory.GetDirectories(
                      FilesManager.Directories.VersionsRoot))
         {
@@ -1298,16 +1304,43 @@ public class MainWindow : Window
             ProgressModal("Loading libraries...", (int)((float)itemsDownloaded / main.Libraries.Length * 100) + " %");
             FilesManager.DownloadLibrary(library, currentModpack.Version.Id, online);
         }
-
+        //Assets
         var MojangJson = FilesManager.LoadMojangAssets(currentModpack.Version.Id, true, main);
         BlowaunchAssetsJson assetsJson = BlowaunchAssetsJson.MojangToBlowaunch(MojangJson);
 
-        for(int i = 0; i < assetsJson.Assets.Length; i++)
+        for (int i = 0; i < assetsJson.Assets.Length; i++)
         {
             FilesManager.DownloadAsset(assetsJson.Assets[i], online);
-            ProgressModal("Loading assets...", i + " from " + assetsJson.Assets.Length + "("+(int)((float)i / assetsJson.Assets.Length * 100) + " %)");
+            ProgressModal("Loading assets...", (i + 1)  + " from " + assetsJson.Assets.Length + "(" + (int)((float)((int)i+1) / assetsJson.Assets.Length * 100) + " %)");
         }
         AnsiConsole.MarkupLine($"[yellow] downoading complete " + $"[/]");
+
+        switch (currentModpack.ModProxy)
+        {
+            case "ModPackForge":
+
+                // Get forge libraries from install and version files
+
+                //Install forge if not installed
+                
+                var data  = ForgeThingy.GetAddonJson(ForgeThingy.GetLink(currentModpack.Version.Id), main);
+                //TODO: check for processors
+                //ForgeThingy.RunProcessors(main, false);
+                if(Config.SelectedAccountId == null && Config.Accounts.Select(x => x.Id == Config.SelectedAccountId) != null)
+                {
+                    //TODO: messageBox 
+                    return;
+                }
+                Account? acount = Config.Accounts.Find(x => x.Id == Config.SelectedAccountId);
+                if (acount == null)
+                {
+                    //TODO: messageBox 
+                    return;
+                }
+                ForgeThingy.RunWithoutProcessors(main, data, acount, currentModpack.RamMax, currentModpack.CustomWindowSize, currentModpack.WindowSize.X, currentModpack.WindowSize.Y);
+                break;
+                //FilesManager.DownloadForge(currentModpack.Version.Id, online);   
+        }
     }
 
     private async Task RunMinecraftProgress(bool online)
@@ -1327,7 +1360,7 @@ public class MainWindow : Window
             // TODO: Create Root Dir Input
             //if(currentModpack.PackPath != "")
             //{
-                //FilesManager.Directories.Root = currentModpack.PackPath;
+            //FilesManager.Directories.Root = currentModpack.PackPath;
             //}
             Runner.Configuration config = new Runner.Configuration()
             {
@@ -1337,7 +1370,7 @@ public class MainWindow : Window
                 CustomWindowSize = currentModpack.CustomWindowSize,
                 WindowSize = currentModpack.WindowSize,//new(320, 200),
                 Version = currentModpack.Version.Id,//version,
-                Type = Runner.Configuration.VersionType.OfficialMojang,
+                Type = currentModpack.ModProxy == ""? Runner.Configuration.VersionType.OfficialMojang:Configuration.VersionType.OfficialWithForgeModLoader,
                 ForceOffline = Config.ForceOffline,
                 DemoUser = Config.DemoUser,
                 Account = new Account()
@@ -1368,6 +1401,7 @@ public class MainWindow : Window
             };
             */
             //string startStr = Runner.GenerateCommand(MojangFetcher.GetMain(Config.Version.Id), config);
+            
             string startStr = Runner.GenerateCommand(MojangFetcher.GetMain(config.Version), config);
             AnsiConsole.WriteLine("[INF] Running The Game");
 

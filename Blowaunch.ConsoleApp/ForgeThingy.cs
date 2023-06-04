@@ -4,10 +4,13 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using Blowaunch.Library;
+using Blowaunch.Library.Authentication;
 using Newtonsoft.Json;
 using Spectre.Console;
+using static Blowaunch.Library.FilesManager;
 
 namespace Blowaunch.ConsoleApp
 {
@@ -100,6 +103,10 @@ namespace Blowaunch.ConsoleApp
                 task.StartTask();
                 var jar = Path.Combine(Path.GetTempPath(), ".blowaunch-forge", "installer.jar");
                 var dir = Path.Combine(Path.GetTempPath(), ".blowaunch-forge");
+                //var jar = Path.Combine(Directories.VersionsRoot, main.Version, "installer.jar");
+                //var jar = Path.Combine(Directories.VersionsRoot, main.Version, "installer.jar");
+                //var dir = Path.Combine(Directories.VersionsRoot, main.Version);
+
                 if (Directory.Exists(dir)) Directory.Delete(dir, true);
                 Directory.CreateDirectory(dir); Fetcher.Download(link, jar);
                 task.Description = "Extracting";
@@ -115,6 +122,7 @@ namespace Blowaunch.ConsoleApp
                     Author = "LexManos and contributors",
                     Information = "Black magic performed on the installer JAR",
                     BaseVersion = data.Version.Split('-')[0],
+                    FullVersion = data.Version,
                     Arguments = new BlowaunchMainJson.JsonArguments(),
                     MainClass = data.MainClass
                 };
@@ -202,6 +210,12 @@ namespace Blowaunch.ConsoleApp
                 task.Value = 0;
                 task.Description = $"Running processors";
                 task.MaxValue = dataInstaller.Processors.Length;
+                // On early versions processors is absent
+                if (dataInstaller.Processors.Length < 1)
+                {
+                    //RunWithoutProcessors(main, dataInstaller, online);
+                }
+
                 for (var index = 0; index < dataInstaller.Processors.Length; index++) {
                     var proc = dataInstaller.Processors[index];
                     if (proc.Sides != null && !proc.Sides.Contains("client")) {
@@ -299,6 +313,187 @@ namespace Blowaunch.ConsoleApp
                 }
                 task.StopTask();
             });
-        } 
+        }
+        public static void RunWithoutProcessors(BlowaunchMainJson main, BlowaunchAddonJson addonMain, Account account, string maxRam, bool customWindowSize, float width, float height)
+        {
+            
+            var classpath = new StringBuilder();
+            var separator = Environment.OSVersion.Platform == PlatformID.Unix ? ":" : ";";
+            
+            foreach (var library in main.Libraries)
+            {
+                var file2 = FilesManager.GetLibraryPath(new BlowaunchMainJson.JsonLibrary
+                {
+                    Path = library.Path
+                });
+                classpath.Append($"{file2}{separator}");
+            }
+            //classpath.Remove(classpath.Length - 1, 1);
+
+            foreach (var library in addonMain.Libraries)
+            {
+                var file2 = FilesManager.GetLibraryPath(new BlowaunchMainJson.JsonLibrary
+                {
+                    Path = library.Path
+                });
+                classpath.Append($"{file2}{separator}");
+            }
+            //TODO Add check for dir and file exist
+            string file = Path.Combine(FilesManager.Directories.VersionsRoot, main.Version, $"{main.Version}.jar");
+            string addonFile = Path.Combine(FilesManager.Directories.Root, "forge", $"{addonMain.FullVersion}.jar");
+            classpath.Append($"{addonFile}{separator}");          
+
+
+            var args = new StringBuilder();
+            
+            foreach (var arg in addonMain.Arguments.Game)
+            {
+                var replaced = arg.Value.Replace("${user_type}", "legacy")
+                    //.Replace("${auth_access_token}", account.AccessToken)
+                    //.Replace("${auth_uuid}", account.Uuid)
+                    .Replace("${auth_access_token}", "0")
+                    .Replace("${auth_uuid}", "0")
+                    .Replace("${assets_index_name}", main.Assets.Id)
+                    .Replace("${assets_root}", FilesManager.Directories.AssetsRoot)
+                    .Replace("${game_directory}", FilesManager.Directories.Root)
+                    .Replace("${version_name}", main.Version)
+                    .Replace("${auth_player_name}", account.Name)
+                    ;
+                args.Append($"{replaced} ");
+            }
+            if (customWindowSize)
+            {
+                args.Append($"-width {width} ");
+                args.Append($"-height {height} ");
+            }
+
+            var args2 = new StringBuilder();
+            // its works only in java 8
+            List<string> JavaArguments = new List<string> { "-XX:+UnlockExperimentalVMOptions", "-XX:+AlwaysPreTouch", "-XX:+ParallelRefProcEnabled", "-Xms${xms}M", "-Xmx${xmx}M", "-Dfile.encoding=UTF-8", "-Dfml.ignoreInvalidMinecraftCertificates=true", "-Dfml.ignorePatchDiscrepancies=true", "-Djava.net.useSystemProxies=true", "-Djava.library.path=${native_path}"};
+            //TODO: java args pass
+            foreach (var arg in JavaArguments) {
+                var javaArgsReplaced = arg.Replace("${xms}", "2048")
+                        .Replace("${xmx}", maxRam)
+                        .Replace("${native_path}", Path.Combine( Directories.VersionsRoot, main.Version, "natives"));//"C:\\Users\\UserA\\AppData\\Roaming\\.blowaunch\\versions\\1.12.2\\natives");
+                args2.Append($"{javaArgsReplaced} ");
+            }
+
+
+            args.Remove(args.Length - 1, 1);
+            
+            var command = $"{args2} -cp {file}{separator}{classpath} {addonMain.MainClass} {args}";
+            
+            if (main == null)
+            {
+                throw new ArgumentNullException(nameof(main));
+            }
+            var process = new Process();
+            process.StartInfo = new ProcessStartInfo
+            {
+                WorkingDirectory = FilesManager.Directories.Root,
+                FileName = Path.Combine(Path.Combine(FilesManager.Directories.JavaRoot,
+                    main.JavaMajor.ToString()), "bin", !RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "java" : "javaw"),
+                //RedirectStandardOutput = true,
+                //RedirectStandardError = true,
+                UseShellExecute = true,
+                Arguments = command
+            };
+
+            Console.WriteLine(Path.Combine(Path.Combine(FilesManager.Directories.JavaRoot,
+                    main.JavaMajor.ToString()), "bin", !RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "java" : "javaw") + " " + command);
+            
+            process.OutputDataReceived += (_, e) => {
+                if (e.Data == null) return;
+                AnsiConsole.WriteLine(e.Data);
+            };
+            process.ErrorDataReceived += (_, e) => {
+                if (e.Data == null) return;
+                AnsiConsole.WriteLine(e.Data);
+            };
+            process.Start();
+            process.WaitForExit();
+
+        }
+        /*
+        public static void RunWithoutProcessors(BlowaunchMainJson main, ForgeInstallerJson dataInstaller, bool online)
+        {
+            var file = FilesManager.GetLibraryPath(new BlowaunchMainJson.JsonLibrary
+            {
+                Path = dataInstaller.Libraries
+                       .FirstOrDefault(x => x.Name == proc.Jar)!.Downloads.Artifact.Path
+            });
+            var mainClass = "<couldn't find>";
+            using (var fs = new FileStream(file, FileMode.Open, FileAccess.Read))
+            using (var zf = new ICSharpCode.SharpZipLib.Zip.ZipFile(fs))
+            {
+                var ze = zf.GetEntry($"META-INF/MANIFEST.MF");
+                using (var s = zf.GetInputStream(ze))
+                using (var r = new StreamReader(s))
+                {
+                    while (!r.EndOfStream)
+                    {
+                        var line = r.ReadLine();
+                        if (line.StartsWith("Main-Class: "))
+                            mainClass = line.Substring("Main-Class: ".Length,
+                                line.Length - "Main-Class: ".Length);
+                    }
+                }
+            }
+
+            var classpath = new StringBuilder();
+            var separator = Environment.OSVersion.Platform == PlatformID.Unix ? ":" : ";";
+            foreach (var str in proc.Classpath)
+            {
+                var file2 = FilesManager.GetLibraryPath(new BlowaunchMainJson.JsonLibrary
+                {
+                    Path = dataInstaller.Libraries
+                    .FirstOrDefault(x => x.Name == str)!.Downloads.Artifact.Path
+                });
+                classpath.Append($"{file2}{separator}");
+            }
+
+            classpath.Remove(classpath.Length - 1, 1);
+            var args = new StringBuilder();
+            foreach (var arg in proc.Arguments)
+            {
+                var replaced = arg.Replace("{ROOT}", FilesManager.Directories.Root)
+                    .Replace("{INSTALLER}", jar)
+                    .Replace("{MINECRAFT_JAR}", Path.Combine(FilesManager.Directories.VersionsRoot,
+                        main.Version,
+                        $"{main.Version}.jar")).Replace("{SIDE}", "client")
+                    .Replace("{MINECRAFT_VERSION}", main.Version.Split('-')[0]);
+                foreach (var desc in descriptors)
+                    replaced = replaced.Replace("{" + desc.Key + "}", desc.Value);
+                replaced = ArtifactPath(replaced, true);
+                if (replaced.StartsWith("/") || replaced.StartsWith("\\")) replaced =
+                    Path.Combine(Path.GetTempPath(), ".blowaunch-forge", replaced
+                        .Substring(1, replaced.Length - 1)
+                        .Replace('/', '\\'));
+                args.Append($"{replaced} ");
+            }
+
+            args.Remove(args.Length - 1, 1);
+            var command = $"-cp {file}{separator}{classpath} {mainClass} {args}";
+            var process = new Process();
+            process.StartInfo = new ProcessStartInfo
+            {
+                WorkingDirectory = FilesManager.Directories.Root,
+                FileName = Path.Combine(Path.Combine(FilesManager.Directories.JavaRoot,
+                    main.JavaMajor.ToString()), "bin", "java"),
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                Arguments = command
+            };
+            process.OutputDataReceived += (_, e) => {
+                if (e.Data == null) return;
+                AnsiConsole.WriteLine(e.Data);
+            };
+            process.ErrorDataReceived += (_, e) => {
+                if (e.Data == null) return;
+                AnsiConsole.WriteLine(e.Data);
+            };
+            process.Start();
+        }
+        */
     }
 }
