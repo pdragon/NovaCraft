@@ -30,6 +30,7 @@ using static Blowaunch.AvaloniaApp.LauncherConfig;
 using static Blowaunch.Library.Runner;
 using Panel = Avalonia.Controls.Panel;
 using ForgeThingy = Blowaunch.ConsoleApp.ForgeThingy;
+using static Blowaunch.Library.FilesManager;
 
 namespace Blowaunch.AvaloniaApp.Views;
 #pragma warning disable CS8618
@@ -1315,15 +1316,30 @@ public class MainWindow : Window
         }
         AnsiConsole.MarkupLine($"[yellow] downoading complete " + $"[/]");
 
+        JavaDownloadError javaDownloadResult =  FilesManager.JavaDownload(main, null, online);
+        switch (javaDownloadResult)
+        {
+            case JavaDownloadError.OSIsNotSupported:
+                ShowMessage("Your OS is not supported!", "Error");
+                return;
+            case JavaDownloadError.UnableToFindOpenJDK:
+                ShowMessage("Please report it to us on the GitHub issues page.", "Unable to find OpenJDK version");
+                return;
+            default: break;
+        }
+
         switch (currentModpack.ModProxy)
         {
             case "ModPackForge":
-
+                //string forgeFile = ForgeThingy.GetForgeFileByLink(main.Version);
                 // Get forge libraries from install and version files
-
                 //Install forge if not installed
-                
-                var data  = ForgeThingy.GetAddonJson(ForgeThingy.GetLink(currentModpack.Version.Id), main);
+                var data = ForgeThingy.GetAddonJson(currentModpack.Version.Id, main, online);
+                if(data == null)
+                {
+                    ShowMessage("Can't download forge in offline mode", "critical error");
+                }
+                //}
                 //TODO: check for processors
                 //ForgeThingy.RunProcessors(main, false);
                 if(Config.SelectedAccountId == null && Config.Accounts.Select(x => x.Id == Config.SelectedAccountId) != null)
@@ -1405,6 +1421,12 @@ public class MainWindow : Window
             string startStr = Runner.GenerateCommand(MojangFetcher.GetMain(config.Version), config);
             AnsiConsole.WriteLine("[INF] Running The Game");
 
+            
+            //System.Environment.SetEnvironmentVariable("DBname", comboBoxDataBaseName.Text, EnvironmentVariableTarget.User);
+
+            //For getting
+
+            //string DBselect = System.Environment.GetEnvironmentVariable("DBname", EnvironmentVariableTarget.User);
             ProcessStartInfo JavaProcessStartInfo = new ProcessStartInfo
             {
                 Arguments = startStr,

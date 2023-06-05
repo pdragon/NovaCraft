@@ -4,11 +4,14 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using Blowaunch.Library;
 using Blowaunch.Library.Authentication;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Spectre.Console;
 using static Blowaunch.Library.FilesManager;
 
@@ -90,7 +93,7 @@ namespace Blowaunch.ConsoleApp
         /// <param name="link">Link to the installer</param>
         /// <param name="main">Main JSON</param>
         /// <returns>The addon JSON</returns>
-        public static BlowaunchAddonJson GetAddonJson(string link, BlowaunchMainJson main)
+        public static BlowaunchAddonJson GetAddonJson(string version, BlowaunchMainJson main, bool online)
         {
             var progress = AnsiConsole.Progress()
                 .HideCompleted(true)
@@ -101,18 +104,34 @@ namespace Blowaunch.ConsoleApp
             return progress.Start(ctx => {
                 var task = ctx.AddTask("Downloading installer").IsIndeterminate();
                 task.StartTask();
-                var jar = Path.Combine(Path.GetTempPath(), ".blowaunch-forge", "installer.jar");
+                string forgeFile = ForgeThingy.GetForgeFileByLink(main.Version);
+                //var jar = Path.Combine(Path.GetTempPath(), ".blowaunch-forge", "installer.jar");
+                var jar = Path.Combine(Directories.Root, "forge", forgeFile + ".installer.jar");
                 var dir = Path.Combine(Path.GetTempPath(), ".blowaunch-forge");
-                //var jar = Path.Combine(Directories.VersionsRoot, main.Version, "installer.jar");
-                //var jar = Path.Combine(Directories.VersionsRoot, main.Version, "installer.jar");
-                //var dir = Path.Combine(Directories.VersionsRoot, main.Version);
-
-                if (Directory.Exists(dir)) Directory.Delete(dir, true);
-                Directory.CreateDirectory(dir); Fetcher.Download(link, jar);
-                task.Description = "Extracting";
-                ZipFile.ExtractToDirectory(jar, dir);
-                task.Description = "Parsing";
-                var content = File.ReadAllText(Path.Combine(dir, "version.json"));
+                var forgeDir = Path.Combine(Directories.Root, "forge");
+                string forgeJsonFile = Path.Combine(forgeDir, $"version-{main.Version}.json");
+                string content;
+                
+                if (!File.Exists(jar) || !File.Exists(forgeJsonFile))
+                {
+                    if (!online) return null;
+                    if (Directory.Exists(dir)) Directory.Delete(dir, true);
+                    Directory.CreateDirectory(dir); Fetcher.Download(ForgeThingy.GetLink(version), jar);
+                    task.Description = "Extracting";
+                    ZipFile.ExtractToDirectory(jar, dir);
+                    task.Description = "Parsing";
+                    content = File.ReadAllText(Path.Combine(dir, "version.json"));
+                    //File.WriteAllText(forgeJsonFile, content);
+                    var o = (Newtonsoft.Json.Linq.JObject)JsonConvert.DeserializeObject(content);
+                    o.Property("_comment_").Remove();
+                    var sPrettyStr = JToken.Parse(o.ToString(Newtonsoft.Json.Formatting.None));
+                    File.WriteAllText(forgeJsonFile, JsonConvert.SerializeObject(sPrettyStr, Formatting.Indented));
+                }
+                else
+                {
+                    content = File.ReadAllText(Path.Combine(dir, "version.json"));
+                }
+              
                 var data = MojangLegacyMainJson.IsLegacyJson(content) 
                     ? BlowaunchMainJson.MojangToBlowaunchPartial(JsonConvert.DeserializeObject<MojangLegacyMainJson>(content)) 
                     : BlowaunchMainJson.MojangToBlowaunchPartial(JsonConvert.DeserializeObject<MojangMainJson>(content));
@@ -369,10 +388,10 @@ namespace Blowaunch.ConsoleApp
 
             var args2 = new StringBuilder();
             // its works only in java 8
-            List<string> JavaArguments = new List<string> { "-XX:+UnlockExperimentalVMOptions", "-XX:+AlwaysPreTouch", "-XX:+ParallelRefProcEnabled", "-Xms${xms}M", "-Xmx${xmx}M", "-Dfile.encoding=UTF-8", "-Dfml.ignoreInvalidMinecraftCertificates=true", "-Dfml.ignorePatchDiscrepancies=true", "-Djava.net.useSystemProxies=true", "-Djava.library.path=${native_path}"};
+            List<string> JavaArguments = new List<string> { "-XX:+UseG1GC -XX:+UnlockExperimentalVMOptions", "-XX:+AlwaysPreTouch", "-XX:+ParallelRefProcEnabled", "-Xms${xms}M", "-Xmx${xmx}M", "-Dfile.encoding=UTF-8", "-Dfml.ignoreInvalidMinecraftCertificates=true", "-Dfml.ignorePatchDiscrepancies=true", "-Djava.net.useSystemProxies=true", "-Djava.library.path=${native_path}"};
             //TODO: java args pass
             foreach (var arg in JavaArguments) {
-                var javaArgsReplaced = arg.Replace("${xms}", "2048")
+                var javaArgsReplaced = arg.Replace("${xms}", "512")
                         .Replace("${xmx}", maxRam)
                         .Replace("${native_path}", Path.Combine( Directories.VersionsRoot, main.Version, "natives"));//"C:\\Users\\UserA\\AppData\\Roaming\\.blowaunch\\versions\\1.12.2\\natives");
                 args2.Append($"{javaArgsReplaced} ");
@@ -388,6 +407,10 @@ namespace Blowaunch.ConsoleApp
                 throw new ArgumentNullException(nameof(main));
             }
             var process = new Process();
+            // JAVA_HOME and PATH sets here 
+            string? envPath = System.Environment.GetEnvironmentVariable("Path", EnvironmentVariableTarget.User);
+            System.Environment.SetEnvironmentVariable("Path", Path.Combine(Directories.JavaRoot, "8", "bin") + ";" + envPath, EnvironmentVariableTarget.User);
+            System.Environment.SetEnvironmentVariable("JAVA_HOME", Path.Combine(Directories.JavaRoot, "8"), EnvironmentVariableTarget.User);
             process.StartInfo = new ProcessStartInfo
             {
                 WorkingDirectory = FilesManager.Directories.Root,
@@ -495,5 +518,36 @@ namespace Blowaunch.ConsoleApp
             process.Start();
         }
         */
+        static public string GetForgeFileByLink(string version)
+        {
+            Regex regex = new Regex($"forge-{version}-(.*).jar$");
+            var matches = Directory.EnumerateFiles(Path.Combine(Directories.Root, "forge")).Where(f => regex.IsMatch(f));
+            List<int[]> IntVersion = new List<int[]>();
+            foreach (var match in matches)
+            {
+                Console.WriteLine(match);
+                string fileName = match.Split(Path.DirectorySeparatorChar).Last().Replace(".jar", "").Replace($"forge-{version}-", "");
+                var versions = fileName.Split(".");
+                if (versions.Length > 0)
+                {
+                    IntVersion.Add(new int[] { Int32.Parse(versions[0]), Int32.Parse(versions[1]), Int32.Parse(versions[2]), Int32.Parse(versions[3]) });
+                }
+                //fileName = ;
+            }
+            int[] lastVersion = new int[4];
+            foreach(var verArray in IntVersion)
+            {
+                for (int i = 0; i <= 3; i++) {
+                    lastVersion[i] = verArray[i] > lastVersion[i] ? verArray[i] : lastVersion[i];
+                }
+            }
+            //IntVersion.Select(x => x.Select())
+            if(lastVersion[0] != 0)
+            {
+                //return $"forge-{version}-{String.Join(".", lastVersion)}.jar";
+                return $"forge-{version}-{String.Join(".", lastVersion)}";
+            }
+            return "";
+        }
     }
 }

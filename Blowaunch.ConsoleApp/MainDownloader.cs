@@ -92,7 +92,8 @@ namespace Blowaunch.ConsoleApp
                             task.Description = "Renaming";
                             Directory.Move(Path.Combine(extract, openjdk.Versions[main
                                 .JavaMajor].Directory), dir);
-                        } else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) {
+                        } 
+                        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) {
                             AnsiConsole.WriteLine("[OpenJDK] Detected Linux!");
                             var link = openjdk.Versions[main.JavaMajor].Linux;
                             var path = Path.Combine(Path.GetTempPath(),
@@ -104,7 +105,8 @@ namespace Blowaunch.ConsoleApp
                             task.Description = "Renaming";
                             Directory.Move(Path.Combine(extract, openjdk.Versions[main
                                 .JavaMajor].Directory), dir);
-                        } else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) {
+                        } 
+                        else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) {
                             AnsiConsole.WriteLine("[OpenJDK] Detected MacOS!");
                             var link = openjdk.Versions[main.JavaMajor].MacOs;
                             var path = Path.Combine(Path.GetTempPath(),
@@ -117,7 +119,8 @@ namespace Blowaunch.ConsoleApp
                             task.Description = "Renaming";
                             Directory.Move(Path.Combine(extract, openjdk.Versions[main
                                 .JavaMajor].Directory), dir);
-                        } else {
+                        } 
+                        else {
                             AnsiConsole.MarkupLine($"[red]Your OS is not supported![/]");
                             return;
                         }

@@ -20,7 +20,9 @@ public static class Fetcher
 
     public static class BlowaunchEndpoints
     {
-        public const string OpenJdk = "https://github.com/TheAirBlow/blowaunch/raw/main/openjdk.json";
+        //public const string OpenJdk = "https://github.com/TheAirBlow/blowaunch/raw/main/openjdk.json";
+        public const string OpenJdk = "https://mpa8.ru/minecraft/openjdk.json";
+        
     }
 
     public static class ForgeEndpoints

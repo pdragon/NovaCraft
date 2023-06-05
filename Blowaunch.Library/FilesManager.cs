@@ -4,6 +4,10 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using ICSharpCode.SharpZipLib.Core;
+using ICSharpCode.SharpZipLib.GZip;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Spectre.Console;
@@ -15,6 +19,14 @@ namespace Blowaunch.Library;
 /// </summary>
 public static class FilesManager
 {
+    public enum JavaDownloadError : short{
+        UnableToFindOpenJDK,
+        OSIsNotSupported,
+        AlreadyDownloaded,
+        OfflineMode,
+        Success
+    };
+
     /// <summary>
     /// Minecraft Directories
     /// </summary>
@@ -178,6 +190,12 @@ public static class FilesManager
         }
     }
 
+    public static string GetForgeLastVersion(string link)
+    {
+        if (link == null) return null;
+        return "";
+    }
+    
     /// <summary>
     /// Downloads client and all required files
     /// </summary>
@@ -215,7 +233,7 @@ public static class FilesManager
                                           $"can't redownload in offline mode![/]");
         }
     }
-
+    /*
     public static void DownloadForge(string version, bool online)
     {
         var forgeInstall = GetForgeInstallData(version);
@@ -320,7 +338,7 @@ public static class FilesManager
     {
         
     }
-
+    */
     public static string GetFirstForgeVersion(string version)
     {
         var pattern = "forge-" + version + "-*";
@@ -370,4 +388,127 @@ public static class FilesManager
         }
         return result;
     }
+
+    public static JavaDownloadError JavaDownload(BlowaunchMainJson main, ProgressTask task, bool online)
+    {
+        var dir = Path.Combine(FilesManager.Directories.JavaRoot, main.JavaMajor.ToString());
+        var extract = Path.Combine(FilesManager.Directories.JavaRoot);
+        if (online)
+        {
+            if (!Directory.Exists(dir))
+            {
+                if (task != null)
+                {
+                    task.Description = "Fetching";
+                }
+                var openjdk = JsonConvert.DeserializeObject<OpenJdkJson>(Fetcher.Fetch(Fetcher.BlowaunchEndpoints.OpenJdk));
+                if (!openjdk!.Versions.ContainsKey(main.JavaMajor))
+                {
+                    AnsiConsole.MarkupLine($"[red]Unable to find OpenJDK version {main.JavaMajor}![/]");
+                    AnsiConsole.MarkupLine($"[red]Please report it to us on the GitHub issues page.[/]");
+                    return JavaDownloadError.UnableToFindOpenJDK;
+                }
+
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    AnsiConsole.WriteLine("[OpenJDK] Detected Windows!");
+                    var link = openjdk.Versions[main.JavaMajor].Windows;
+                    var path = Path.Combine(Path.GetTempPath(),
+                        Path.GetFileName(link)!);
+                    if (task != null)
+                    {
+                        task.Description = "Downloading";
+                    }
+                    Fetcher.Download(link, Path.Combine(Path.GetTempPath(),
+                        Path.GetFileName(link)!));
+                    if (task != null)
+                    {
+                        task.Description = "Extracting";
+                    }
+                    ZipFile.ExtractToDirectory(path,
+                        extract, true);
+                    if (task != null)
+                    {
+                        task.Description = "Renaming";
+                    }
+                    Directory.Move(Path.Combine(extract, openjdk.Versions[main
+                        .JavaMajor].Directory), dir);
+                }
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                {
+                    AnsiConsole.WriteLine("[OpenJDK] Detected Linux!");
+                    var link = openjdk.Versions[main.JavaMajor].Linux;
+                    var path = Path.Combine(Path.GetTempPath(),
+                        Path.GetFileName(link)!);
+                    if (task != null)
+                    {
+                        task.Description = "Downloading";
+                    }
+                    Fetcher.Download(link, path);
+                    if (task != null)
+                    {
+                        task.Description = "Extracting";
+                    }
+                    ExtractTar(path, extract);
+                    if (task != null)
+                    {
+                        task.Description = "Renaming";
+                    }
+                    Directory.Move(Path.Combine(extract, openjdk.Versions[main
+                        .JavaMajor].Directory), dir);
+                }
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                {
+                    AnsiConsole.WriteLine("[OpenJDK] Detected MacOS!");
+                    var link = openjdk.Versions[main.JavaMajor].MacOs;
+                    var path = Path.Combine(Path.GetTempPath(),
+                        Path.GetFileName(link)!);
+                    if (task != null)
+                    {
+                        task.Description = "Downloading";
+                    }
+                    Fetcher.Download(link, Path.Combine(Path.GetTempPath(),
+                        Path.GetFileName(link)!));
+                    if (task != null)
+                    {
+                        task.Description = "Extracting";
+                    }
+                    ExtractTar(path, extract);
+                    if (task != null)
+                    {
+                        task.Description = "Renaming";
+                    }
+                    Directory.Move(Path.Combine(extract, openjdk.Versions[main
+                        .JavaMajor].Directory), dir);
+                }
+                else
+                {
+                    AnsiConsole.MarkupLine($"[red]Your OS is not supported![/]");
+                    return JavaDownloadError.OSIsNotSupported;
+                }
+            }
+            else
+            {
+                AnsiConsole.WriteLine("[OpenJDK] Skipping, already downloaded!");
+                return JavaDownloadError.AlreadyDownloaded;
+            }
+        }
+        else
+        {
+            AnsiConsole.WriteLine("[OpenJDK] Skipping, we are in offline mode");
+            return JavaDownloadError.OfflineMode;
+        }
+        return JavaDownloadError.Success;
+    }
+
+    public static void ExtractTar(string path, string directory)
+    {
+        var dataBuffer = new byte[4096];
+        using var fs = new FileStream(path, FileMode.Open, FileAccess.Read);
+        using var gzipStream = new GZipInputStream(fs);
+        using var fsOut = File.OpenWrite(directory);
+        fsOut.Seek(0, SeekOrigin.Begin);
+        StreamUtils.Copy(gzipStream, fsOut, dataBuffer);
+    }
+
 }
