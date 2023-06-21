@@ -8,6 +8,7 @@ using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using Blowaunch.Library;
 using Blowaunch.Library.Authentication;
 using Newtonsoft.Json;
@@ -95,6 +96,8 @@ namespace Blowaunch.ConsoleApp
         /// <returns>The addon JSON</returns>
         public static BlowaunchAddonJson GetAddonJson(string version, BlowaunchMainJson main, bool online)
         {
+            var dir = Path.Combine(Path.GetTempPath(), ".blowaunch-forge");
+            /*
             var progress = AnsiConsole.Progress()
                 .HideCompleted(true)
                 .Columns(new TaskDescriptionColumn(),
@@ -131,7 +134,17 @@ namespace Blowaunch.ConsoleApp
                 {
                     content = File.ReadAllText(Path.Combine(dir, "version.json"));
                 }
-              
+                */
+            string content = GetForgeData(version, main, online);
+            var progress = AnsiConsole.Progress()
+                .HideCompleted(true)
+                .Columns(new TaskDescriptionColumn(),
+                    new ProgressBarColumn(),
+                    new PercentageColumn(),
+                    new ElapsedTimeColumn());
+            return progress.Start(ctx => {
+                var task = ctx.AddTask("Downloading installer").IsIndeterminate();
+                task.StartTask();
                 var data = MojangLegacyMainJson.IsLegacyJson(content) 
                     ? BlowaunchMainJson.MojangToBlowaunchPartial(JsonConvert.DeserializeObject<MojangLegacyMainJson>(content)) 
                     : BlowaunchMainJson.MojangToBlowaunchPartial(JsonConvert.DeserializeObject<MojangMainJson>(content));
@@ -163,6 +176,52 @@ namespace Blowaunch.ConsoleApp
                 task.StopTask();
                 return addon;
             });
+        }
+
+        public static string GetForgeData(string version, BlowaunchMainJson main, bool online)
+        {
+            //string content;
+            var progress = AnsiConsole.Progress()
+                .HideCompleted(true)
+                .Columns(new TaskDescriptionColumn(),
+                    new ProgressBarColumn(),
+                    new PercentageColumn(),
+                    new ElapsedTimeColumn());
+            return progress.Start(ctx =>
+            {
+                var task = ctx.AddTask("Downloading installer").IsIndeterminate();
+                task.StartTask();
+                string forgeFile = ForgeThingy.GetForgeFileByLink(main.Version);
+                //var jar = Path.Combine(Path.GetTempPath(), ".blowaunch-forge", "installer.jar");
+                var jar = Path.Combine(Directories.Root, "forge", forgeFile + ".installer.jar");
+                var dir = Path.Combine(Path.GetTempPath(), ".blowaunch-forge");
+                var forgeDir = Path.Combine(Directories.Root, "forge");
+                string forgeJsonFile = Path.Combine(forgeDir, $"version-{main.Version}.json");
+                string content;
+
+                if (!File.Exists(jar) || !File.Exists(forgeJsonFile))
+                {
+                    if (!online) return "";
+                    if (Directory.Exists(dir)) Directory.Delete(dir, true);
+                    Directory.CreateDirectory(dir); Fetcher.Download(ForgeThingy.GetLink(version), jar);
+                    task.Description = "Extracting";
+                    ZipFile.ExtractToDirectory(jar, dir);
+                    task.Description = "Parsing";
+                    content = File.ReadAllText(Path.Combine(dir, "version.json"));
+                    //File.WriteAllText(forgeJsonFile, content);
+                    var o = (Newtonsoft.Json.Linq.JObject)JsonConvert.DeserializeObject(content);
+                    o.Property("_comment_").Remove();
+                    var sPrettyStr = JToken.Parse(o.ToString(Newtonsoft.Json.Formatting.None));
+                    File.WriteAllText(forgeJsonFile, JsonConvert.SerializeObject(sPrettyStr, Formatting.Indented));
+                }
+                else
+                {
+                    content = File.ReadAllText(Path.Combine(dir, "version.json"));
+                }
+                task.StopTask();
+                return content;
+            });
+            
         }
 
         /// <summary>

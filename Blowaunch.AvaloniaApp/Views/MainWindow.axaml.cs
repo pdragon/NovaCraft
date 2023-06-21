@@ -153,6 +153,24 @@ public class MainWindow : Window
         });
     }
 
+    private void ProgressModal(string progressInfo, string progressFiles, short value, string? loadingTextBlock = null)
+    {
+        Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            _progressBar.Maximum = 100;
+            _loadingPanel.IsVisible = true;
+            _progressPanel.IsVisible = true;
+            _progressBar.IsIndeterminate = false;
+            _progressBar.Value = value;
+            _progressInfo!.Text = progressInfo;
+            _progressFiles!.Text = progressFiles;
+            if (loadingTextBlock != null)
+            {
+                _loadingTextBlock!.Text = loadingTextBlock;
+            }
+        });
+    }
+
     /// <summary>
     /// Close progress actions modal
     /// </summary>
@@ -1276,16 +1294,18 @@ public class MainWindow : Window
         bool online = true;
         new Thread(async () => {
             ProgressModal("Loading data...", "0 % done", "Downloading minecraft client");
-            await LoadData(online);
+            await LoadDataAndStart(online);
 
-            ProgressModal("Starting Minecraft client " + Config.Version, "0 % done");
-            await RunMinecraftProgress(online);
+           // ProgressModal("Starting Minecraft client " + Config.Version, "0 % done");
+           // await RunMinecraftProgress(online);
             ProgressModalDisable();
         }).Start();
     }
 
-    private async Task LoadData(bool online)
+    private async Task LoadDataAndStart(bool online)
     {
+        ProgressModal("Starting", "please wait");
+        int percent = 0;
         var currentModpack = (LauncherConfig.ModPack?)_modPacksCombo.SelectedItem;
         if (currentModpack == null)
         {
@@ -1302,7 +1322,8 @@ public class MainWindow : Window
         {
             AnsiConsole.MarkupLine($"[grey] library {library.Name} " + $"[/]");
             itemsDownloaded++;
-            ProgressModal("Loading libraries...", (int)((float)itemsDownloaded / main.Libraries.Length * 100) + " %");
+            percent = (int)((float)itemsDownloaded / main.Libraries.Length * 100);
+            ProgressModal("Loading libraries...", percent + " %", (short)percent);
             FilesManager.DownloadLibrary(library, currentModpack.Version.Id, online);
         }
         //Assets
@@ -1312,7 +1333,8 @@ public class MainWindow : Window
         for (int i = 0; i < assetsJson.Assets.Length; i++)
         {
             FilesManager.DownloadAsset(assetsJson.Assets[i], online);
-            ProgressModal("Loading assets...", (i + 1)  + " from " + assetsJson.Assets.Length + "(" + (int)((float)((int)i+1) / assetsJson.Assets.Length * 100) + " %)");
+            percent = (int)((float)((int)i + 1) / assetsJson.Assets.Length * 100);
+            ProgressModal("Loading assets...", (i + 1)  + " in " + assetsJson.Assets.Length + "(" + percent + " %)", (short)percent);
         }
         AnsiConsole.MarkupLine($"[yellow] downoading complete " + $"[/]");
 
@@ -1331,18 +1353,18 @@ public class MainWindow : Window
         switch (currentModpack.ModProxy)
         {
             case "ModPackForge":
-                //string forgeFile = ForgeThingy.GetForgeFileByLink(main.Version);
-                // Get forge libraries from install and version files
-                //Install forge if not installed
+                ProgressModal("Getting Forge", "please wait");
                 var data = ForgeThingy.GetAddonJson(currentModpack.Version.Id, main, online);
                 if(data == null)
                 {
                     ShowMessage("Can't download forge in offline mode", "critical error");
+                    return;
                 }
+                ProgressModal("Loading Forge", "please wait");
                 //}
                 //TODO: check for processors
                 //ForgeThingy.RunProcessors(main, false);
-                if(Config.SelectedAccountId == null && Config.Accounts.Select(x => x.Id == Config.SelectedAccountId) != null)
+                if (Config.SelectedAccountId == null && Config.Accounts.Select(x => x.Id == Config.SelectedAccountId) != null)
                 {
                     //TODO: messageBox 
                     return;
@@ -1353,7 +1375,11 @@ public class MainWindow : Window
                     //TODO: messageBox 
                     return;
                 }
+                ProgressModal("loading addon", "", null);
+                //if(main.)
                 ForgeThingy.RunWithoutProcessors(main, data, acount, currentModpack.RamMax, currentModpack.CustomWindowSize, currentModpack.WindowSize.X, currentModpack.WindowSize.Y);
+                ProgressModal("Game started", "enjoy!");
+                ProgressModalDisable();
                 break;
                 //FilesManager.DownloadForge(currentModpack.Version.Id, online);   
         }
