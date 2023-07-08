@@ -1361,9 +1361,6 @@ public class MainWindow : Window
                     return;
                 }
                 ProgressModal("Loading Forge", "please wait");
-                //}
-                //TODO: check for processors
-                //ForgeThingy.RunProcessors(main, false);
                 if (Config.SelectedAccountId == null && Config.Accounts.Select(x => x.Id == Config.SelectedAccountId) != null)
                 {
                     //TODO: messageBox 
@@ -1375,9 +1372,16 @@ public class MainWindow : Window
                     //TODO: messageBox 
                     return;
                 }
-                ProgressModal("loading addon", "", null);
-                //if(main.)
-                ForgeThingy.RunWithoutProcessors(main, data, acount, currentModpack.RamMax, currentModpack.CustomWindowSize, currentModpack.WindowSize.X, currentModpack.WindowSize.Y);
+                
+                if (ForgeThingy.IsProcessorsExists(main.Version))
+                {
+                    ProgressModal("starting processors", "", null);
+                }
+                //else
+                //{
+                    ProgressModal("loading addon", "", null);
+                    ForgeThingy.Run(main, data, acount, currentModpack.RamMax, currentModpack.CustomWindowSize, currentModpack.WindowSize.X, currentModpack.WindowSize.Y, online);
+                //}
                 ProgressModal("Game started", "enjoy!");
                 ProgressModalDisable();
                 break;

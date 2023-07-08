@@ -193,35 +193,60 @@ namespace Blowaunch.ConsoleApp
                 task.StartTask();
                 string forgeFile = ForgeThingy.GetForgeFileByLink(main.Version);
                 //var jar = Path.Combine(Path.GetTempPath(), ".blowaunch-forge", "installer.jar");
-                var jar = Path.Combine(Directories.Root, "forge", forgeFile + ".installer.jar");
+                string forgeFileName = forgeFile == "" ? $"forge-{version}" : forgeFile;
+                forgeFile = forgeFile == "" ? $"forge-{version}.jar" : forgeFile;
+                //var jar = Path.Combine(Directories.Root, "forge", forgeFile + ".installer.jar");
                 var dir = Path.Combine(Path.GetTempPath(), ".blowaunch-forge");
+                //var jar = Path.Combine(Directories.Root, "forge", forgeFileName + ".installer.jar");
+                var jar = Path.Combine(dir, forgeFileName + ".installer.jar");
                 var forgeDir = Path.Combine(Directories.Root, "forge");
                 string forgeJsonFile = Path.Combine(forgeDir, $"version-{main.Version}.json");
+                string forgeInstallJsonFile = Path.Combine(forgeDir, $"install-{main.Version}.json");
                 string content;
+                string contentInstaller;
 
-                if (!File.Exists(jar) || !File.Exists(forgeJsonFile))
+                //if (!File.Exists(jar) || !File.Exists(forgeJsonFile) || !File.Exists(forgeInstallJsonFile))
+                if (!File.Exists(forgeJsonFile) || !File.Exists(forgeInstallJsonFile))
                 {
                     if (!online) return "";
                     if (Directory.Exists(dir)) Directory.Delete(dir, true);
-                    Directory.CreateDirectory(dir); Fetcher.Download(ForgeThingy.GetLink(version), jar);
+                    Directory.CreateDirectory(dir); 
+                    Fetcher.Download(ForgeThingy.GetLink(version), jar);
                     task.Description = "Extracting";
                     ZipFile.ExtractToDirectory(jar, dir);
+                    //ZipFile.ExtractToDirectory(jar, forgeDir);
                     task.Description = "Parsing";
                     content = File.ReadAllText(Path.Combine(dir, "version.json"));
+                    contentInstaller = File.ReadAllText(Path.Combine(dir, "install_profile.json"));
                     //File.WriteAllText(forgeJsonFile, content);
                     var o = (Newtonsoft.Json.Linq.JObject)JsonConvert.DeserializeObject(content);
+                    var i = (Newtonsoft.Json.Linq.JObject)JsonConvert.DeserializeObject(contentInstaller);
                     o.Property("_comment_").Remove();
+                    i.Property("_comment_").Remove();
                     var sPrettyStr = JToken.Parse(o.ToString(Newtonsoft.Json.Formatting.None));
+                    var sPrettyStrI = JToken.Parse(i.ToString(Newtonsoft.Json.Formatting.None));
                     File.WriteAllText(forgeJsonFile, JsonConvert.SerializeObject(sPrettyStr, Formatting.Indented));
+                    File.WriteAllText(forgeInstallJsonFile, JsonConvert.SerializeObject(sPrettyStrI, Formatting.Indented));
                 }
                 else
                 {
-                    content = File.ReadAllText(Path.Combine(dir, "version.json"));
+                    //content = File.ReadAllText(Path.Combine(dir, "version.json"));
+                    content = File.ReadAllText(Path.Combine(forgeDir, $"version-{main.Version}.json"));
+                    contentInstaller = File.ReadAllText(forgeInstallJsonFile);
+                    
                 }
                 task.StopTask();
                 return content;
             });
             
+        }
+
+        public static bool IsProcessorsExists(string version)
+        {
+            var forgeDir = Path.Combine(Directories.Root, "forge");
+            var contentInstaller = File.ReadAllText(Path.Combine(forgeDir, $"install-{version}.json"));
+            var dataInstaller = JsonConvert.DeserializeObject<ForgeInstallerJson>(contentInstaller);
+            return dataInstaller.Processors != null;
         }
 
         /// <summary>
@@ -243,7 +268,7 @@ namespace Blowaunch.ConsoleApp
                 task.StartTask();
                 var jar = Path.Combine(Path.GetTempPath(), ".blowaunch-forge", "installer.jar");
                 var dir = Path.Combine(Path.GetTempPath(), ".blowaunch-forge");
-                var contentInstaller = File.ReadAllText(Path.Combine(dir, "install_profile.json"));
+                var contentInstaller = File.ReadAllText(Path.Combine(Directories.Root, "forge",  $"install-{main.Version}.json"));
                 var dataInstaller = JsonConvert.DeserializeObject<ForgeInstallerJson>(contentInstaller);
                 if (File.Exists(Path.Combine(FilesManager.Directories.VersionsRoot, main.Version, $"forge.json"))) {
                     AnsiConsole.WriteLine("[Forge] Skipping processors, already done!");
@@ -392,7 +417,7 @@ namespace Blowaunch.ConsoleApp
                 task.StopTask();
             });
         }
-        public static void RunWithoutProcessors(BlowaunchMainJson main, BlowaunchAddonJson addonMain, Account account, string maxRam, bool customWindowSize, float width, float height)
+        public static void Run(BlowaunchMainJson main, BlowaunchAddonJson addonMain, Account account, string maxRam, bool customWindowSize, float width, float height, bool online)
         {
             
             var classpath = new StringBuilder();
@@ -400,11 +425,18 @@ namespace Blowaunch.ConsoleApp
             
             foreach (var library in main.Libraries)
             {
-                var file2 = FilesManager.GetLibraryPath(new BlowaunchMainJson.JsonLibrary
+                if (library.Allow.Contains("os-name:windows") || library.Allow.Length == 0)
                 {
-                    Path = library.Path
-                });
-                classpath.Append($"{file2}{separator}");
+                    var file2 = FilesManager.GetLibraryPath(new BlowaunchMainJson.JsonLibrary
+                    {
+                        Path = library.Path
+                    });
+                    if (!File.Exists(file2))
+                    {
+                        FilesManager.DownloadLibrary(library, main.Version, online);
+                    }
+                    classpath.Append($"{file2}{separator}");
+                }
             }
             //classpath.Remove(classpath.Length - 1, 1);
 
@@ -414,7 +446,15 @@ namespace Blowaunch.ConsoleApp
                 {
                     Path = library.Path
                 });
+                if (!File.Exists(file2))
+                {
+                    FilesManager.DownloadLibrary(library, main.Version, online);
+                }
                 classpath.Append($"{file2}{separator}");
+            }
+            if (ForgeThingy.IsProcessorsExists(main.Version))
+            {
+                ForgeThingy.RunProcessors(main, online);
             }
             //TODO Add check for dir and file exist
             string file = Path.Combine(FilesManager.Directories.VersionsRoot, main.Version, $"{main.Version}.jar");
@@ -494,7 +534,8 @@ namespace Blowaunch.ConsoleApp
             };
             process.Start();
             process.WaitForExit();
-
+            // Secure errror on start
+            // https://github.com/OpenFeign/feign/issues/935#issuecomment-521236281
         }
         /*
         public static void RunWithoutProcessors(BlowaunchMainJson main, ForgeInstallerJson dataInstaller, bool online)
