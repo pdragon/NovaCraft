@@ -2,6 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+		xmlns:uc="clr-namespace:Blowaunch.AvaloniaApp.Views.UserControls;assembly=BlowaunchLauncher"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="Blowaunch.AvaloniaApp.Views.MainWindow"
         Icon="/Assets/avalonia-logo.ico"
@@ -362,8 +363,8 @@
                             Opacity="50"
                             CornerRadius="5"
                             Margin="20 0 20 10">
-						   <StackPanel Orientation="Vertical" Width="300">
-                                <StackPanel Orientation="Horizontal" Width="240">
+						   <StackPanel Orientation="Vertical" Width="400">
+                                <StackPanel Orientation="Horizontal" Width="260">
 	                                <ComboBox HorizontalAlignment="Center"
 		                                Width="200" SelectedIndex="0"
 		                                VirtualizationMode="Simple"
@@ -391,7 +392,21 @@
 												    Opacity="10"/>
 									</Button>
 								</StackPanel>
-							</StackPanel>
+							   <ScrollViewer VerticalAlignment="Top" VerticalScrollBarVisibility="Auto">
+							   <WrapPanel Name="ModPackPanel" ItemHeight="120">
+								   <!--
+									   <uc:ModPackControl Margin="10" x:Name="ModPackControl1"/>
+									   <uc:ModPackControl Margin="10" x:Name="ModPackControl2"/>
+									   <uc:ModPackControl Margin="10" x:Name="ModPackControl3"/>
+									   <uc:ModPackControl Margin="10" x:Name="ModPackControl4"/>
+									   <uc:ModPackControl Margin="10" x:Name="ModPackControl5"/>
+									   <uc:ModPackControl Margin="10" x:Name="ModPackControl6"/>
+									   <uc:ModPackControl Margin="10" x:Name="ModPackControl7"/>
+									   <uc:ModPackControl Margin="10" x:Name="ModPackControl8"/>
+									   -->
+								   </WrapPanel>
+							   </ScrollViewer>
+						   </StackPanel>				
 						</Border>
 						</TabItem>
                 </TabControl>

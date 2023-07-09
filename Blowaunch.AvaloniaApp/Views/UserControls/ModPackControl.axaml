@@ -1,0 +1,18 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="100" d:DesignHeight="100"
+             x:Class="Blowaunch.AvaloniaApp.Views.UserControls.ModPackControl">
+	<StackPanel Margin="10">
+
+		<Border Background="gray">
+			<Image Width="75"
+	 Height="70"
+	  Name="modPackImage"/>
+		</Border>
+		<TextBlock HorizontalAlignment="Center" FontSize="10" TextWrapping="WrapWithOverflow" VerticalAlignment="Center" Name="ModPackLabel">
+			Modpacks555123 ret re retertert
+		</TextBlock>
+	</StackPanel>
+</UserControl>

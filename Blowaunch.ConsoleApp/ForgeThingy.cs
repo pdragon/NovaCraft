@@ -422,10 +422,42 @@ namespace Blowaunch.ConsoleApp
             
             var classpath = new StringBuilder();
             var separator = Environment.OSVersion.Platform == PlatformID.Unix ? ":" : ";";
+
+            var OsDict = new Dictionary<string, string>() { 
             
+            };
+
+            static bool IsValidOs(string str)
+            {
+                if (str.StartsWith("os-name:"))
+                    switch (str.Substring(8))
+                    {
+                        case "windows":
+                            return RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+                        case "linux":
+                            return RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
+                        case "macos":
+                            return RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
+                                   && Environment.OSVersion.Version.Major < 10 ||
+                                   Environment.OSVersion.Version.Minor < 12;
+                        case "osx":
+                            return RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
+                                   && Environment.OSVersion.Version.Major >= 10 ||
+                                   Environment.OSVersion.Version.Minor >= 12;
+                    }
+                return false;
+            }
+
             foreach (var library in main.Libraries)
             {
-                if (library.Allow.Contains("os-name:windows") || library.Allow.Length == 0)
+                bool currentOs = false;
+                foreach (var allowedOs in library.Allow)
+                {
+                    currentOs = IsValidOs(allowedOs);
+                }
+
+                if (currentOs || library.Allow.Length == 0) 
+                //if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && library.Allow.Contains("os-name:windows") || library.Allow.Length == 0)
                 {
                     var file2 = FilesManager.GetLibraryPath(new BlowaunchMainJson.JsonLibrary
                     {
@@ -507,7 +539,7 @@ namespace Blowaunch.ConsoleApp
             }
             var process = new Process();
             // JAVA_HOME and PATH sets here 
-            string? envPath = System.Environment.GetEnvironmentVariable("Path", EnvironmentVariableTarget.User);
+            string envPath = System.Environment.GetEnvironmentVariable("Path", EnvironmentVariableTarget.User);
             System.Environment.SetEnvironmentVariable("Path", Path.Combine(Directories.JavaRoot, "8", "bin") + ";" + envPath, EnvironmentVariableTarget.User);
             System.Environment.SetEnvironmentVariable("JAVA_HOME", Path.Combine(Directories.JavaRoot, "8"), EnvironmentVariableTarget.User);
             process.StartInfo = new ProcessStartInfo

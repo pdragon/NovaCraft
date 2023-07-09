@@ -16,6 +16,7 @@ namespace Blowaunch.ConsoleApp
         private static bool CheckForInternet(int timeoutMs = 5000)
         {
             try {
+                //var request = (HttpWebRequest)WebRequest.Create("https://google.com");
                 var request = (HttpWebRequest)WebRequest.Create("https://google.com");
                 request.KeepAlive = false;
                 request.Timeout = timeoutMs;

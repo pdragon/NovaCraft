@@ -31,6 +31,7 @@ using static Blowaunch.Library.Runner;
 using Panel = Avalonia.Controls.Panel;
 using ForgeThingy = Blowaunch.ConsoleApp.ForgeThingy;
 using static Blowaunch.Library.FilesManager;
+using Blowaunch.AvaloniaApp.Views.UserControls;
 
 namespace Blowaunch.AvaloniaApp.Views;
 #pragma warning disable CS8618
@@ -88,6 +89,8 @@ public class MainWindow : Window
     private TextBox _modPackName;
     private ComboBox _modPackModProxyCombo;
     private TextBox _modPackPathInstance;
+
+    private ModPackControl _modPackControl;
 
     #endregion
     #region Other stuff
@@ -196,6 +199,8 @@ public class MainWindow : Window
         _loadingPanel!.IsVisible = true;
         _progressPanel!.IsVisible = true;
         _progressBar!.IsIndeterminate = true;
+
+        // _modPackPanel.Children.Add(new ModPackControl(2) { Name = "a" });
 
         new Thread(async () => {
             await Dispatcher.UIThread.InvokeAsync(() => {
@@ -315,6 +320,9 @@ public class MainWindow : Window
         _modPackName = this.FindControl<TextBox>("ModPackName");
         _modPackModProxyCombo = this.FindControl<ComboBox>("ModPackModProxyCombo");
         _modPackPathInstance = this.FindControl<TextBox>("ModPackPathInstance");
+
+        _modPackControl = this.FindControl<ModPackControl>("ModPackControl1");
+        _modPackPanel = this.FindControl<WrapPanel>("ModPackPanel"); 
 
         _ramManual.ValueChanged += (_, e) => {
             // ReSharper disable once CompareOfFloatsByEqualityOperator
@@ -818,6 +826,12 @@ public class MainWindow : Window
             .FirstOrDefault();
         _modPacksCombo.SelectedItem = modpack;
 
+        for(int i = 0; i < Config.ModPacks.Count;i++)
+        //foreach (var modPack in Config.ModPacks)
+        {
+            //_modPackPanel.Children.Add(new ModPackControl(modpack));
+            _modPackPanel.Children.Add(new ModPackControl(Config.ModPacks.ToArray()[i]));
+        }
     }
 
 

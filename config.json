@@ -1,0 +1,23 @@
+{
+  "windowSize": {
+    "X": 200.0,
+    "Y": 200.0
+  },
+  "selectedAccountId": "",
+  "accounts": [],
+  "customResolution": false,
+  "showSnapshots": false,
+  "version": {
+    "name": "Realese 1.7.10",
+    "id": "1.7.10"
+  },
+  "gameArgs": "",
+  "jvmArgs": "",
+  "maxRam": "2048",
+  "forceOffline": false,
+  "showAlpha": false,
+  "showBeta": false,
+  "isDemo": false,
+  "modPacks": [],
+  "selectedModPackId": ""
+}
