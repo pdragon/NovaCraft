@@ -11,8 +11,12 @@
 	 Height="70"
 	  Name="modPackImage"/>
 		</Border>
-		<TextBlock HorizontalAlignment="Center" FontSize="10" TextWrapping="WrapWithOverflow" VerticalAlignment="Center" Name="ModPackLabel">
+		<TextBlock HorizontalAlignment="Center" 
+				   FontSize="10" 
+				   TextWrapping="WrapWithOverflow" 
+				   VerticalAlignment="Center" Name="ModPackLabel">
 			Modpacks555123 ret re retertert
 		</TextBlock>
+		<Button x:Name="s" Click="OnEraseModPack">Erase</Button>
 	</StackPanel>
 </UserControl>

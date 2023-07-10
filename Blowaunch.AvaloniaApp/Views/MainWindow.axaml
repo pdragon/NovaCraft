@@ -393,7 +393,7 @@
 									</Button>
 								</StackPanel>
 							   <ScrollViewer VerticalAlignment="Top" VerticalScrollBarVisibility="Auto">
-							   <WrapPanel Name="ModPackPanel" ItemHeight="120">
+							   <WrapPanel Name="ModPacksPanel" ItemHeight="120">
 								   <!--
 									   <uc:ModPackControl Margin="10" x:Name="ModPackControl1"/>
 									   <uc:ModPackControl Margin="10" x:Name="ModPackControl2"/>

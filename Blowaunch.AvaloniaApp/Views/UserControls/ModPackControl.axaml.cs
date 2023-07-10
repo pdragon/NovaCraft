@@ -1,8 +1,10 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using static Blowaunch.AvaloniaApp.LauncherConfig;
@@ -13,6 +15,7 @@ public class ModPackControl : UserControl
 {
     private Image? _image;
     private TextBlock _modPackLabel;
+    private MainWindow MainWindow;
 
     private readonly ModPack ModPack = new();
 
@@ -28,12 +31,14 @@ public class ModPackControl : UserControl
         LoadItems();
     }
 
-    public ModPackControl(ModPack modPack)
+    //public ModPackControl(ModPack modPack, Action<string> OnclickCallback)
+    public ModPackControl(ModPack modPack, MainWindow mainWindow)
     {
         ModPack = modPack;
         InitializeComponent();
         InitializeFields();
         LoadItems();
+        MainWindow = mainWindow;
     }
 
     private void InitializeFields()
@@ -52,4 +57,11 @@ public class ModPackControl : UserControl
             this.Name = ModPack.Id;
         }
     }
+    
+    private void OnEraseModPack(object? sender, RoutedEventArgs args)
+    {
+        (sender as Button)!.Content = "Test";
+        MainWindow.OnEraseModPack(ModPack);
+    }
+    
 }

@@ -59,6 +59,7 @@ public class MainWindow : Window
 
     private TextBlock _loadingTextBlock;
     private Panel _modPackPanel;
+    private WrapPanel _modPacksPanel;
 
     // Settings
     private ToggleSwitch _customWindowSize;
@@ -322,7 +323,7 @@ public class MainWindow : Window
         _modPackPathInstance = this.FindControl<TextBox>("ModPackPathInstance");
 
         _modPackControl = this.FindControl<ModPackControl>("ModPackControl1");
-        _modPackPanel = this.FindControl<WrapPanel>("ModPackPanel"); 
+        _modPacksPanel = this.FindControl<WrapPanel>("ModPacksPanel");
 
         _ramManual.ValueChanged += (_, e) => {
             // ReSharper disable once CompareOfFloatsByEqualityOperator
@@ -825,12 +826,24 @@ public class MainWindow : Window
                 x.Id == Config.SelectedModPackId)
             .FirstOrDefault();
         _modPacksCombo.SelectedItem = modpack;
-
-        for(int i = 0; i < Config.ModPacks.Count;i++)
+        _modPacksPanel.Children.Clear();
+        for (int i = 0; i < Config.ModPacks.Count;i++)
         //foreach (var modPack in Config.ModPacks)
         {
-            //_modPackPanel.Children.Add(new ModPackControl(modpack));
-            _modPackPanel.Children.Add(new ModPackControl(Config.ModPacks.ToArray()[i]));
+            ModPackControl modpackItem = new ModPackControl(Config.ModPacks.ToArray()[i], this);
+            _modPacksPanel.Children.Add(modpackItem);
+        }
+    }
+
+    public async void OnEraseModPack(ModPack modPack)
+    {
+        await LoadConfig();
+        var mp = Config.ModPacks.Find(x => x.Id == modPack.Id);
+        if (mp != null)
+        {
+            Config.ModPacks.Remove(mp);
+        SaveConfig();
+        ReloadModPacks();
         }
     }
 
