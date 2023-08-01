@@ -2,21 +2,54 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             mc:Ignorable="d" d:DesignWidth="100" d:DesignHeight="100"
+             mc:Ignorable="d" d:DesignWidth="160" d:DesignHeight="160"
              x:Class="Blowaunch.AvaloniaApp.Views.UserControls.ModPackControl">
-	<StackPanel Margin="10">
+	<StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
+				Name="ModPackPanel">
+		<StackPanel VerticalAlignment="Center" Background="LightBlue">
+			<Image Source="/Assets/background.png"
+						 Name="ModPackImage"
+				   HorizontalAlignment="Stretch"
+				   Width="160"
+						/>
+		</StackPanel>
+		<Border Background="LightBlue" 
+				HorizontalAlignment="Center"
+				ToolTip.Placement="Bottom">
 
-		<Border Background="gray">
-			<Image Width="75"
-	 Height="70"
-	  Name="modPackImage"/>
+			<Grid Margin="5,0,0,0" Height="100" Width="160">
+
+				<Grid.RowDefinitions>
+					<RowDefinition></RowDefinition>
+					
+					<RowDefinition></RowDefinition>
+					
+					<RowDefinition></RowDefinition>
+				</Grid.RowDefinitions>
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition></ColumnDefinition>
+					
+					<ColumnDefinition></ColumnDefinition>
+					
+					<ColumnDefinition></ColumnDefinition>
+				</Grid.ColumnDefinitions>
+				<!--
+				<Image Grid.Column="0" Grid.Row="0" Width="100" Height="70" Name="ModPackImage"  Grid.ColumnSpan="1"/>
+				-->
+				<Button Grid.Column="0" Grid.Row="0" Content="Erase" FontSize="8" Width="48"  Background="Gray" x:Name="ModPackEraseBtn" Click="OnEraseModPack"/>
+				<Button Grid.Column="1" Grid.Row="0" Content="Change" FontSize="8" Width="48" Background="Gray" x:Name="ModPackChangeBtn" Click="OnEraseModPack"/>
+				<Button Grid.Column="2" Grid.Row="0" Content="Info" FontSize="8" Width="48"  Background="Gray" x:Name="ModPackInfoBtn" Click="OnEraseModPack" ToolTip.Tip="Under construction"/>
+				
+
+				<TextBlock Grid.Column="0" Grid.Row="1"
+					HorizontalAlignment="Center"
+								   FontSize="8"
+								   TextWrapping="WrapWithOverflow"
+								   VerticalAlignment="Center" Name="ModPackLabel">
+					Modpacks555123 ret re retertert
+				</TextBlock>
+			</Grid>
 		</Border>
-		<TextBlock HorizontalAlignment="Center" 
-				   FontSize="10" 
-				   TextWrapping="WrapWithOverflow" 
-				   VerticalAlignment="Center" Name="ModPackLabel">
-			Modpacks555123 ret re retertert
-		</TextBlock>
-		<Button x:Name="s" Click="OnEraseModPack">Erase</Button>
 	</StackPanel>
+		
 </UserControl>

@@ -367,13 +367,14 @@ public class MainWindow : Window
                 return;
             _modPackRamManual.Value = _modPackRamSlider.Value;
         };
-
+        /*
         _modPacksCombo.SelectionChanged += (_, e) => {
             var modPack = (LauncherConfig.ModPack?)_modPacksCombo.SelectedItem;
             if (modPack == null || modPack.Name == "New Instance") return;
             Config.SelectedModPackId = modPack.Id ?? "";
             SaveConfig();
         };
+        */
     }
     #endregion
     #region LoadVersions()
@@ -777,7 +778,7 @@ public class MainWindow : Window
         }
 
         Config.Accounts = accounts;
-        SaveConfig();
+        //SaveConfig();
     }
     
     /// <summary>
@@ -820,30 +821,75 @@ public class MainWindow : Window
         List<LauncherConfig.ModPack> modPacksList = new();
         modPacksList.Add(new(){ Name = "New Instance", Id = "New Instance" });
         modPacksList.AddRange(Config.ModPacks.ToList());
-        _modPacksCombo.Items = modPacksList; // Config.ModPacks.ToList();
+        //_modPacksCombo.Items = modPacksList; // Config.ModPacks.ToList();
 
         var modpack = Config.ModPacks.Where(x =>
                 x.Id == Config.SelectedModPackId)
             .FirstOrDefault();
-        _modPacksCombo.SelectedItem = modpack;
+        //_modPacksCombo.SelectedItem = modpack;
         _modPacksPanel.Children.Clear();
-        for (int i = 0; i < Config.ModPacks.Count;i++)
+        for (int i = 0; i < Config.ModPacks.Count; i++)
         //foreach (var modPack in Config.ModPacks)
         {
-            ModPackControl modpackItem = new ModPackControl(Config.ModPacks.ToArray()[i], this);
+            Button eraseBtn;
+            Button changeBtn;
+            Image modPackImage;
+            // Так делать нельзя, надо переделать так чтобы не создавались новые объекты окна при создании контрола.
+            ModPackControl modpackItem = new ModPackControl(Config.ModPacks.ToArray()[i]);
+            eraseBtn = modpackItem.Find<Button>("ModPackEraseBtn");
+            changeBtn = modpackItem.Find<Button>("ModPackChangeBtn");
+            modPackImage = modpackItem.Find<Image>("ModPackImage");
+            modpackItem.Margin = new Avalonia.Thickness(4);
+            //modPackImage.Tool
+            eraseBtn.Name = "ModPackEraseBtn:" + Config.ModPacks.ToArray()[i].Id;
+            changeBtn.Name = "ModPackChangeBtn:" + Config.ModPacks.ToArray()[i].Id;
+            Console.WriteLine(eraseBtn.Parent?.Parent?.ToString());
+            if (eraseBtn != null) { 
+                eraseBtn.Click += OnEraseModPack!;
+                changeBtn.Click += OnChangeModPack!;
+            }
             _modPacksPanel.Children.Add(modpackItem);
+
+        }
+    }
+    public async void OnEraseModPack(object sender, RoutedEventArgs e)
+    {  
+        string id = (sender as Button)!.Name ?? "";
+        Console.WriteLine((sender as Button)!.Name);
+        OnEraseModPack(id.Split(':')[1] ?? ""); 
+    }
+
+    public async void OnChangeModPack(object sender, RoutedEventArgs e)
+    {
+        string id = (sender as Button)!.Name ?? "";
+        Console.WriteLine((sender as Button)!.Name);
+        //OnChangeModPack(id.Split(':')[1] ?? "");
+        await LoadConfig();
+        var mp = Config.ModPacks.Find(x => x.Id == (id.Split(':')[1] ?? ""));
+        if (mp != null)
+        {
+            OpenModpackPanel((id.Split(':')[1] ?? ""));
+            //SaveConfig();
+            ReloadModPacks();
+        }
+        else
+        {
+            ShowMessage("Error", "ModPack is absent");
         }
     }
 
-    public async void OnEraseModPack(ModPack modPack)
+
+
+    //public async void OnEraseModPack(ModPack modPack)
+    public async void OnEraseModPack(string modPackId)
     {
         await LoadConfig();
-        var mp = Config.ModPacks.Find(x => x.Id == modPack.Id);
+        var mp = Config.ModPacks.Find(x => x.Id == modPackId);
         if (mp != null)
         {
             Config.ModPacks.Remove(mp);
-        SaveConfig();
-        ReloadModPacks();
+            SaveConfig();
+            ReloadModPacks();
         }
     }
 
@@ -1113,7 +1159,7 @@ public class MainWindow : Window
     public void ModPackSaveChanges(object? sender, RoutedEventArgs e)
     {
         string id = _modPackId.Text;
-        if(id == "")
+        if(id == "" || id == null)
         {
             id = Guid.NewGuid().ToString();
             Logger.Information("Creating new instance");
@@ -1249,13 +1295,13 @@ public class MainWindow : Window
         if (_modPacksCombo != null && _modPacksCombo.SelectedItem != null)
         {
             LauncherConfig.ModPack modPack = Config.ModPacks.Find(mp => mp.Id == ((LauncherConfig.ModPack)_modPacksCombo.SelectedItem).Id) ?? new LauncherConfig.ModPack();
-            if(modPack.Id == null)
-            {
-                ShowMessage("Something wrong", "Error occured");
-            }
+            //if(modPack.Id == null)
+            //{
+            //    ShowMessage("Something wrong", "Error occured");
+            //}
             int index = 1;
             string? id = ((LauncherConfig.ModPack)_modPacksCombo.SelectedItem).Id == null ? Guid.NewGuid().ToString() : modPack.Id;
-            _modPackId.Text = id == "New Instance" ? "" : id;
+            _modPackId.Text = id == "New Instance" ? "0" : id;
             if (modPack.ModProxy != "")
             {
                 var proxyIndex = ProxyDict.FirstOrDefault(x => x.Value == modPack.ModProxy).Key;
@@ -1301,7 +1347,56 @@ public class MainWindow : Window
             }
         }
     }
-        
+
+    public void OpenModpackPanel(string ModPackId)
+    {
+
+        if (ModPackId != null && ModPackId != "")
+        {
+            LauncherConfig.ModPack modPack = Config.ModPacks.Find(mp => mp.Id == ModPackId) ?? new LauncherConfig.ModPack();
+            int index = 1;
+            string? id = ModPackId == null ? Guid.NewGuid().ToString() : modPack.Id;
+            _modPackId.Text = id == "New Instance" ? "0" : id;
+            if (modPack.ModProxy != "")
+            {
+                var proxyIndex = ProxyDict.FirstOrDefault(x => x.Value == modPack.ModProxy).Key;
+                if (proxyIndex != -1)
+                {
+                    _modPackModProxyCombo.SelectedIndex = proxyIndex;
+                }
+            }
+            _modPackName.Text = modPack.Name;
+            _modPackRamSlider.Value = Convert.ToDouble(modPack.RamMax);
+            _modPackPathInstance.Text = modPack.PackPath;
+            //_modPackVersionsCombo.Items.F = (LauncherConfig.VersionClass?)modPack.Version;
+            //LauncherConfig.VersionClass? a = _modPackVersionsCombo.FirstOrDefault(modPack.Version);
+            //_modPackVersionsCombo.SelectedItem = modPack.Version;
+            if (id == "")
+            {
+                return;
+            }
+            _modPackPanel.IsVisible = true;
+            var versionsClass = GetVersions();
+            if (versionsClass != null)
+            {
+                if (id != "")
+                {
+                    index = versionsClass.Versions.FindIndex(
+                        x => x.Id == modPack.Version.Id
+                             && x.Name == modPack.Version.Name);
+                }
+
+                Dispatcher.UIThread.InvokeAsync(() => {
+                    _modPackVersionsCombo.Items = versionsClass.Versions;
+                    _modPackVersionsCombo.SelectedIndex = index;
+                    //_modPackVersionsCombo.SelectedItem = modPack.Version;
+                    if (_selectionChanged) return;
+
+                });
+            }
+        }
+    }
+
     #endregion
     #region Runner
 

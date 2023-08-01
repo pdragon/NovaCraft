@@ -363,7 +363,8 @@
                             Opacity="50"
                             CornerRadius="5"
                             Margin="20 0 20 10">
-						   <StackPanel Orientation="Vertical" Width="400">
+						   <DockPanel Width="400">
+							   <!--
                                 <StackPanel Orientation="Horizontal" Width="260">
 	                                <ComboBox HorizontalAlignment="Center"
 		                                Width="200" SelectedIndex="0"
@@ -392,8 +393,9 @@
 												    Opacity="10"/>
 									</Button>
 								</StackPanel>
+							   -->
 							   <ScrollViewer VerticalAlignment="Top" VerticalScrollBarVisibility="Auto">
-							   <WrapPanel Name="ModPacksPanel" ItemHeight="120">
+							       <WrapPanel Name="ModPacksPanel" ItemHeight="160">
 								   <!--
 									   <uc:ModPackControl Margin="10" x:Name="ModPackControl1"/>
 									   <uc:ModPackControl Margin="10" x:Name="ModPackControl2"/>
@@ -406,7 +408,7 @@
 									   -->
 								   </WrapPanel>
 							   </ScrollViewer>
-						   </StackPanel>				
+						   </DockPanel>				
 						</Border>
 						</TabItem>
                 </TabControl>
