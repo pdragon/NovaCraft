@@ -136,6 +136,8 @@ public class MainWindow : Window
         public bool IsOffline = false;
     }
 
+    private bool MessageBoxIsShown = false;
+
     /// <summary>
     /// Show progress actions modal
     /// </summary>
@@ -860,11 +862,26 @@ public class MainWindow : Window
 
         }
     }
-    public async void OnEraseModPack(object sender, RoutedEventArgs e)
-    {  
+    async public void OnEraseModPack(object sender, RoutedEventArgs e)
+    {
+        var result = await ShowMessage("Erase also folder with modpack?", "Erasing modPack", ButtonEnum.YesNoAbort, MessageBox.Avalonia.Enums.Icon.Question);
+        var br1 = result;
+        switch (br1)
+        {
+            case ButtonResult.Yes:
+                break;
+            case ButtonResult.No:
+                break;
+            case ButtonResult.Abort:
+                return;
+            case null:
+                return;
+        }
+        
         string id = (sender as Button)!.Name ?? "";
         Console.WriteLine((sender as Button)!.Name);
-        OnEraseModPack(id.Split(':')[1] ?? ""); 
+        OnEraseModPack(id.Split(':')[1] ?? "");
+        
     }
 
     public async void OnChangeModPack(object sender, RoutedEventArgs e)
@@ -883,7 +900,7 @@ public class MainWindow : Window
         }
         else
         {
-            ShowMessage("Error", "ModPack is absent");
+            await ShowMessage("Error", "ModPack is absent");
         }
     }
 
@@ -1669,33 +1686,41 @@ public class MainWindow : Window
     #endregion
 
     #region Helpers
-    private ButtonResult ShowMessage(
+    async private Task<ButtonResult?> ShowMessage(
         string message, 
         string title, 
         ButtonEnum button = ButtonEnum.Ok, 
         Icon icon = MessageBox.Avalonia.Enums.Icon.Error,
-        string progressInfoText = ""
+         string progressInfoText = ""
     )
     {
-        new Thread(async () =>
+        if (MessageBoxIsShown)
         {
-            await Dispatcher.UIThread.InvokeAsync(() =>
-            {
-                _progressBar.IsIndeterminate = false;
-                _progressPanel.IsVisible = false;
-                _progressInfo.Text = "";
-                var msBoxStandardWindow = MessageBoxManager
-                    .GetMessageBoxStandardWindow(new MessageBoxStandardParams
-                    {
-                        Icon = icon,
-                        ButtonDefinitions = button,
-                        ContentMessage = message,
-                        ContentTitle = title
-                    });
-                return msBoxStandardWindow.Show();
-            });
-        }).Start();
-        return new ButtonResult();
+            return null;
+        }
+        MessageBoxIsShown = true;
+        ButtonResult result = new ButtonResult();
+        //await Dispatcher.UIThread.InvokeAsync(async () =>
+        //{
+            _progressBar.IsIndeterminate = false;
+            _progressPanel.IsVisible = false;
+            _progressInfo.Text = "";
+            var msBoxStandardWindow = MessageBoxManager
+                .GetMessageBoxStandardWindow(new MessageBoxStandardParams
+                {
+                    Icon = icon,
+                    ButtonDefinitions = button,
+                    ContentMessage = message,
+                    ContentTitle = title,
+                    ShowInCenter = true,
+                    Topmost = true,
+                    EscDefaultButton = button == ButtonEnum.YesNoAbort || button == ButtonEnum.OkAbort  ? ClickEnum.Abort : ClickEnum.Default,
+                    
+                });
+            result = await msBoxStandardWindow.Show();
+        //});
+        MessageBoxIsShown = false;
+        return result;
     }
     #endregion
 }

@@ -272,6 +272,7 @@ public static class Runner
                         config.Account.Uuid);
                 break;
             default:
+                // https://mojang-api-docs.gapple.pw/no-auth/username-to-uuid-get
                 newstr = newstr.Replace("${clientid}", "noauth").Replace("${auth_access_token}", "noauth")
                     .Replace("${user_type}", "noauth").Replace("${auth_xuid}", "noauth")
                     .Replace("${auth_uuid}", "noauth");
