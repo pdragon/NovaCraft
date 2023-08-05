@@ -32,6 +32,7 @@ using Panel = Avalonia.Controls.Panel;
 using ForgeThingy = Blowaunch.ConsoleApp.ForgeThingy;
 using static Blowaunch.Library.FilesManager;
 using Blowaunch.AvaloniaApp.Views.UserControls;
+using DynamicData;
 
 namespace Blowaunch.AvaloniaApp.Views;
 #pragma warning disable CS8618
@@ -828,6 +829,13 @@ public class MainWindow : Window
             .FirstOrDefault();
         //_modPacksCombo.SelectedItem = modpack;
         _modPacksPanel.Children.Clear();
+        NewPackControl _addModpackItem = new NewPackControl();
+        _modPacksPanel.Children.Add(_addModpackItem);
+        Button AddModPackBtn = _addModpackItem.Find<Button>("AddModPackBtn");
+        if (AddModPackBtn != null)
+        {
+            AddModPackBtn.Click += OnAddModPack!;
+        }
         for (int i = 0; i < Config.ModPacks.Count; i++)
         //foreach (var modPack in Config.ModPacks)
         {
@@ -861,11 +869,12 @@ public class MainWindow : Window
 
     public async void OnChangeModPack(object sender, RoutedEventArgs e)
     {
+        ProgressModal("Opening ModPack Modal", "Please wait");
         string id = (sender as Button)!.Name ?? "";
         Console.WriteLine((sender as Button)!.Name);
-        //OnChangeModPack(id.Split(':')[1] ?? "");
         await LoadConfig();
         var mp = Config.ModPacks.Find(x => x.Id == (id.Split(':')[1] ?? ""));
+        ProgressModalDisable();
         if (mp != null)
         {
             OpenModpackPanel((id.Split(':')[1] ?? ""));
@@ -878,7 +887,10 @@ public class MainWindow : Window
         }
     }
 
-
+    public async void OnAddModPack(object sender, RoutedEventArgs e)
+    {
+        OpenModpackPanel("");
+    }
 
     //public async void OnEraseModPack(ModPack modPack)
     public async void OnEraseModPack(string modPackId)
@@ -1173,25 +1185,30 @@ public class MainWindow : Window
         modpackConfig.JvmArgs = _modPackJavaArguments.Text;
         modpackConfig.GameArgs = _modPackGameArguments.Text;
         modpackConfig.RamMax = _modPackRamManual.Value.ToString(CultureInfo.InvariantCulture);
+        
         if (_modPackVersionsCombo.SelectedItem is LauncherConfig.VersionClass)
         {
             modpackConfig.Version = (LauncherConfig.VersionClass)_modPackVersionsCombo.SelectedItem;
         }
+        
         modpackConfig.Id = id;
         modpackConfig.Name = _modPackName.Text;
         modpackConfig.RamMax = _modPackRamSlider.Value.ToString(CultureInfo.InvariantCulture);
         modpackConfig.PackPath = _modPackPathInstance.Text;
+
+
         //config.ShowSnapshots = _showSnaphots.IsChecked!.Value;
         //config.ShowAlpha = _showAlpha.IsChecked!.Value;
         //config.ShowBeta = _showBeta.IsChecked!.Value;
         //config.ForceOffline = _forceOffline.IsChecked!.Value;
         //config.DemoUser = _minecraftDemo.IsChecked!.Value;
 
-
+        /*
         if (_modPackModProxyCombo.SelectedIndex > -1)
         {
             modpackConfig.ModProxy = ProxyDict[_modPackModProxyCombo.SelectedIndex];
         }
+        */
         var index = Config.ModPacks.FindIndex(mp => mp.Id == modpackConfig.Id);
         if (index != -1)
         {
@@ -1347,12 +1364,65 @@ public class MainWindow : Window
             }
         }
     }
-
+    /*
+    /// <summary>
+    /// Open Modpack panel
+    /// </summary>
     public void OpenModpackPanel(string ModPackId)
     {
 
         if (ModPackId != null && ModPackId != "")
         {
+            LauncherConfig.ModPack modPack = Config.ModPacks.Find(mp => mp.Id == ModPackId)!;
+            //if(modPack.Id == null)
+            //{
+            //    ShowMessage("Something wrong", "Error occured");
+            //}
+            int index = 1;
+            if (modPack.ModProxy != "")
+            {
+                var proxyIndex = ProxyDict.FirstOrDefault(x => x.Value == modPack.ModProxy).Key;
+                if (proxyIndex != -1)
+                {
+                    _modPackModProxyCombo.SelectedIndex = proxyIndex;
+                }
+            }
+            _modPackName.Text = modPack.Name;
+            _modPackRamSlider.Value = Convert.ToDouble(modPack.RamMax);
+            _modPackPathInstance.Text = modPack.PackPath;
+            //_modPackVersionsCombo.Items.F = (LauncherConfig.VersionClass?)modPack.Version;
+            //LauncherConfig.VersionClass? a = _modPackVersionsCombo.FirstOrDefault(modPack.Version);
+            //_modPackVersionsCombo.SelectedItem = modPack.Version;
+            if (ModPackId == "")
+            {
+                return;
+            }
+            _modPackPanel.IsVisible = true;
+            var versionsClass = GetVersions();
+            if (versionsClass != null)
+            {
+                if (ModPackId != "")
+                {
+                    index = versionsClass.Versions.FindIndex(
+                        x => x.Id == modPack.Version.Id
+                             && x.Name == modPack.Version.Name);
+                }
+
+                Dispatcher.UIThread.InvokeAsync(() => {
+                    _modPackVersionsCombo.Items = versionsClass.Versions;
+                    _modPackVersionsCombo.SelectedIndex = index;
+                    //_modPackVersionsCombo.SelectedItem = modPack.Version;
+                    if (_selectionChanged) return;
+                });
+            }
+        }
+    }
+    */
+    public void OpenModpackPanel(string ModPackId)
+    {
+
+        //if (ModPackId != null && ModPackId != "")
+        //{
             LauncherConfig.ModPack modPack = Config.ModPacks.Find(mp => mp.Id == ModPackId) ?? new LauncherConfig.ModPack();
             int index = 1;
             string? id = ModPackId == null ? Guid.NewGuid().ToString() : modPack.Id;
@@ -1371,21 +1441,19 @@ public class MainWindow : Window
             //_modPackVersionsCombo.Items.F = (LauncherConfig.VersionClass?)modPack.Version;
             //LauncherConfig.VersionClass? a = _modPackVersionsCombo.FirstOrDefault(modPack.Version);
             //_modPackVersionsCombo.SelectedItem = modPack.Version;
-            if (id == "")
-            {
-                return;
-            }
+
             _modPackPanel.IsVisible = true;
+        
             var versionsClass = GetVersions();
             if (versionsClass != null)
             {
-                if (id != "")
-                {
+                //if (id != "")
+                //{
                     index = versionsClass.Versions.FindIndex(
                         x => x.Id == modPack.Version.Id
                              && x.Name == modPack.Version.Name);
-                }
-
+                //}
+                
                 Dispatcher.UIThread.InvokeAsync(() => {
                     _modPackVersionsCombo.Items = versionsClass.Versions;
                     _modPackVersionsCombo.SelectedIndex = index;
@@ -1394,7 +1462,8 @@ public class MainWindow : Window
 
                 });
             }
-        }
+            
+        //}
     }
 
     #endregion
@@ -1572,7 +1641,7 @@ public class MainWindow : Window
             
             string startStr = Runner.GenerateCommand(MojangFetcher.GetMain(config.Version), config);
             AnsiConsole.WriteLine("[INF] Running The Game");
-
+            /*
             
             //System.Environment.SetEnvironmentVariable("DBname", comboBoxDataBaseName.Text, EnvironmentVariableTarget.User);
 
@@ -1594,6 +1663,7 @@ public class MainWindow : Window
             };
             JavaProcess.WaitForExit();
             AnsiConsole.WriteLine("[INF] Stopping The Game");
+            */
         }
     }
     #endregion

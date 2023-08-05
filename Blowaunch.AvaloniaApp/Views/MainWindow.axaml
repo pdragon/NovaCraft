@@ -363,8 +363,42 @@
                             Opacity="50"
                             CornerRadius="5"
                             Margin="20 0 20 10">
-						   <DockPanel Width="400">
-							   <!--
+							<!--
+							<Grid Width="400" Height="40" VerticalAlignment="Top">
+
+								<Button Height="35" Width="135"
+								Background="#1fa803"
+								Opacity="20"
+								CornerRadius="5"
+								Click="RunMinecraft">
+									<Button.Styles>
+										<Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+											<Setter Property="Background"
+													Value="#22cb00"/>
+										</Style>
+										<Style Selector="Button:pressed /template/ ContentPresenter#PART_ContentPresenter">
+											<Setter Property="Background"
+													Value="#27d803"/>
+										</Style>
+									</Button.Styles>
+									<StackPanel Orientation="Horizontal">
+										<PathIcon Data="{StaticResource
+                                PlayRegular}"
+												  Foreground="White"/>
+										<TextBlock Text="Run the game"
+												   HorizontalAlignment="Center"
+												   VerticalAlignment="Center"
+												   Margin="5 0 0 0"/>
+									</StackPanel>
+								</Button>
+
+							</Grid>
+							-->
+
+							<DockPanel Width="400">
+								
+
+								<!--
                                 <StackPanel Orientation="Horizontal" Width="260">
 	                                <ComboBox HorizontalAlignment="Center"
 		                                Width="200" SelectedIndex="0"
@@ -395,7 +429,7 @@
 								</StackPanel>
 							   -->
 							   <ScrollViewer VerticalAlignment="Top" VerticalScrollBarVisibility="Auto">
-							       <WrapPanel Name="ModPacksPanel" ItemHeight="160">
+							       <WrapPanel Margin="25,0,0,0" Name="ModPacksPanel" ItemHeight="160">
 								   <!--
 									   <uc:ModPackControl Margin="10" x:Name="ModPackControl1"/>
 									   <uc:ModPackControl Margin="10" x:Name="ModPackControl2"/>
