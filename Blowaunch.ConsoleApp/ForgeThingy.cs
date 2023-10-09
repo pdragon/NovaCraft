@@ -417,7 +417,7 @@ namespace Blowaunch.ConsoleApp
                 task.StopTask();
             });
         }
-        public static void Run(BlowaunchMainJson main, BlowaunchAddonJson addonMain, Account account, string maxRam, bool customWindowSize, float width, float height, bool online)
+        public static void Run(BlowaunchMainJson main, BlowaunchAddonJson addonMain, Account account, string maxRam, bool customWindowSize, float width, float height, bool online, string gamePath)
         {
             
             var classpath = new StringBuilder();
@@ -505,7 +505,7 @@ namespace Blowaunch.ConsoleApp
                     .Replace("${auth_uuid}", "0")
                     .Replace("${assets_index_name}", main.Assets.Id)
                     .Replace("${assets_root}", FilesManager.Directories.AssetsRoot)
-                    .Replace("${game_directory}", FilesManager.Directories.Root)
+                    .Replace("${game_directory}", gamePath) //FilesManager.Directories.Root)
                     .Replace("${version_name}", main.Version)
                     .Replace("${auth_player_name}", account.Name)
                     ;
@@ -515,6 +515,11 @@ namespace Blowaunch.ConsoleApp
             {
                 args.Append($"-width {width} ");
                 args.Append($"-height {height} ");
+            }
+            else
+            {
+                args.Append($"-width {840} ");
+                args.Append($"-height {480} ");
             }
 
             var args2 = new StringBuilder();

@@ -125,9 +125,9 @@ public class MainWindow : Window
     private bool _selectionChanged;
 
     private Dictionary<int, string> ProxyDict = new Dictionary<int, string>() {
-            { 0 , "ModPackVanilla" },
-            { 1 , "ModPackForge" },
-            { 2 , "ModPackFabric" },
+            { 0 , "None" },
+            { 1 , "Forge" },
+            { 2 , "Fabric" },
         };
 
     private class VersionsReturn
@@ -136,6 +136,9 @@ public class MainWindow : Window
         public bool IsOffline = false;
     }
 
+    /// <summary>
+    /// Prevent to open multiple same messageBoxes
+    /// </summary>
     private bool MessageBoxIsShown = false;
 
     /// <summary>
@@ -846,17 +849,22 @@ public class MainWindow : Window
             Image modPackImage;
             // “ак делать нельз€, надо переделать так чтобы не создавались новые объекты окна при создании контрола.
             ModPackControl modpackItem = new ModPackControl(Config.ModPacks.ToArray()[i]);
+
             eraseBtn = modpackItem.Find<Button>("ModPackEraseBtn");
             changeBtn = modpackItem.Find<Button>("ModPackChangeBtn");
+            Button playBtn = modpackItem.Find<Button>("ModPackPlayBtn");
             modPackImage = modpackItem.Find<Image>("ModPackImage");
-            modpackItem.Margin = new Avalonia.Thickness(4);
-            //modPackImage.Tool
             eraseBtn.Name = "ModPackEraseBtn:" + Config.ModPacks.ToArray()[i].Id;
             changeBtn.Name = "ModPackChangeBtn:" + Config.ModPacks.ToArray()[i].Id;
+            playBtn.Name = "ModPackPlayBtn:" + Config.ModPacks.ToArray()[i].Id;
+
+            modpackItem.Margin = new Avalonia.Thickness(4);
+
             Console.WriteLine(eraseBtn.Parent?.Parent?.ToString());
             if (eraseBtn != null) { 
                 eraseBtn.Click += OnEraseModPack!;
                 changeBtn.Click += OnChangeModPack!;
+                playBtn.Click += OnPlayModPack!;
             }
             _modPacksPanel.Children.Add(modpackItem);
 
@@ -909,6 +917,40 @@ public class MainWindow : Window
         OpenModpackPanel("");
     }
 
+    public async void OnPlayModPack(object sender, RoutedEventArgs e)
+    {
+        if (_progressPanel.IsVisible)
+        {
+            var msBoxStandardWindow = MessageBoxManager
+                .GetMessageBoxStandardWindow(new MessageBoxStandardParams
+                {
+                    Icon = MessageBox.Avalonia.Enums.Icon.Error,
+                    ButtonDefinitions = ButtonEnum.Ok,
+                    ContentMessage = "An operation is active at the time!",
+                    ContentTitle = "Error"
+                });
+            await msBoxStandardWindow.Show();
+            return;
+        }
+        bool online = true;
+
+        string id = (sender as Button)!.Name ?? "";
+        Console.WriteLine((sender as Button)!.Name);
+        var mp = Config.ModPacks.Find(x => x.Id == (id.Split(':')[1] ?? ""));
+        if (mp != null)
+        {
+            new Thread(async () => {
+                ProgressModal("Loading data...", "0 % done", "Downloading minecraft client");
+                await LoadDataAndStart(online, mp);
+                ProgressModalDisable();
+            }).Start();
+        }
+        else
+        {
+            await ShowMessage("Error","Error", ButtonEnum.Ok);
+        }
+    }
+
     //public async void OnEraseModPack(ModPack modPack)
     public async void OnEraseModPack(string modPackId)
     {
@@ -921,7 +963,6 @@ public class MainWindow : Window
             ReloadModPacks();
         }
     }
-
 
 
     /// <summary>
@@ -1185,7 +1226,7 @@ public class MainWindow : Window
     /// <summary>
     /// Save instance
     /// </summary>
-    public void ModPackSaveChanges(object? sender, RoutedEventArgs e)
+    async public void ModPackSaveChanges(object? sender, RoutedEventArgs e)
     {
         string id = _modPackId.Text;
         if(id == "" || id == null)
@@ -1212,21 +1253,12 @@ public class MainWindow : Window
         modpackConfig.Name = _modPackName.Text;
         modpackConfig.RamMax = _modPackRamSlider.Value.ToString(CultureInfo.InvariantCulture);
         modpackConfig.PackPath = _modPackPathInstance.Text;
+        //var modEngine = _modPackModProxyCombo.Items.(_modPackModProxyCombo.SelectedIndex);
+        var cb = (ComboBoxItem?)_modPackModProxyCombo.SelectedItem;
+        if(cb != null)
+            modpackConfig.ModProxy = ((TextBlock)(cb).Content).Text.ToString();
 
-
-        //config.ShowSnapshots = _showSnaphots.IsChecked!.Value;
-        //config.ShowAlpha = _showAlpha.IsChecked!.Value;
-        //config.ShowBeta = _showBeta.IsChecked!.Value;
-        //config.ForceOffline = _forceOffline.IsChecked!.Value;
-        //config.DemoUser = _minecraftDemo.IsChecked!.Value;
-
-        /*
-        if (_modPackModProxyCombo.SelectedIndex > -1)
-        {
-            modpackConfig.ModProxy = ProxyDict[_modPackModProxyCombo.SelectedIndex];
-        }
-        */
-        var index = Config.ModPacks.FindIndex(mp => mp.Id == modpackConfig.Id);
+            var index = Config.ModPacks.FindIndex(mp => mp.Id == modpackConfig.Id);
         if (index != -1)
         {
             Config.ModPacks[index] = modpackConfig;
@@ -1237,7 +1269,7 @@ public class MainWindow : Window
         }
         if (modpackConfig.Name == null || modpackConfig.Name == "")
         {
-            ShowMessage("Name can't be empty", "Error occured");
+            await ShowMessage("Name can't be empty", "Error occured");
             return;
         }
         SaveConfig();
@@ -1341,6 +1373,10 @@ public class MainWindow : Window
                 var proxyIndex = ProxyDict.FirstOrDefault(x => x.Value == modPack.ModProxy).Key;
                 if(proxyIndex != -1){
                     _modPackModProxyCombo.SelectedIndex = proxyIndex;
+                }
+                else
+                {
+                    _modPackModProxyCombo.SelectedIndex = 1;
                 }
             }
             _modPackName.Text =  modPack.Name;
@@ -1455,9 +1491,10 @@ public class MainWindow : Window
             _modPackName.Text = modPack.Name;
             _modPackRamSlider.Value = Convert.ToDouble(modPack.RamMax);
             _modPackPathInstance.Text = modPack.PackPath;
-            //_modPackVersionsCombo.Items.F = (LauncherConfig.VersionClass?)modPack.Version;
-            //LauncherConfig.VersionClass? a = _modPackVersionsCombo.FirstOrDefault(modPack.Version);
-            //_modPackVersionsCombo.SelectedItem = modPack.Version;
+        //_modPackVersionsCombo.Items.F = (LauncherConfig.VersionClass?)modPack.Version;
+        //LauncherConfig.VersionClass? a = _modPackVersionsCombo.FirstOrDefault(modPack.Version);
+        //_modPackVersionsCombo.SelectedItem = modPack.Version;
+        //_modPackModProxyCombo.SelectedItem = modPack.ModProxy;
 
             _modPackPanel.IsVisible = true;
         
@@ -1486,6 +1523,7 @@ public class MainWindow : Window
     #endregion
     #region Runner
 
+    // Ёто на удаление скорее всего ибо модпака по сути то не откуда кнопке брать в таком разе, если нет выпадающего списка.
     public void RunMinecraft(object? sender, RoutedEventArgs e)
     {
         if (_progressPanel.IsVisible) {
@@ -1502,7 +1540,7 @@ public class MainWindow : Window
         bool online = true;
         new Thread(async () => {
             ProgressModal("Loading data...", "0 % done", "Downloading minecraft client");
-            await LoadDataAndStart(online);
+            await LoadDataAndStart(online, null);
 
            // ProgressModal("Starting Minecraft client " + Config.Version, "0 % done");
            // await RunMinecraftProgress(online);
@@ -1510,14 +1548,14 @@ public class MainWindow : Window
         }).Start();
     }
 
-    private async Task LoadDataAndStart(bool online)
+    private async Task LoadDataAndStart(bool online, ModPack? currentModpack)
     {
         ProgressModal("Starting", "please wait");
         int percent = 0;
-        var currentModpack = (LauncherConfig.ModPack?)_modPacksCombo.SelectedItem;
+        //var currentModpack = (LauncherConfig.ModPack?)_modPacksCombo.SelectedItem;
         if (currentModpack == null)
         {
-            ShowMessage("Please select modPack", "Error");
+            await ShowMessage("Please select modPack", "Error");
             return;
         }
         BlowaunchMainJson main = (MojangFetcher.GetMain(currentModpack.Version.Id));
@@ -1550,22 +1588,22 @@ public class MainWindow : Window
         switch (javaDownloadResult)
         {
             case JavaDownloadError.OSIsNotSupported:
-                ShowMessage("Your OS is not supported!", "Error");
+                await ShowMessage("Your OS is not supported!", "Error");
                 return;
             case JavaDownloadError.UnableToFindOpenJDK:
-                ShowMessage("Please report it to us on the GitHub issues page.", "Unable to find OpenJDK version");
+                await ShowMessage("Please report it to us on the GitHub issues page.", "Unable to find OpenJDK version");
                 return;
             default: break;
         }
 
         switch (currentModpack.ModProxy)
         {
-            case "ModPackForge":
+            case "Forge":
                 ProgressModal("Getting Forge", "please wait");
                 var data = ForgeThingy.GetAddonJson(currentModpack.Version.Id, main, online);
                 if(data == null)
                 {
-                    ShowMessage("Can't download forge in offline mode", "critical error");
+                    await ShowMessage("Can't download forge in offline mode", "critical error");
                     return;
                 }
                 ProgressModal("Loading Forge", "please wait");
@@ -1587,8 +1625,8 @@ public class MainWindow : Window
                 }
                 //else
                 //{
-                    ProgressModal("loading addon", "", null);
-                    ForgeThingy.Run(main, data, acount, currentModpack.RamMax, currentModpack.CustomWindowSize, currentModpack.WindowSize.X, currentModpack.WindowSize.Y, online);
+                    ProgressModal("Game started, enjoy ;-)", "", null);
+                    ForgeThingy.Run(main, data, acount, currentModpack.RamMax, currentModpack.CustomWindowSize, currentModpack.WindowSize.X, currentModpack.WindowSize.Y, online, currentModpack.PackPath);
                 //}
                 ProgressModal("Game started", "enjoy!");
                 ProgressModalDisable();
@@ -1608,7 +1646,7 @@ public class MainWindow : Window
         {
             var currentModpack =  (LauncherConfig.ModPack?)_modPacksCombo.SelectedItem;
             if (currentModpack == null || currentModpack.Id == null || currentModpack.Id == "") {
-                ShowMessage("Error","Error");
+                await ShowMessage("Error","Error");
                 return;
             }
             // TODO: Create Root Dir Input
