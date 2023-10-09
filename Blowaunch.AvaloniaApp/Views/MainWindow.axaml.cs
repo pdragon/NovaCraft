@@ -26,7 +26,7 @@ using Newtonsoft.Json.Linq;
 using Serilog;
 using Serilog.Core;
 using Spectre.Console;
-using static Blowaunch.AvaloniaApp.LauncherConfig;
+using static Blowaunch.Library.LauncherConfig;
 using static Blowaunch.Library.Runner;
 using Panel = Avalonia.Controls.Panel;
 using ForgeThingy = Blowaunch.ConsoleApp.ForgeThingy;
@@ -1626,7 +1626,8 @@ public class MainWindow : Window
                 //else
                 //{
                     ProgressModal("Game started, enjoy ;-)", "", null);
-                    ForgeThingy.Run(main, data, acount, currentModpack.RamMax, currentModpack.CustomWindowSize, currentModpack.WindowSize.X, currentModpack.WindowSize.Y, online, currentModpack.PackPath);
+                //ForgeThingy.Run(main, data, acount, currentModpack.RamMax, currentModpack.CustomWindowSize, currentModpack.WindowSize.X, currentModpack.WindowSize.Y, online, currentModpack.PackPath);
+                ForgeThingy.Run(main, data, acount, online, currentModpack);
                 //}
                 ProgressModal("Game started", "enjoy!");
                 ProgressModalDisable();

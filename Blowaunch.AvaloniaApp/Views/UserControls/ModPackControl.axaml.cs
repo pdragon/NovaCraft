@@ -7,7 +7,7 @@ using Avalonia.Media.Imaging;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using static Blowaunch.AvaloniaApp.LauncherConfig;
+using static Blowaunch.Library.LauncherConfig;
 
 namespace Blowaunch.AvaloniaApp.Views.UserControls;
 

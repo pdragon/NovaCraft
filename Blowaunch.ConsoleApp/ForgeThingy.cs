@@ -417,7 +417,8 @@ namespace Blowaunch.ConsoleApp
                 task.StopTask();
             });
         }
-        public static void Run(BlowaunchMainJson main, BlowaunchAddonJson addonMain, Account account, string maxRam, bool customWindowSize, float width, float height, bool online, string gamePath)
+        //public static void Run(BlowaunchMainJson main, BlowaunchAddonJson addonMain, Account account, string maxRam, bool customWindowSize, float width, float height, bool online, string gamePath)
+        public static void Run(BlowaunchMainJson main, BlowaunchAddonJson addonMain, Account account, bool online, LauncherConfig.ModPack modpack)
         {
             
             var classpath = new StringBuilder();
@@ -505,16 +506,16 @@ namespace Blowaunch.ConsoleApp
                     .Replace("${auth_uuid}", "0")
                     .Replace("${assets_index_name}", main.Assets.Id)
                     .Replace("${assets_root}", FilesManager.Directories.AssetsRoot)
-                    .Replace("${game_directory}", gamePath) //FilesManager.Directories.Root)
+                    .Replace("${game_directory}", modpack.PackPath) //FilesManager.Directories.Root)
                     .Replace("${version_name}", main.Version)
                     .Replace("${auth_player_name}", account.Name)
                     ;
                 args.Append($"{replaced} ");
             }
-            if (customWindowSize)
+            if (modpack.CustomWindowSize)
             {
-                args.Append($"-width {width} ");
-                args.Append($"-height {height} ");
+                args.Append($"-width {modpack.WindowSize.X} ");
+                args.Append($"-height {modpack.WindowSize.Y} ");
             }
             else
             {
@@ -528,7 +529,7 @@ namespace Blowaunch.ConsoleApp
             //TODO: java args pass
             foreach (var arg in JavaArguments) {
                 var javaArgsReplaced = arg.Replace("${xms}", "512")
-                        .Replace("${xmx}", maxRam)
+                        .Replace("${xmx}", modpack.RamMax)
                         .Replace("${native_path}", Path.Combine( Directories.VersionsRoot, main.Version, "natives"));//"C:\\Users\\UserA\\AppData\\Roaming\\.blowaunch\\versions\\1.12.2\\natives");
                 args2.Append($"{javaArgsReplaced} ");
             }
