@@ -29,7 +29,7 @@ using Spectre.Console;
 using static Blowaunch.Library.LauncherConfig;
 using static Blowaunch.Library.Runner;
 using Panel = Avalonia.Controls.Panel;
-using ForgeThingy = Blowaunch.ConsoleApp.ForgeThingy;
+using ForgeThingy = Blowaunch.Library.ForgeThingy;
 using static Blowaunch.Library.FilesManager;
 using Blowaunch.AvaloniaApp.Views.UserControls;
 using DynamicData;
@@ -330,7 +330,7 @@ public class MainWindow : Window
 
         _modPackControl = this.FindControl<ModPackControl>("ModPackControl1");
         _modPacksPanel = this.FindControl<WrapPanel>("ModPacksPanel");
-
+        /*
         _ramManual.ValueChanged += (_, e) => {
             // ReSharper disable once CompareOfFloatsByEqualityOperator
             if (_ramSlider.Value == _ramManual.Value)
@@ -342,7 +342,7 @@ public class MainWindow : Window
             
             _ramSlider.Value = e.NewValue;
         };
-
+        */
         _modPackRamManual.ValueChanged += (_, e) => {
             // ReSharper disable once CompareOfFloatsByEqualityOperator
             if (_modPackRamSlider.Value == _modPackRamManual.Value)
@@ -354,7 +354,7 @@ public class MainWindow : Window
 
             _modPackRamSlider.Value = e.NewValue;
         };
-
+        /*
         _windowWidth.ValueChanged += (_, e) => {
             if (e.NewValue < 0)
                 _windowWidth.Value = 0;
@@ -364,7 +364,7 @@ public class MainWindow : Window
             if (e.NewValue < 0)
                 _windowHeight.Value = 0;
         };
-
+        */
         _modPackRamSlider.PropertyChanged += (_, _) => {
             if (_modPackRamSlider.Value % 1 != 0)
                 _modPackRamSlider.Value = Math.Floor(_modPackRamSlider.Value);
@@ -1154,15 +1154,15 @@ public class MainWindow : Window
     private void LoadSettings()
     {
         Logger.Information("Loading settings...");
-        _customWindowSize.IsChecked = Config.CustomWindowSize;
-        _windowWidth.Value = Config.WindowSize.X;
-        _windowHeight.Value = Config.WindowSize.Y;
-        _javaArguments.Text = Config.JvmArgs;
-        _gameArguments.Text = Config.GameArgs;
-        _ramSlider.Maximum = _info.MemoryList.Sum(
-            x => (long)x.Capacity) / 1000000;
-        _ramManual.Value = int.Parse(Config.RamMax);
-        _ramSlider.Value = int.Parse(Config.RamMax);
+        //_customWindowSize.IsChecked = Config.CustomWindowSize;
+        //_windowWidth.Value = Config.WindowSize.X;
+        //_windowHeight.Value = Config.WindowSize.Y;
+        //_javaArguments.Text = Config.JvmArgs;
+        //_gameArguments.Text = Config.GameArgs;
+        //_ramSlider.Maximum = _info.MemoryList.Sum(
+        //    x => (long)x.Capacity) / 1000000;
+        //_ramManual.Value = int.Parse(Config.RamMax);
+        //_ramSlider.Value = int.Parse(Config.RamMax);
         _showSnaphots.IsChecked = Config.ShowSnapshots;
         _showAlpha.IsChecked = Config.ShowAlpha;
         _showBeta.IsChecked = Config.ShowBeta;
@@ -1258,6 +1258,8 @@ public class MainWindow : Window
         if(cb != null)
             modpackConfig.ModProxy = ((TextBlock)(cb).Content).Text.ToString();
 
+        SaveModPackToConfig(modpackConfig);
+        /*
             var index = Config.ModPacks.FindIndex(mp => mp.Id == modpackConfig.Id);
         if (index != -1)
         {
@@ -1267,6 +1269,7 @@ public class MainWindow : Window
         {
             Config.ModPacks.Add(modpackConfig);
         }
+        */
         if (modpackConfig.Name == null || modpackConfig.Name == "")
         {
             await ShowMessage("Name can't be empty", "Error occured");
@@ -1294,6 +1297,19 @@ public class MainWindow : Window
                 _modPackPanel.IsVisible = false;
             });
         }).Start();
+    }
+
+    private void SaveModPackToConfig(ModPack? modpackConfig)
+    {
+        var index = Config.ModPacks.FindIndex(mp => mp.Id == modpackConfig?.Id);
+        if (index != -1)
+        {
+            Config.ModPacks[index] = modpackConfig;
+        }
+        else
+        {
+            Config.ModPacks.Add(modpackConfig);
+        }
     }
 
     /// <summary>
@@ -1338,6 +1354,17 @@ public class MainWindow : Window
             UseShellExecute = true,
             Verb = "open"
         });
+
+    public async void OpenPathDirectory(object? sender, RoutedEventArgs e)
+    {
+        ModPack? modpack = Config.ModPacks.Find(mp => mp.Id == _modPackId.Text);
+        var dialog = new OpenFolderDialog() { Directory = modpack?.PackPath, Title = "Select modpack instance folder" };
+        if (modpack != null)
+        {
+            _modPackPathInstance.Text = await dialog.ShowAsync(this);
+        }
+    }
+
     public void AddModpack(object? sender, RoutedEventArgs e)
          => Process.Start(new ProcessStartInfo
          {
@@ -1596,11 +1623,20 @@ public class MainWindow : Window
             default: break;
         }
 
+        Account? account = Config.Accounts.Find(x => x.Id == Config.SelectedAccountId);
+        if (account == null)
+        {
+            //TODO: messageBox 
+            return;
+        }
+
+        BlowaunchAddonJson data = new BlowaunchAddonJson();
+
         switch (currentModpack.ModProxy)
         {
             case "Forge":
                 ProgressModal("Getting Forge", "please wait");
-                var data = ForgeThingy.GetAddonJson(currentModpack.Version.Id, main, online);
+                data = ForgeThingy.GetAddonJson(currentModpack.Version.Id, main, online);
                 if(data == null)
                 {
                     await ShowMessage("Can't download forge in offline mode", "critical error");
@@ -1612,12 +1648,7 @@ public class MainWindow : Window
                     //TODO: messageBox 
                     return;
                 }
-                Account? acount = Config.Accounts.Find(x => x.Id == Config.SelectedAccountId);
-                if (acount == null)
-                {
-                    //TODO: messageBox 
-                    return;
-                }
+                
                 
                 if (ForgeThingy.IsProcessorsExists(main.Version))
                 {
@@ -1627,13 +1658,14 @@ public class MainWindow : Window
                 //{
                     ProgressModal("Game started, enjoy ;-)", "", null);
                 //ForgeThingy.Run(main, data, acount, currentModpack.RamMax, currentModpack.CustomWindowSize, currentModpack.WindowSize.X, currentModpack.WindowSize.Y, online, currentModpack.PackPath);
-                ForgeThingy.Run(main, data, acount, online, currentModpack);
+                
                 //}
                 ProgressModal("Game started", "enjoy!");
                 ProgressModalDisable();
                 break;
                 //FilesManager.DownloadForge(currentModpack.Version.Id, online);   
         }
+        Runner.StartTheGame(main, data, account, online, currentModpack);
     }
 
     private async Task RunMinecraftProgress(bool online)

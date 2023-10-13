@@ -1,15 +1,19 @@
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Security.Principal;
 using System.Text;
 using System.Text.RegularExpressions;
 using Blowaunch.Library.Authentication;
 using Newtonsoft.Json;
 using Serilog.Core;
 using Spectre.Console;
+using static Blowaunch.Library.FilesManager;
 
 namespace Blowaunch.Library;
 
@@ -344,5 +348,196 @@ public static class Runner
         } else main.Arguments.Game = addon.Arguments.Game;
 
         return GenerateCommand(main, config);
+    }
+
+    public static void StartTheGame(BlowaunchMainJson main, BlowaunchAddonJson addonMain, Account account, bool online, LauncherConfig.ModPack modpack)
+    {
+        var classpath = new StringBuilder();
+        var separator = Environment.OSVersion.Platform == PlatformID.Unix ? ":" : ";";
+
+        var OsDict = new Dictionary<string, string>()
+        {
+
+        };
+
+        static bool IsValidOs(string str)
+        {
+            if (str.StartsWith("os-name:"))
+                switch (str.Substring(8))
+                {
+                    case "windows":
+                        return RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+                    case "linux":
+                        return RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
+                    case "macos":
+                        return RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
+                               && Environment.OSVersion.Version.Major < 10 ||
+                               Environment.OSVersion.Version.Minor < 12;
+                    case "osx":
+                        return RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
+                               && Environment.OSVersion.Version.Major >= 10 ||
+                               Environment.OSVersion.Version.Minor >= 12;
+                }
+            return false;
+        }
+
+        foreach (var library in main.Libraries)
+        {
+            bool currentOs = false;
+            foreach (var allowedOs in library.Allow)
+            {
+                currentOs = IsValidOs(allowedOs);
+            }
+
+            if (currentOs || library.Allow.Length == 0)
+            //if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && library.Allow.Contains("os-name:windows") || library.Allow.Length == 0)
+            {
+                var file2 = FilesManager.GetLibraryPath(new BlowaunchMainJson.JsonLibrary
+                {
+                    Path = library.Path
+                });
+                if (!File.Exists(file2))
+                {
+                    FilesManager.DownloadLibrary(library, main.Version, online);
+                }
+                classpath.Append($"{file2}{separator}");
+            }
+        }
+        //classpath.Remove(classpath.Length - 1, 1);
+        //TODO Add check for dir and file exist
+        string file = Path.Combine(FilesManager.Directories.VersionsRoot, main.Version, $"{main.Version}.jar");
+        var args = new StringBuilder();
+        string mainClass = main.MainClass;
+        switch (modpack.ModProxy)
+        {
+            case "Forge":
+                mainClass = addonMain.MainClass;
+                foreach (var library in addonMain.Libraries)
+                {
+                    var file2 = FilesManager.GetLibraryPath(new BlowaunchMainJson.JsonLibrary
+                    {
+                        Path = library.Path
+                    });
+                    if (!File.Exists(file2))
+                    {
+                        FilesManager.DownloadLibrary(library, main.Version, online);
+                    }
+                    classpath.Append($"{file2}{separator}");
+                }
+        
+                if (ForgeThingy.IsProcessorsExists(main.Version))
+                {
+                    ForgeThingy.RunProcessors(main, online);
+                }
+                //TODO Add check for dir and file exist
+                string addonFile = Path.Combine(FilesManager.Directories.Root, "forge", $"{addonMain.FullVersion}.jar");
+                classpath.Append($"{addonFile}{separator}");
+                foreach (var arg in addonMain.Arguments.Game)
+                {
+                    var replaced = arg.Value.Replace("${user_type}", "legacy")
+                        //.Replace("${auth_access_token}", account.AccessToken)
+                        //.Replace("${auth_uuid}", account.Uuid)
+                        .Replace("${auth_access_token}", "0")
+                        .Replace("${auth_uuid}", "0")
+                        .Replace("${assets_index_name}", main.Assets.Id)
+                        .Replace("${assets_root}", FilesManager.Directories.AssetsRoot)
+                        .Replace("${game_directory}", modpack.PackPath) //FilesManager.Directories.Root)
+                        .Replace("${version_name}", main.Version)
+                        .Replace("${auth_player_name}", account.Name)
+                        ;
+                    args.Append($"{replaced} ");
+                }
+                break;
+            default:
+                foreach (var arg in main.Arguments.Game)
+                {
+                    var replaced = arg.Value.Replace("${user_type}", "legacy")
+                        //.Replace("${auth_access_token}", account.AccessToken)
+                        //.Replace("${auth_uuid}", account.Uuid)
+                        .Replace("${auth_access_token}", "0")
+                        .Replace("${auth_uuid}", "0")
+                        .Replace("${assets_index_name}", main.Assets.Id)
+                        .Replace("${assets_root}", FilesManager.Directories.AssetsRoot)
+                        .Replace("${game_directory}", modpack.PackPath) //FilesManager.Directories.Root)
+                        .Replace("${version_name}", main.Version)
+                        .Replace("${auth_player_name}", account.Name)
+                        .Replace("${version_type}", "Release")//"Blowaunch")
+                        // greater than 1.12.2 vesions
+                        .Replace("${clientid}", "")
+                        .Replace("${auth_xuid}", "")
+                        .Replace("--demo", "")
+
+                        ;
+                    args.Append($"{replaced} ");
+                }
+                break;
+        }
+
+        
+
+
+        if (modpack.CustomWindowSize)
+        {
+            args.Append($"-width {modpack.WindowSize.X} ");
+            args.Append($"-height {modpack.WindowSize.Y} ");
+        }
+        else
+        {
+            args.Append($"-width {840} ");
+            args.Append($"-height {480} ");
+        }
+
+        var args2 = new StringBuilder();
+        // its works only in java 8
+        List<string> JavaArguments = new List<string> { "-XX:+UseG1GC -XX:+UnlockExperimentalVMOptions", "-XX:+AlwaysPreTouch", "-XX:+ParallelRefProcEnabled", "-Xms${xms}M", "-Xmx${xmx}M", "-Dfile.encoding=UTF-8", "-Dfml.ignoreInvalidMinecraftCertificates=true", "-Dfml.ignorePatchDiscrepancies=true", "-Djava.net.useSystemProxies=true", "-Djava.library.path=${native_path}" };
+        //TODO: java args pass
+        foreach (var arg in JavaArguments)
+        {
+            var javaArgsReplaced = arg.Replace("${xms}", "512")
+                    .Replace("${xmx}", modpack.RamMax)
+                    .Replace("${native_path}", Path.Combine(Directories.VersionsRoot, main.Version, "natives"));//"C:\\Users\\UserA\\AppData\\Roaming\\.blowaunch\\versions\\1.12.2\\natives");
+            args2.Append($"{javaArgsReplaced} ");
+        }
+
+
+        args.Remove(args.Length - 1, 1);
+
+        var command = $"{args2} -cp {file}{separator}{classpath} {mainClass} {args}";
+
+        if (main == null)
+        {
+            throw new ArgumentNullException(nameof(main));
+        }
+        var process = new Process();
+        // JAVA_HOME and PATH sets here 
+        string envPath = System.Environment.GetEnvironmentVariable("Path", EnvironmentVariableTarget.User);
+        System.Environment.SetEnvironmentVariable("Path", Path.Combine(Directories.JavaRoot, "8", "bin") + ";" + envPath, EnvironmentVariableTarget.User);
+        System.Environment.SetEnvironmentVariable("JAVA_HOME", Path.Combine(Directories.JavaRoot, "8"), EnvironmentVariableTarget.User);
+        process.StartInfo = new ProcessStartInfo
+        {
+            WorkingDirectory = FilesManager.Directories.Root,
+            FileName = Path.Combine(Path.Combine(FilesManager.Directories.JavaRoot,
+                main.JavaMajor.ToString()), "bin", !RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "java" : "javaw"),
+            //RedirectStandardOutput = true,
+            //RedirectStandardError = true,
+            UseShellExecute = true,
+            Arguments = command
+        };
+
+        Console.WriteLine(Path.Combine(Path.Combine(FilesManager.Directories.JavaRoot,
+                main.JavaMajor.ToString()), "bin", !RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "java" : "javaw") + " " + command);
+
+        process.OutputDataReceived += (_, e) => {
+            if (e.Data == null) return;
+            AnsiConsole.WriteLine(e.Data);
+        };
+        process.ErrorDataReceived += (_, e) => {
+            if (e.Data == null) return;
+            AnsiConsole.WriteLine(e.Data);
+        };
+        process.Start();
+        process.WaitForExit();
+        // Secure errror on start
+        // https://github.com/OpenFeign/feign/issues/935#issuecomment-521236281
     }
 }

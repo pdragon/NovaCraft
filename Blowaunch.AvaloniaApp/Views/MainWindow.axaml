@@ -151,135 +151,6 @@
                             </TextBlock>
                         </TabItem.Header>
                         <StackPanel Orientation="Vertical">
-                            <StackPanel Orientation="Horizontal">
-                                <Border Background="Black"
-                                        BorderBrush="White"
-                                        Opacity="50"
-                                        BorderThickness="2"
-                                        CornerRadius="3"
-                                        Padding="10"
-                                        Margin="0 0 5 0">
-                                    <StackPanel Orientation="Vertical"
-                                                Width="200">
-                                        <TextBlock HorizontalAlignment="Center"
-                                                   FontSize="18">
-                                            Window Size
-                                        </TextBlock>
-                                        <ToggleSwitch OffContent="Custom Window Size"
-                                                      OnContent="Custom Window Size"
-                                                      Name="CustomWindowSize">
-                                        </ToggleSwitch>
-                                        <StackPanel Orientation="Horizontal">
-                                            <TextBlock HorizontalAlignment="Center"
-                                                       VerticalAlignment="Center"
-                                                       FontSize="14" Margin="0 0 10 0">
-                                                Width: 
-                                            </TextBlock>
-                                            <NumericUpDown Watermark="Width" Width="145"
-                                                           Margin="0 5 0 5"
-                                                           Name="WindowWidth"/>
-                                        </StackPanel>
-                                        <StackPanel Orientation="Horizontal">
-                                            <TextBlock HorizontalAlignment="Center"
-                                                       VerticalAlignment="Center"
-                                                       FontSize="14" Margin="0 0 10 0">
-                                                Height: 
-                                            </TextBlock>
-                                            <NumericUpDown Watermark="Height" Width="140"
-                                                           Margin="0 5 0 10"
-                                                           Name="WindowHeight"/>
-                                        </StackPanel>
-                                    </StackPanel>
-                                </Border>
-                                <Border Background="Black"
-                                        BorderBrush="White"
-                                        Opacity="50"
-                                        BorderThickness="2"
-                                        CornerRadius="3"
-                                        Padding="10">
-                                    <StackPanel Orientation="Vertical"
-                                                Width="240">
-                                        <TextBlock HorizontalAlignment="Center"
-                                                   FontSize="18" Margin="0 0 0 5">
-                                            Runner Settings
-                                        </TextBlock>
-                                        <TextBox Width="240" Watermark="Java Arguments"
-                                                 Margin="0 0 10 5"
-                                                 Name="JavaArguments">
-                                        </TextBox>
-                                        <TextBox Width="240" Watermark="Game Arguments"
-                                                 Margin="0 0 10 10"
-                                                 Name="GameArguments">
-                                        </TextBox>
-                                        <StackPanel Orientation="Horizontal"
-                                                    HorizontalAlignment="Center">
-                                            <TextBlock HorizontalAlignment="Center"
-                                                       VerticalAlignment="Center"
-                                                       FontSize="14">
-                                                RAM allocation
-                                            </TextBlock>
-                                            <NumericUpDown Width="125" Watermark="Manual"
-                                                     Margin="10 0 0 0"
-                                                     Name="RamManual">
-                                            </NumericUpDown>
-                                        </StackPanel>
-                                        <Slider Margin="0 -15 0 -15"
-                                                Name="RamSlider"/>
-                                    </StackPanel>
-                                </Border>
-                            </StackPanel>
-                            <StackPanel Orientation="Horizontal"
-                                        Margin="0 5 0 0">
-                                <Border Background="Black"
-                                        BorderBrush="White"
-                                        Opacity="50"
-                                        BorderThickness="2"
-                                        CornerRadius="3"
-                                        Padding="10"
-                                        Margin="0 0 5 0">
-                                    <StackPanel Orientation="Vertical"
-                                                Width="160">
-                                        <TextBlock HorizontalAlignment="Center"
-                                                   FontSize="18" Margin="0 0 0 5">
-                                            Versions
-                                        </TextBlock>
-                                        <ToggleSwitch OnContent="Show Snaphots"
-                                                      OffContent="Show Snaphots"
-                                                      Name="ShowSnapshots">
-                                        </ToggleSwitch>
-                                        <ToggleSwitch OnContent="Show Beta"
-                                                      OffContent="Show Beta"
-                                                      Name="ShowBeta">
-                                        </ToggleSwitch>
-                                        <ToggleSwitch OnContent="Show Alpha"
-                                                      OffContent="Show Alpha"
-                                                      Name="ShowAlpha">
-                                        </ToggleSwitch>
-                                    </StackPanel>
-                                </Border>
-                                <Border Background="Black"
-                                        BorderBrush="White"
-                                        Opacity="50"
-                                        BorderThickness="2"
-                                        CornerRadius="3"
-                                        Padding="10">
-                                    <StackPanel Orientation="Vertical"
-                                                Width="200">
-                                        <TextBlock HorizontalAlignment="Center"
-                                                   FontSize="18" Margin="0 0 0 5">
-                                            Additional
-                                        </TextBlock>
-                                        <ToggleSwitch OnContent="Force Offline Mode"
-                                                      OffContent="Force Offline Mode"
-                                                      Name="ForceOffline">
-                                        </ToggleSwitch>
-                                        <ToggleSwitch OnContent="Minecraft Demo Mode"
-                                                      OffContent="Minecraft Demo Mode"
-                                                      Name="MinecraftDemo">
-                                        </ToggleSwitch>
-                                    </StackPanel>
-                                </Border>
-                            </StackPanel>
                             <Border Background="Black"
                                     BorderBrush="White"
                                     Opacity="50"
@@ -589,14 +460,37 @@
 														   Padding="10">
 						<StackPanel Orientation="Vertical"
 									Width="240">
-							<TextBlock HorizontalAlignment="Center"
-									   FontSize="18" Margin="0 0 0 5">
-								Misc
-							</TextBlock>
-							<TextBox Width="240" Watermark="Path to instance"
+							
+								<TextBlock HorizontalAlignment="Center"
+										   FontSize="18" Margin="0 0 0 5">
+									Misc
+								</TextBlock>
+							<StackPanel Orientation="Horizontal">
+								<TextBox Width="200" Watermark="Path to instance"
+										 IsReadOnly="True"
 									 Margin="0 0 10 5"
+									 HorizontalAlignment="Left"
 									 Name="ModPackPathInstance">
-							</TextBox>
+								</TextBox>
+								<Button Height="35" Width="35"
+									Opacity="100" Background="Transparent"
+									CornerRadius="5" Click="OpenPathDirectory"
+										Margin="0 0 10 0">
+									<Button.Styles>
+										<Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+											<Setter Property="Background"
+													Value="#50FFFFFF"/>
+											<Setter Property="HorizontalAlignment"
+													Value="Right"/>
+										</Style>
+									</Button.Styles>
+									<PathIcon Data="{StaticResource
+                                FolderRegular}"
+											  Foreground="White"/>
+								</Button>
+
+
+							</StackPanel>
 							<TextBox Width="240" Watermark="Name of instance"
 									 Margin="0 0 10 5"
 									 Name="ModPackName">
@@ -608,7 +502,66 @@
 							</TextBox>
 						</StackPanel>
 					</Border>
+
+					<!--
+                <StackPanel Orientation="Horizontal"
+                            Margin="0 5 0 0">
+					-->
+					<Border Background="Black"
+                            BorderBrush="White"
+                            Opacity="50"
+                            BorderThickness="2"
+                            CornerRadius="3"
+                            Padding="10"
+                            Margin="0 0 5 0">
+						<StackPanel Orientation="Vertical"
+                                    Width="160">
+							<TextBlock HorizontalAlignment="Center"
+                                        FontSize="18" Margin="0 0 0 5">
+								Versions
+							</TextBlock>
+							<ToggleSwitch OnContent="Show Snaphots"
+                                            OffContent="Show Snaphots"
+                                            Name="ShowSnapshots">
+							</ToggleSwitch>
+							<ToggleSwitch OnContent="Show Beta"
+                                            OffContent="Show Beta"
+                                            Name="ShowBeta">
+							</ToggleSwitch>
+							<ToggleSwitch OnContent="Show Alpha"
+                                            OffContent="Show Alpha"
+                                            Name="ShowAlpha">
+							</ToggleSwitch>
+						</StackPanel>
+					</Border>
+					<Border Background="Black"
+                            BorderBrush="White"
+                            Opacity="50"
+                            BorderThickness="2"
+                            CornerRadius="3"
+                            Padding="10">
+						<StackPanel Orientation="Vertical"
+                                    Width="200">
+							<TextBlock HorizontalAlignment="Center"
+                                        FontSize="18" Margin="0 0 0 5">
+								Additional
+							</TextBlock>
+							<ToggleSwitch OnContent="Force Offline Mode"
+                                            OffContent="Force Offline Mode"
+                                            Name="ForceOffline">
+							</ToggleSwitch>
+							<ToggleSwitch OnContent="Minecraft Demo Mode"
+                                            OffContent="Minecraft Demo Mode"
+                                            Name="MinecraftDemo">
+							</ToggleSwitch>
+						</StackPanel>
+					</Border>
+					<!--
+                </StackPanel>
+					-->
 				</StackPanel>
+
+
 			</StackPanel>
 
 		
