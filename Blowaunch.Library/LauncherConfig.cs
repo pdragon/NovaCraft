@@ -32,7 +32,7 @@ public class LauncherConfig
         [JsonProperty("gameArgs")] public string GameArgs = "";
         [JsonProperty("packPath")] public string PackPath = "";
         [JsonProperty("ModProxy")] public string ModProxy = "";
-
+        [JsonProperty("LastStartTime")] public int? Time = 0;
     }
 
     static VersionClass DefaultVersion = new VersionClass(){Id = "1.7.10", Name = "Realese 1.7.10" };

@@ -33,6 +33,7 @@ using ForgeThingy = Blowaunch.Library.ForgeThingy;
 using static Blowaunch.Library.FilesManager;
 using Blowaunch.AvaloniaApp.Views.UserControls;
 using DynamicData;
+//using System.Timers;
 
 namespace Blowaunch.AvaloniaApp.Views;
 #pragma warning disable CS8618
@@ -63,7 +64,7 @@ public class MainWindow : Window
     private WrapPanel _modPacksPanel;
 
     // Settings
-    private ToggleSwitch _customWindowSize;
+    //private ToggleSwitch _customWindowSize;
     private NumericUpDown _windowWidth;
     private NumericUpDown _windowHeight;
     private TextBox _javaArguments;
@@ -257,14 +258,14 @@ public class MainWindow : Window
     /// </summary>
     /// <param name="timeoutMs">Timeout (in millis)</param>
     /// <returns>Boolean value</returns>
-    private static bool CheckForInternet(int timeoutMs = 5000)
+    private static bool CheckForInternet(int timeoutMs = 5000, string url = "https://google.com")
     {
         try {
             HttpClient Client = new HttpClient
             {
                 Timeout = TimeSpan.FromMilliseconds(timeoutMs)
             };
-            var request = Client.GetStringAsync("https://google.com");
+            var request = Client.GetStringAsync(url);
             request.Wait();
             string response = request.Result;
 
@@ -297,7 +298,7 @@ public class MainWindow : Window
         _mojangLoginButton = this.FindControl<Button>("MojangButton");
         _usernameCracked = this.FindControl<TextBox>("UsernameCracked");
         _microsoftLoginButton = this.FindControl<Button>("LoginButton");
-        _customWindowSize = this.FindControl<ToggleSwitch>("CustomWindowSize");
+        //_customWindowSize = this.FindControl<ToggleSwitch>("CustomWindowSize");
         _showSnaphots = this.FindControl<ToggleSwitch>("ShowSnapshots");
         _showAlpha = this.FindControl<ToggleSwitch>("ShowAlpha");
         _showBeta = this.FindControl<ToggleSwitch>("ShowBeta");
@@ -330,6 +331,7 @@ public class MainWindow : Window
 
         _modPackControl = this.FindControl<ModPackControl>("ModPackControl1");
         _modPacksPanel = this.FindControl<WrapPanel>("ModPacksPanel");
+
         /*
         _ramManual.ValueChanged += (_, e) => {
             // ReSharper disable once CompareOfFloatsByEqualityOperator
@@ -507,6 +509,7 @@ public class MainWindow : Window
                 msBoxStandardWindow.Show();
             });
         }
+        /*
         var index = versions.Versions.FindIndex(
             x => x.Id == Config.Version.Id 
                  && x.Name == Config.Version.Name);
@@ -524,6 +527,7 @@ public class MainWindow : Window
             };
             _selectionChanged = true;
         });
+        */
     }
 
     private VersionsReturn GetVersions()
@@ -937,6 +941,11 @@ public class MainWindow : Window
         string id = (sender as Button)!.Name ?? "";
         Console.WriteLine((sender as Button)!.Name);
         var mp = Config.ModPacks.Find(x => x.Id == (id.Split(':')[1] ?? ""));
+        mp.Time = (int)DateTime.UtcNow.Subtract(new DateTime(2023, 1, 1)).TotalSeconds;
+        CurentModPack = mp;
+        SaveModPackToConfig(mp);
+        SaveConfig();
+
         if (mp != null)
         {
             new Thread(async () => {
@@ -1190,6 +1199,7 @@ public class MainWindow : Window
     public void SaveChanges(object? sender, RoutedEventArgs e)
     {
         Logger.Information("Saving settings...");
+        /*
         Config.CustomWindowSize = _customWindowSize.IsChecked!.Value;
         Config.WindowSize = new Vector2(
             (int)_windowWidth.Value,
@@ -1221,6 +1231,7 @@ public class MainWindow : Window
                 _progressBar.IsIndeterminate = false;
             });
         }).Start();
+        */
     }
 
     /// <summary>
@@ -1235,8 +1246,28 @@ public class MainWindow : Window
             Logger.Information("Creating new instance");
         }
         LauncherConfig.ModPack modpackConfig = new LauncherConfig.ModPack();
+        if (_modPackVersionsCombo.SelectedItem is LauncherConfig.VersionClass)
+        {
+            modpackConfig.Version = (LauncherConfig.VersionClass)_modPackVersionsCombo.SelectedItem;
+            if (_modPackModProxyCombo.SelectedIndex == 1)
+            {
+                //ProgressModal(string progressInfo, string progressFiles, string ? loadingTextBlock = null);
+                ProgressModal(modpackConfig.Version.Id ?? "", "please wait", "Checking forge version for selected minecraft version");
+                string version = await ForgeThingy.GetLink(modpackConfig.Version.Id);
+                if (version == null)
+                {
+                    await ShowMessage("For this version of minecraft forge version is NOT exist, please select another version or deselect forge to continue", "Error");
+                    ProgressModalDisable();
+                    return;
+                }
+                ProgressModalDisable();
+            }
+        }
+        
+
+
         Logger.Information("Saving instance settings...");
-        modpackConfig.CustomWindowSize = _customWindowSize.IsChecked!.Value;
+        modpackConfig.CustomWindowSize = _modPackCustomWindowSize.IsChecked!.Value;
         modpackConfig.WindowSize = new Vector2(
             (int)_modPackWindowWidth.Value,
             (int)_modPackWindowHeight.Value);
@@ -1244,10 +1275,7 @@ public class MainWindow : Window
         modpackConfig.GameArgs = _modPackGameArguments.Text;
         modpackConfig.RamMax = _modPackRamManual.Value.ToString(CultureInfo.InvariantCulture);
         
-        if (_modPackVersionsCombo.SelectedItem is LauncherConfig.VersionClass)
-        {
-            modpackConfig.Version = (LauncherConfig.VersionClass)_modPackVersionsCombo.SelectedItem;
-        }
+        
         
         modpackConfig.Id = id;
         modpackConfig.Name = _modPackName.Text;
@@ -1359,10 +1387,7 @@ public class MainWindow : Window
     {
         ModPack? modpack = Config.ModPacks.Find(mp => mp.Id == _modPackId.Text);
         var dialog = new OpenFolderDialog() { Directory = modpack?.PackPath, Title = "Select modpack instance folder" };
-        if (modpack != null)
-        {
-            _modPackPathInstance.Text = await dialog.ShowAsync(this);
-        }
+        _modPackPathInstance.Text = await dialog.ShowAsync(this);
     }
 
     public void AddModpack(object? sender, RoutedEventArgs e)
@@ -1551,8 +1576,9 @@ public class MainWindow : Window
     #region Runner
 
     // Это на удаление скорее всего ибо модпака по сути то не откуда кнопке брать в таком разе, если нет выпадающего списка.
-    public void RunMinecraft(object? sender, RoutedEventArgs e)
+    public async void RunMinecraft(object? sender, RoutedEventArgs e)
     {
+        /*
         if (_progressPanel.IsVisible) {
             var msBoxStandardWindow = MessageBoxManager
                 .GetMessageBoxStandardWindow(new MessageBoxStandardParams{
@@ -1573,6 +1599,39 @@ public class MainWindow : Window
            // await RunMinecraftProgress(online);
             ProgressModalDisable();
         }).Start();
+        */
+        if (_progressPanel.IsVisible)
+        {
+            var msBoxStandardWindow = MessageBoxManager
+                .GetMessageBoxStandardWindow(new MessageBoxStandardParams
+                {
+                    Icon = MessageBox.Avalonia.Enums.Icon.Error,
+                    ButtonDefinitions = ButtonEnum.Ok,
+                    ContentMessage = "An operation is active at the time!",
+                    ContentTitle = "Error"
+                });
+            await msBoxStandardWindow.Show();
+            return;
+        }
+        bool online = true;
+        //var mp = Config.ModPacks.OrderBy(t => t.Time).FirstOrDefault();
+        var mp = CurentModPack;
+        if (mp.Time == 0) {
+            await ShowMessage("Please start any modPack first!", "Error");
+            return;
+        }
+        if (mp != null)
+        {
+            new Thread(async () => {
+                ProgressModal("Loading data...", "0 % done", "Downloading minecraft client");
+                await LoadDataAndStart(online, mp);
+                ProgressModalDisable();
+            }).Start();
+        }
+        else
+        {
+            await ShowMessage("Error", "Error", ButtonEnum.Ok);
+        }
     }
 
     private async Task LoadDataAndStart(bool online, ModPack? currentModpack)
@@ -1626,7 +1685,7 @@ public class MainWindow : Window
         Account? account = Config.Accounts.Find(x => x.Id == Config.SelectedAccountId);
         if (account == null)
         {
-            //TODO: messageBox 
+            await ShowMessage("You need signup first", "Error");
             return;
         }
 
@@ -1757,6 +1816,7 @@ public class MainWindow : Window
     #endregion
 
     #region Helpers
+
     async private Task<ButtonResult?> ShowMessage(
         string message, 
         string title, 
@@ -1767,12 +1827,12 @@ public class MainWindow : Window
     {
         if (MessageBoxIsShown)
         {
-            return null;
+            return new ButtonResult();
         }
         MessageBoxIsShown = true;
         ButtonResult result = new ButtonResult();
-        //await Dispatcher.UIThread.InvokeAsync(async () =>
-        //{
+        await Dispatcher.UIThread.InvokeAsync(async () =>
+        {
             _progressBar.IsIndeterminate = false;
             _progressPanel.IsVisible = false;
             _progressInfo.Text = "";
@@ -1789,7 +1849,7 @@ public class MainWindow : Window
                     
                 });
             result = await msBoxStandardWindow.Show();
-        //});
+        });
         MessageBoxIsShown = false;
         return result;
     }

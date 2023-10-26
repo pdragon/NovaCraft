@@ -121,6 +121,7 @@ public class BlowaunchMainJson
                 gameArguments.Add(arg);
             }
 
+            if(mojang.Arguments.Java != null)
             foreach (var obj in mojang.Arguments.Java)
             {
                 var arg = new JsonArgument

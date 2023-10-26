@@ -355,6 +355,8 @@ public static class Runner
         var classpath = new StringBuilder();
         var separator = Environment.OSVersion.Platform == PlatformID.Unix ? ":" : ";";
 
+        //modpack.Time = (int)DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1)).TotalSeconds;
+
         var OsDict = new Dictionary<string, string>()
         {
 
@@ -424,58 +426,59 @@ public static class Runner
                     }
                     classpath.Append($"{file2}{separator}");
                 }
-        
-                if (ForgeThingy.IsProcessorsExists(main.Version))
+
+                //if (ForgeThingy.IsProcessorsExists(main.Version) && !ForgeThingy.ForgeIsInstalled())
                 {
                     ForgeThingy.RunProcessors(main, online);
                 }
                 //TODO Add check for dir and file exist
                 string addonFile = Path.Combine(FilesManager.Directories.Root, "forge", $"{addonMain.FullVersion}.jar");
                 classpath.Append($"{addonFile}{separator}");
+                /*
                 foreach (var arg in addonMain.Arguments.Game)
                 {
                     var replaced = arg.Value.Replace("${user_type}", "legacy")
                         //.Replace("${auth_access_token}", account.AccessToken)
                         //.Replace("${auth_uuid}", account.Uuid)
-                        .Replace("${auth_access_token}", "0")
-                        .Replace("${auth_uuid}", "0")
-                        .Replace("${assets_index_name}", main.Assets.Id)
-                        .Replace("${assets_root}", FilesManager.Directories.AssetsRoot)
-                        .Replace("${game_directory}", modpack.PackPath) //FilesManager.Directories.Root)
-                        .Replace("${version_name}", main.Version)
-                        .Replace("${auth_player_name}", account.Name)
+                        //.Replace("${auth_access_token}", "0")
+                        //.Replace("${auth_uuid}", "0")
+                        //.Replace("${assets_index_name}", main.Assets.Id)
+                        //.Replace("${assets_root}", FilesManager.Directories.AssetsRoot)
+                        //.Replace("${game_directory}", modpack.PackPath) //FilesManager.Directories.Root)
+                        //.Replace("${version_name}", main.Version)
+                        //.Replace("${auth_player_name}", account.Name)
                         ;
                     args.Append($"{replaced} ");
                 }
+                */
                 break;
             default:
-                foreach (var arg in main.Arguments.Game)
-                {
-                    var replaced = arg.Value.Replace("${user_type}", "legacy")
-                        //.Replace("${auth_access_token}", account.AccessToken)
-                        //.Replace("${auth_uuid}", account.Uuid)
-                        .Replace("${auth_access_token}", "0")
-                        .Replace("${auth_uuid}", "0")
-                        .Replace("${assets_index_name}", main.Assets.Id)
-                        .Replace("${assets_root}", FilesManager.Directories.AssetsRoot)
-                        .Replace("${game_directory}", modpack.PackPath) //FilesManager.Directories.Root)
-                        .Replace("${version_name}", main.Version)
-                        .Replace("${auth_player_name}", account.Name)
-                        .Replace("${version_type}", "Release")//"Blowaunch")
-                        // greater than 1.12.2 vesions
-                        .Replace("${clientid}", "")
-                        .Replace("${auth_xuid}", "")
-                        .Replace("--demo", "")
 
-                        ;
-                    args.Append($"{replaced} ");
-                }
                 break;
         }
 
-        
+        foreach (var arg in main.Arguments.Game)
+        {
+            var replaced = arg.Value.Replace("${user_type}", "legacy")
+                //.Replace("${auth_access_token}", account.AccessToken)
+                //.Replace("${auth_uuid}", account.Uuid)
+                .Replace("${auth_access_token}", "0")
+                .Replace("${auth_uuid}", "0")
+                .Replace("${assets_index_name}", main.Assets.Id)
+                .Replace("${assets_root}", FilesManager.Directories.AssetsRoot)
+                .Replace("${game_directory}", modpack.PackPath) //FilesManager.Directories.Root)
+                .Replace("${version_name}", main.Version)
+                .Replace("${auth_player_name}", account.Name)
+                .Replace("${version_type}", "modified")//"Blowaunch")
+                                                      // greater than 1.12.2 vesions
+                .Replace("${clientid}", "\"\"")
+                .Replace("${auth_xuid}", "\"\"")
+                .Replace("--demo", "")
 
-
+                ;
+            args.Append($"{replaced} ");
+        }
+  
         if (modpack.CustomWindowSize)
         {
             args.Append($"-width {modpack.WindowSize.X} ");
@@ -499,10 +502,43 @@ public static class Runner
             args2.Append($"{javaArgsReplaced} ");
         }
 
+        if(addonMain.Arguments != null && addonMain.Arguments.Java != null)
+        foreach (var arg in addonMain.Arguments.Java)
+        {
+            var javaArgsReplaced = arg.Value.Replace("${version_name}", modpack.Version.Id)
+                    .Replace("${library_directory}", Path.Combine(Directories.Root, "libraries"))
+                    //.Replace("${library_directory}", Path.Combine(CurentModPack.PackPath, "libraries"))
+                    //TODO change to OS detirminated
+                    .Replace("${classpath_separator}", separator);
+            args2.Append($"{javaArgsReplaced} ");
+        }
+
+        var addonGameArgs = new StringBuilder();
+        foreach (var arg in addonMain.Arguments.Game)
+        {
+            var replaced = arg.Value.Replace("${user_type}", "legacy")
+                //.Replace("${auth_access_token}", account.AccessToken)
+                //.Replace("${auth_uuid}", account.Uuid)
+                .Replace("${auth_access_token}", "0")
+                .Replace("${auth_uuid}", "0")
+                .Replace("${assets_index_name}", main.Assets.Id)
+                .Replace("${assets_root}", FilesManager.Directories.AssetsRoot)
+                .Replace("${game_directory}", modpack.PackPath) //FilesManager.Directories.Root)
+                .Replace("${version_name}", main.Version)
+                .Replace("${auth_player_name}", account.Name)
+                .Replace("${version_type}", "modified")//"Blowaunch")
+                                                       // greater than 1.12.2 vesions
+                .Replace("${clientid}", "\"\"")
+                .Replace("${auth_xuid}", "\"\"");
+            addonGameArgs.Append( $" {replaced} " );
+        }
+
+        //TODO: add empty jat to libraries
+
 
         args.Remove(args.Length - 1, 1);
 
-        var command = $"{args2} -cp {file}{separator}{classpath} {mainClass} {args}";
+        var command = $"{args2} -cp {file}{separator}{classpath} {mainClass} {args} {addonGameArgs}";
 
         if (main == null)
         {

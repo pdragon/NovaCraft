@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Spectre.Console;
-
 namespace Blowaunch.Library;
 
 /// <summary>
@@ -50,7 +49,38 @@ public static class FilesManager
             Path.Combine(Root, "versions");
         public static readonly string JavaRoot =
             Path.Combine(Root, "runtime");
+        public static readonly string Forge =
+            Path.Combine(Root, "forge");
+
+        
+
+        //public static string CurentModPackPath { get => curentModPackPath; set => curentModPackPath = value; }
+       
     }
+
+    private static LauncherConfig.ModPack curentModPack;
+
+    public static LauncherConfig.ModPack CurentModPack
+    {
+        get => curentModPack??GetLastStartedModPack();  set => curentModPack = value; 
+    }
+
+    public static LauncherConfig.ModPack GetLastStartedModPack()
+    {
+        LauncherConfig Config = new();
+        try
+        {
+            Config = JsonConvert.DeserializeObject
+                <LauncherConfig>(File.ReadAllText(
+                    "config.json"))!;
+        }
+        catch (Exception e)
+        {
+            return new LauncherConfig.ModPack();
+        }
+        return Config.ModPacks.OrderByDescending(t => t.Time).FirstOrDefault();
+    }
+
 
     /// <summary>
     /// Initialize directories
@@ -74,7 +104,7 @@ public static class FilesManager
             mainJSON = (MojangFetcher.GetMain(version));
         }
         var path = Path.Combine(Directories.AssetsObject, mainJSON.Assets.ShaHash.Substring(0, 2), mainJSON.Assets.ShaHash);
-        var indexPath = Path.Combine(Directories.AssetsRoot, "indexes", String.Join(".", version.Split(".").SkipLast(1)) + ".json");
+        var indexPath = Path.Combine(Directories.AssetsRoot, "indexes", mainJSON.Assets.Id + ".json");// String.Join(".", version.Split(".").SkipLast(1)) + ".json");
         //var indexPath = Path.Combine(Directories.AssetsRoot, "indexes", String.Join(".", version) + ".json");
         if (!File.Exists(path)){
             if (online)
@@ -146,6 +176,8 @@ public static class FilesManager
     /// <returns>Path</returns>
     public static string GetLibraryPath(BlowaunchMainJson.JsonLibrary library)
         => Path.Combine(Directories.LibrariesRoot, library.Path.Replace('/', Path.DirectorySeparatorChar));
+    //public static string GetLibraryPath(BlowaunchMainJson.JsonLibrary library)
+    //    => Path.Combine(CurentModPack.PackPath, "libraries", library.Path.Replace('/', Path.DirectorySeparatorChar));
 
     /// <summary>
     /// Get library path
@@ -162,6 +194,7 @@ public static class FilesManager
     /// <param name="version">Version</param>
     /// <param name="online">Is in online mode</param>
     [SuppressMessage("ReSharper", "ConvertIfStatementToConditionalTernaryExpression")]
+    //public static void DownloadLibrary(BlowaunchMainJson.JsonLibrary library, string version, bool online)
     public static void DownloadLibrary(BlowaunchMainJson.JsonLibrary library, string version, bool online)
     {
         var path = GetLibraryPath(library);
