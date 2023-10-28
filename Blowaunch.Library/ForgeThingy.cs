@@ -31,6 +31,13 @@ namespace Blowaunch.Library
     /// </summary>
     public static class ForgeThingy
     {
+        public class Versions
+        {
+            public int? ComboboxItemId { get; set; }
+            public string Name { get; set; }
+            public string Url { get; set; }
+        }
+
         async private static Task<bool> LinkIsBronen(string uri)
         {
             var httpClient = new HttpClient();
@@ -40,7 +47,7 @@ namespace Blowaunch.Library
             message = await httpClient.GetAsync(uri);
             return message.StatusCode != HttpStatusCode.OK;
         }
-
+        /*
         /// <summary>
         /// Get the installer link
         /// </summary>
@@ -66,6 +73,61 @@ namespace Blowaunch.Library
                     return subst3.Substring(0, end);
                 }
             } catch (Exception e) {
+                AnsiConsole.MarkupLine("[red]Unable to parse the website: An exception occured.[/]");
+                AnsiConsole.WriteException(e);
+                Environment.Exit(-1);
+                return null;
+            }
+            return null;
+        }
+        */
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="version">version of minecraft modpack, for examlpe: 1.19.2</param>
+        /// <returns></returns>
+        async public static Task<List<Versions>> GetLinks(string version)
+        {
+            try
+            {
+                var forgeLink = string.Format(Fetcher.ForgeEndpoints.ForgeWebsite, version);
+                bool forgeIsbsent = await LinkIsBronen(forgeLink);
+                List<Versions> forgeVersions = new List<Versions>();
+                if (!forgeIsbsent)
+                {
+                    var content = Fetcher.Fetch(forgeLink);
+                    var tableStart = content.IndexOf("download-list", StringComparison.Ordinal);
+                    var tableEnd = content.IndexOf("</tbody>", StringComparison.Ordinal); 
+                    var subst = content.Substring(tableStart, tableEnd - tableStart);
+                    var table = subst;
+                    var itemsAmount = Regex.Matches(content, "<tr>").Count;
+                    var from = content.IndexOf("<tr>", StringComparison.Ordinal);
+                    var split = table.Split("<tr>");
+                    //for (int i = 0; i < split.Length; i++)
+                    foreach(string downloadBlock in split)
+                    {
+                        var download = downloadBlock.IndexOf("<a href=\"", StringComparison.Ordinal);
+                        // thead block
+                        if (download == -1)
+                        {
+                            continue;
+                        }
+                        var subst2 = downloadBlock.Substring(download);
+                        var url = subst2.IndexOf("url=", StringComparison.Ordinal) + "url=".Length;
+                        var subst3 = subst2.Substring(url);
+                        var end = subst3.IndexOf("\"", StringComparison.Ordinal);
+                        var realUrl = subst3.Substring(0, end);
+                        var forgePos = realUrl.IndexOf("forge-", StringComparison.Ordinal);
+                        var name = realUrl.Substring(forgePos, realUrl.IndexOf("-installer.jar", StringComparison.Ordinal) - forgePos);
+                        forgeVersions.Add(new Versions{ Url = realUrl, Name = name});
+                    }
+                    //return "https://maven.minecraftforge.net/net/minecraftforge/forge/1.19.2-43.3.2/forge-1.19.2-43.3.2-installer.jar";
+                    return forgeVersions;
+                }
+            }
+            catch (Exception e)
+            {
                 AnsiConsole.MarkupLine("[red]Unable to parse the website: An exception occured.[/]");
                 AnsiConsole.WriteException(e);
                 Environment.Exit(-1);
@@ -114,8 +176,10 @@ namespace Blowaunch.Library
         /// <param name="link">Link to the installer</param>
         /// <param name="main">Main JSON</param>
         /// <returns>The addon JSON</returns>
-        public static BlowaunchAddonJson GetAddonJson(string version, BlowaunchMainJson main, bool online)
+        //public static BlowaunchAddonJson GetAddonJson(string version, BlowaunchMainJson main, bool online)
+        public static BlowaunchAddonJson GetAddonJson(LauncherConfig.ModPack selectedModPack, BlowaunchMainJson main, bool online)
         {
+            string version = selectedModPack.Version.Id;
             var dir = Path.Combine(Path.GetTempPath(), ".blowaunch-forge");
             string forgeDir = Path.Combine(Directories.Root, "forge");
             if (!Directory.Exists(forgeDir))
@@ -160,7 +224,7 @@ namespace Blowaunch.Library
                     content = File.ReadAllText(Path.Combine(dir, "version.json"));
                 }
                 */
-            string content = GetForgeData(version, main, online);
+            string content = GetForgeData(CurentModPack, main, online);
             var progress = AnsiConsole.Progress()
                 .HideCompleted(true)
                 .Columns(new TaskDescriptionColumn(),
@@ -204,9 +268,10 @@ namespace Blowaunch.Library
             });
         }
 
-        public static string GetForgeData(string version, BlowaunchMainJson main, bool online)
+        //public static string GetForgeData(string version, BlowaunchMainJson main, bool online)
+        public static string GetForgeData(LauncherConfig.ModPack selectedModPack, BlowaunchMainJson main, bool online)
         {
-            //string content;
+            string version = selectedModPack.Version.Id.ToString();
             var progress = AnsiConsole.Progress()
                 .HideCompleted(true)
                 .Columns(new TaskDescriptionColumn(),
@@ -237,9 +302,14 @@ namespace Blowaunch.Library
                     if (!online) return "";
                     if (Directory.Exists(dir)) Directory.Delete(dir, true);
                     Directory.CreateDirectory(dir);
-                    string link = ForgeThingy.GetLink(version).GetAwaiter().GetResult();
+                    //string link = ForgeThingy.GetLink(version).GetAwaiter().GetResult();
+                    if (CurentModPack.ModProxyVersion == null)
+                    {
+                        return "";
+                    }
+                    string link = CurentModPack.ModProxyVersion.Url;
                     Fetcher.Download(link, jar);
-
+                 
                     task.Description = "Extracting";
                     ZipFile.ExtractToDirectory(jar, dir);
                     //ZipFile.ExtractToDirectory(jar, forgeDir);

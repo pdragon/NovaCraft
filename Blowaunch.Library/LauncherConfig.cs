@@ -24,7 +24,7 @@ public class LauncherConfig
     {
         [JsonProperty("id")] public string? Id { get; set; }
         [JsonProperty("name")] public string? Name { get; set; }
-        [JsonProperty("version")] public VersionClass Version = new VersionClass() { Id = "1.7.10", Name = "Realese 1.7.10" };
+        [JsonProperty("version")] public VersionClass Version = new VersionClass() { Id = "1.7.10", Name = "Release 1.7.10" };
         [JsonProperty("jvmArgs")] public string JvmArgs = "";
         [JsonProperty("maxRam")] public string RamMax = "2048";
         [JsonProperty("customResolution")] public bool CustomWindowSize { get; set; }
@@ -33,6 +33,7 @@ public class LauncherConfig
         [JsonProperty("packPath")] public string PackPath = "";
         [JsonProperty("ModProxy")] public string ModProxy = "";
         [JsonProperty("LastStartTime")] public int? Time = 0;
+        [JsonProperty("ModProxyVersion")] public ForgeThingy.Versions ModProxyVersion;
     }
 
     static VersionClass DefaultVersion = new VersionClass(){Id = "1.7.10", Name = "Realese 1.7.10" };

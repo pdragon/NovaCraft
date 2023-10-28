@@ -205,7 +205,9 @@ namespace Blowaunch.ConsoleApp
                             return;
                         }
 
-                        addonJson = ForgeThingy.GetAddonJson(ForgeThingy.GetLink(json.Version).GetAwaiter().GetResult(), mainJson, online);
+                        //addonJson = ForgeThingy.GetAddonJson(ForgeThingy.GetLink(json.Version).GetAwaiter().GetResult(), mainJson, online);
+                        // Temp 
+                        addonJson = ForgeThingy.GetAddonJson(new LauncherConfig.ModPack(), mainJson, online);
                     } else {
                         if (!File.Exists(mainJsonPath)) {
                             AnsiConsole.MarkupLine($"[red]Version JSON does not exist![/]");
