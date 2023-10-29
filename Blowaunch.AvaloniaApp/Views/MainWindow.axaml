@@ -55,6 +55,34 @@
                             </Button>
                         </Panel>
                     </Border>
+					<Border Background="Black"
+		                Opacity="50"
+		                CornerRadius="5"
+		                Margin="20 0 20 10">
+						<Panel>
+							<StackPanel Height="62">
+								<TextBlock Text="ModProxy manager" FontWeight="Bold"
+                                            HorizontalAlignment="Left"
+                                            Margin="20 10 20 0"
+                                            Name="ModProxyManager"/>
+								<!--
+								<TextBlock Text="No authentication"
+                                            HorizontalAlignment="Left"
+                                            Margin="20 5 20 0"
+                                            Name="AccountType"/>
+											-->
+							</StackPanel>
+							<Button HorizontalAlignment="Right"
+                                    Height="62" Width="80"
+                                    Background="#808080"
+                                    Opacity="20" Click="OpenModProxyPanel"
+                                    CornerRadius="0 5 5 0">
+								<PathIcon Data="{StaticResource
+                                SettingsRegular}"
+                                            Opacity="10"/>
+							</Button>
+						</Panel>
+					</Border>
 					<!--
                     <TextBlock Text="Minecraft version:" 
                                HorizontalAlignment="Center"
@@ -907,8 +935,153 @@
                           Opacity="100"/>
             </Button>
         </Panel>
-        
-        <!-- Loading overlay -->
+
+		<!-- ModProxy overlay -->
+		<Panel Name="ModProxyPanel"
+               IsVisible="False">
+			<Rectangle HorizontalAlignment="Stretch"
+                       VerticalAlignment="Stretch"
+                       Fill="Black" Opacity="30"/>
+			<TabControl>
+				<TabItem>
+					<TabItem.Header>
+						<TextBlock Text="Forge"/>
+					</TabItem.Header>
+					<StackPanel VerticalAlignment="Center">
+						<TextBlock Text="Select forge version to install"
+                                   FontSize="24" FontWeight="Bold"
+                                   HorizontalAlignment="Center"/>
+						<TextBlock Text="You need to select a version"
+                                   FontSize="16"
+                                   HorizontalAlignment="Center"/>
+						<TextBlock Text="to install for this mc version"
+                                   FontSize="16" Margin="0 0 0 10"
+                                   HorizontalAlignment="Center"/>
+						
+						<ComboBox HorizontalAlignment="Center"
+                                  Width="100" Name="ModProxyPanelMcVersion"
+								  Margin="0 0 0 5"
+								  SelectionChanged="ModProxyMcVersionComboChanged"
+                                  SelectedIndex="0">
+						</ComboBox>
+						
+						<ComboBox HorizontalAlignment="Center"
+                                  Width="350" Name="ModProxyPanelForgeVersion"
+                                  SelectedIndex="0">
+							<ComboBox.ItemTemplate>
+								<DataTemplate>
+									<TextBlock Text="{Binding Name}" />
+								</DataTemplate>
+							</ComboBox.ItemTemplate>
+						</ComboBox>
+						<StackPanel Orientation="Horizontal"
+                                    VerticalAlignment="Center"
+                                    HorizontalAlignment="Center">
+							<Button Height="35" Width="100"
+                                    Background="#1fa803"
+                                    Opacity="20"
+                                    CornerRadius="5"
+                                    HorizontalAlignment="Center"
+                                    Margin="0 10 10 0"
+                                    Click="ForgeInstall">
+								<Button.Styles>
+									<Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+										<Setter Property="Background"
+                                                Value="#22cb00"/>
+									</Style>
+								</Button.Styles>
+								<TextBlock Text="Install this"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"
+										   
+										   />
+							</Button>
+							<Button Height="35" Width="70"
+                                    Background="#e63f29"
+                                    Opacity="20"
+                                    CornerRadius="5"
+                                    HorizontalAlignment="Center"
+                                    Margin="0 10 0 0"
+									ToolTip.Tip="Under Construction"
+                                    Click="ForgeDelete">
+								<Button.Styles>
+									<Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+										<Setter Property="Background"
+                                                Value="#a32d1d"/>
+									</Style>
+								</Button.Styles>
+								<TextBlock Text="Delete"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"/>
+							</Button>
+						</StackPanel>
+					</StackPanel>
+				</TabItem>
+				<!--
+				<TabItem>
+					<TabItem.Header>
+						<TextBlock Text="Fablic"/>
+					</TabItem.Header>
+					<StackPanel VerticalAlignment="Center">
+						<TextBlock Text="No authentication"
+                                   FontSize="24" FontWeight="Bold"
+                                   HorizontalAlignment="Center"/>
+						<TextBlock Text="This type of authentication won't allow you"
+                                   FontSize="16"
+                                   HorizontalAlignment="Center"/>
+						<TextBlock Text="to play on online-mode servers"
+                                   FontSize="16" Margin="0 0 0 25"
+                                   HorizontalAlignment="Center"/>
+						<TextBox Width="300" Watermark="Username"
+                                 Name="UsernameCracked"/>
+						<Button Height="35" Width="125"
+                                Background="#1fa803"
+                                Opacity="20"
+                                CornerRadius="5"
+                                HorizontalAlignment="Center"
+                                Margin="0 10 0 0"
+                                Click="CrackedLogin">
+							<Button.Styles>
+								<Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+									<Setter Property="Background"
+                                            Value="#22cb00"/>
+								</Style>
+								<Style Selector="Button:pressed /template/ ContentPresenter#PART_ContentPresenter">
+									<Setter Property="Background"
+                                            Value="#27d803"/>
+								</Style>
+							</Button.Styles>
+							<StackPanel Orientation="Horizontal">
+								<PathIcon Data="{StaticResource
+                                AddRegular}"
+                                          Foreground="White"/>
+								<TextBlock Text="Add account"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"
+                                           Margin="5 0 0 0"/>
+							</StackPanel>
+						</Button>
+					</StackPanel>
+				</TabItem>
+				-->
+			</TabControl>
+			<Button HorizontalAlignment="Right"
+                    VerticalAlignment="Top"
+                    Width="35" Height="35"
+                    Background="#00FF0000"
+                    Click="CloseModProxyPanel">
+				<Button.Styles>
+					<Style Selector="Button:pointerover /template/ ContentPresenter">
+						<Setter Property="Background"
+                                Value="#50FF0000"/>
+					</Style>
+				</Button.Styles>
+				<PathIcon Data="{StaticResource Close}"
+                          Opacity="100"/>
+			</Button>
+		</Panel>
+
+		<!-- Loading overlay -->
         <Panel IsVisible="True"
                Name="Loading">
             <Rectangle HorizontalAlignment="Stretch"

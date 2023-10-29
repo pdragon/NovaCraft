@@ -45,6 +45,7 @@ public class MainWindow : Window
     #region UI Elements
     // All fields used
     private Panel _authPanel;
+    private Panel _modProxyPanel;    
     private Panel _loadingPanel;
     private Panel _progressPanel;
     private ComboBox _versionsCombo;
@@ -96,6 +97,9 @@ public class MainWindow : Window
     private TextBox _modPackPathInstance;
 
     private ModPackControl _modPackControl;
+
+    private ComboBox _modProxyPanelMcVersion;
+    private ComboBox _modProxyPanelForgeVersion;
 
     #endregion
     #region Other stuff
@@ -289,6 +293,7 @@ public class MainWindow : Window
     {
         _loadingPanel = this.FindControl<Panel>("Loading");
         _authPanel = this.FindControl<Panel>("Authentication");
+        _modProxyPanel = this.FindControl<Panel>("ModProxyPanel");
         _versionsCombo = this.FindControl<ComboBox>("Versions");
         _accountsCombo = this.FindControl<ComboBox>("Accounts");
         _progressPanel = this.FindControl<Panel>("ProgressPanel");
@@ -336,6 +341,9 @@ public class MainWindow : Window
 
         _modPackControl = this.FindControl<ModPackControl>("ModPackControl1");
         _modPacksPanel = this.FindControl<WrapPanel>("ModPacksPanel");
+
+        _modProxyPanelMcVersion = this.FindControl<ComboBox>("ModProxyPanelMcVersion");
+        _modProxyPanelForgeVersion = this.FindControl<ComboBox>("ModProxyPanelForgeVersion");
 
         /*
         _ramManual.ValueChanged += (_, e) => {
@@ -1351,6 +1359,16 @@ public class MainWindow : Window
         SaveConfig(); LoadSettings();
     }
 
+    async public void ModProxyMcVersionComboChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (e.AddedItems.Count > 0)
+        {
+            string version = (string)(e.AddedItems[0] ?? "");
+            List<ForgeThingy.Versions> versions = await ForgeThingy.GetLinks(version);
+            _modProxyPanelForgeVersion.Items = versions;
+        }
+    }
+
     /// <summary>
     /// On Change ModProxy
     /// </summary>
@@ -1416,13 +1434,30 @@ public class MainWindow : Window
     /// </summary>
     public void CloseAuthPanel(object? sender, RoutedEventArgs e)
         => _authPanel.IsVisible = false;
-        
+
+    public void CloseModProxyPanel(object? sender, RoutedEventArgs e)
+        => _modProxyPanel.IsVisible = false;
+    
     /// <summary>
     /// Open authentication panel
     /// </summary>
     public void OpenAuthPanel(object? sender, RoutedEventArgs e)
         => _authPanel.IsVisible = true;
-    
+
+    /// <summary>
+    /// Open modProxy panel
+    /// </summary>
+    async public void OpenModProxyPanel(object? sender, RoutedEventArgs e)
+    { 
+        _modProxyPanel.IsVisible = true;
+        var loadedVersions = _modProxyPanelMcVersion.Items.Cast<string>();
+        if (loadedVersions.Count() == 0)
+        {
+            var versions = await ForgeThingy.GetVersions();
+            _modProxyPanelMcVersion.Items = versions;
+        }
+    }
+
     /// <summary>
     /// Open root directory
     /// </summary>
@@ -1447,6 +1482,17 @@ public class MainWindow : Window
              UseShellExecute = true,
              Verb = "open"
          });
+
+    public void ForgeInstall(object? sender, RoutedEventArgs e)
+    { 
+    
+    }
+
+    public void ForgeDelete(object? sender, RoutedEventArgs e)
+    {
+
+    }
+
 
     /// <summary>
     /// Close Modpack panel
@@ -1910,12 +1956,17 @@ public class MainWindow : Window
         return result;
     }
 
+    /// <summary>
+    /// Shown forge version list in forge version ComboBox
+    /// </summary>
+    /// <param name="selectedModPack"></param>
+    /// <param name="textBox" type="string"></param>
     async private void ShowModPackVersions(ModPack selectedModPack, string textBox)
     {
         switch (textBox)
         {
             case "Forge":
-                //TODO: Проверяем на наличие Форж версии и показываем поле версий форжа, далее туда подгружаем все версии форжа, в рамках версии майнкрафта.
+                //TODO: Если в конфигурации версия есть и режим офлайн, то показываем все версии из конфигурации в рамках версии майнкрафта.
                 List<ForgeThingy.Versions> versions = await ForgeThingy.GetLinks(selectedModPack.Version.Id);
                 _modPackModProxyComboVersions.IsVisible = true;
                 _modPackModProxyComboVersions.Items = versions;

@@ -16,8 +16,10 @@ using Blowaunch.Library.Authentication;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Spectre.Console;
+using Spectre.Console.Rendering;
 //using static System.Net.WebRequestMethods;
 using static Blowaunch.Library.FilesManager;
+using static Blowaunch.Library.ForgeThingy;
 //using File = System.IO.File;
 
 namespace Blowaunch.Library
@@ -82,6 +84,35 @@ namespace Blowaunch.Library
         }
         */
 
+        async public static Task<List<string>> GetVersions()
+        {
+            var forgeLink = "https://files.minecraftforge.net/net/minecraftforge/forge/";
+            bool offline = await LinkIsBronen(forgeLink);
+            List<string> mcVersions = new List<string>();
+            if (!offline)
+            {
+                var content = Fetcher.Fetch(forgeLink);
+                var panelStart = content.IndexOf("Minecraft Version", StringComparison.Ordinal);
+                var panelEnd = content.IndexOf("</aside>", StringComparison.Ordinal);
+                var panel = content.Substring(panelStart, panelEnd - panelStart);
+                var panelList = panel.Split("<li>");
+                foreach (string versionLabel in panelList)
+                {
+                    if (versionLabel.IndexOf("<a href=\"#\"", StringComparison.Ordinal) == -1)
+                    {
+                        var download = versionLabel.IndexOf("<a href=\"", StringComparison.Ordinal);
+                        var subst2 = versionLabel.Substring(download);
+                        var urlEnd = subst2.IndexOf(".html\">", StringComparison.Ordinal) + ".html\">".Length;
+                        var linkEnd = subst2.IndexOf("</a>", StringComparison.Ordinal);
+                        var version = subst2.Substring(urlEnd, linkEnd - urlEnd);
+                        mcVersions.Add(version);
+                    }
+                }
+                //mcVersions.AddRange(panelList);
+            }
+            return mcVersions;
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -109,10 +140,11 @@ namespace Blowaunch.Library
                     {
                         var download = downloadBlock.IndexOf("<a href=\"", StringComparison.Ordinal);
                         // thead block
-                        if (download == -1)
+                        if (download == -1 || downloadBlock.IndexOf("-installer.jar", StringComparison.Ordinal) == -1)
                         {
                             continue;
                         }
+                        
                         var subst2 = downloadBlock.Substring(download);
                         var url = subst2.IndexOf("url=", StringComparison.Ordinal) + "url=".Length;
                         var subst3 = subst2.Substring(url);
