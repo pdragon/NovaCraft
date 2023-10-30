@@ -990,7 +990,7 @@
                                                 Value="#22cb00"/>
 									</Style>
 								</Button.Styles>
-								<TextBlock Text="Install this"
+								<TextBlock Text="Install this version"
                                            HorizontalAlignment="Center"
                                            VerticalAlignment="Center"
 										   

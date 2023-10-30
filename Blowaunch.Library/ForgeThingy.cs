@@ -20,6 +20,7 @@ using Spectre.Console.Rendering;
 //using static System.Net.WebRequestMethods;
 using static Blowaunch.Library.FilesManager;
 using static Blowaunch.Library.ForgeThingy;
+using static Blowaunch.Library.LauncherConfig;
 //using File = System.IO.File;
 
 namespace Blowaunch.Library
@@ -49,7 +50,7 @@ namespace Blowaunch.Library
             message = await httpClient.GetAsync(uri);
             return message.StatusCode != HttpStatusCode.OK;
         }
-        /*
+        
         /// <summary>
         /// Get the installer link
         /// </summary>
@@ -82,7 +83,7 @@ namespace Blowaunch.Library
             }
             return null;
         }
-        */
+        
 
         async public static Task<List<string>> GetVersions()
         {
@@ -174,7 +175,7 @@ namespace Blowaunch.Library
         /// <param name="data">Data</param>
         /// <param name="original">Return the original data if it is not in brackets</param>
         /// <returns>Path</returns>
-        public static string ArtifactPath(string data, bool original)
+        public static string ArtifactPath(LauncherConfig.ModPack modpack, string data, bool original)
         {
             string path;
             if (data.StartsWith("[") && data.EndsWith("]")) {
@@ -190,12 +191,13 @@ namespace Blowaunch.Library
                 var name = split[1];
                 var version = split[2];
                 var classifier = split.Length > 3 ? $"-{split[3]}" : "";
-                path = Path.Combine(FilesManager.Directories.LibrariesRoot,
+                //path = Path.Combine(FilesManager.Directories.LibrariesRoot,
+                path = Path.Combine(FilesManager.Directories.GetLibrariesRoot(modpack),
                     package.Replace('.', Path.DirectorySeparatorChar),
                     name, version, $"{name}-{version}{classifier}{ext}");
             } else if (original) return data;
             else if (data.StartsWith('\'') && data.EndsWith("\'")) path = data;
-            else path = Path.Combine(FilesManager.Directories.LibrariesRoot, data);
+            else path = Path.Combine(FilesManager.Directories.GetLibrariesRoot(modpack), data);
 
             if (Path.IsPathFullyQualified(path) && !Directory.Exists(Path.GetDirectoryName(path)))
                 Directory.CreateDirectory(Path.GetDirectoryName(path)!);
@@ -213,7 +215,7 @@ namespace Blowaunch.Library
         {
             string version = selectedModPack.Version.Id;
             var dir = Path.Combine(Path.GetTempPath(), ".blowaunch-forge");
-            string forgeDir = Path.Combine(Directories.Root, "forge");
+            string forgeDir = Path.Combine(selectedModPack.PackPath, "forge");
             if (!Directory.Exists(forgeDir))
             {
                 Directory.CreateDirectory(forgeDir);
@@ -282,7 +284,7 @@ namespace Blowaunch.Library
                 var libraries = new List<BlowaunchMainJson.JsonLibrary>();
                 foreach (var lib in data.Libraries) {
                     if (string.IsNullOrEmpty(lib.Url)) {
-                        var dest = Path.Combine(FilesManager.Directories.Root, "forge", $"{lib.Name}-{lib.Version}.jar");
+                        var dest = Path.Combine(selectedModPack.PackPath, "forge", $"{lib.Name}-{lib.Version}.jar");
                         if (!Directory.Exists(Path.GetDirectoryName(dest))) Directory.CreateDirectory(Path.GetDirectoryName(dest)!);
                         if (!File.Exists(dest)) File.Copy(Path.Combine(dir, "maven", lib.Path.Replace('/', 
                             Path.DirectorySeparatorChar)), dest);
@@ -322,7 +324,7 @@ namespace Blowaunch.Library
                 var dir = Path.Combine(Path.GetTempPath(), ".blowaunch-forge");
                 //var jar = Path.Combine(Directories.Root, "forge", forgeFileName + ".installer.jar");
                 var jar = Path.Combine(dir, forgeFileName + ".installer.jar");
-                var forgeDir = Path.Combine(Directories.Root, "forge");
+                var forgeDir = Path.Combine(selectedModPack.PackPath, "forge");
                 string forgeJsonFile = Path.Combine(forgeDir, $"version-{main.Version}.json");
                 string forgeInstallJsonFile = Path.Combine(forgeDir, $"install-{main.Version}.json");
                 string content;
@@ -337,7 +339,9 @@ namespace Blowaunch.Library
                     //string link = ForgeThingy.GetLink(version).GetAwaiter().GetResult();
                     if (CurentModPack.ModProxyVersion == null)
                     {
-                        return "";
+                        CurentModPack.ModProxyVersion = new Versions();
+                        CurentModPack.ModProxyVersion.Url = ForgeThingy.GetLink(CurentModPack.Version.Id).GetAwaiter().GetResult();
+                        //return "";
                     }
                     string link = CurentModPack.ModProxyVersion.Url;
                     Fetcher.Download(link, jar);
@@ -371,9 +375,9 @@ namespace Blowaunch.Library
             
         }
 
-        public static bool IsProcessorsExists(string version)
+        public static bool IsProcessorsExists(LauncherConfig.ModPack modpack, string version)
         {
-            var forgeDir = Path.Combine(Directories.Root, "forge");
+            var forgeDir = Path.Combine(modpack.PackPath, "forge");
             var contentInstaller = File.ReadAllText(Path.Combine(forgeDir, $"install-{version}.json"));
             var dataInstaller = JsonConvert.DeserializeObject<ForgeInstallerJson>(contentInstaller);
             return dataInstaller.Processors != null;
@@ -385,7 +389,7 @@ namespace Blowaunch.Library
         /// <param name="main">Main JSON</param>
         /// <param name="online">Is in online mode</param>
         /// <returns>The addon JSON</returns>
-        public static void RunProcessors(BlowaunchMainJson main, bool online)
+        public static void RunProcessors(LauncherConfig.ModPack modpack, BlowaunchMainJson main, bool online)
         {
             var progress = AnsiConsole.Progress()
                 .HideCompleted(true)
@@ -398,7 +402,7 @@ namespace Blowaunch.Library
                 task.StartTask();
                 var jar = Path.Combine(Path.GetTempPath(), ".blowaunch-forge", "installer.jar");
                 var dir = Path.Combine(Path.GetTempPath(), ".blowaunch-forge");
-                var contentInstaller = File.ReadAllText(Path.Combine(Directories.Root, "forge",  $"install-{main.Version}.json"));
+                var contentInstaller = File.ReadAllText(Path.Combine(modpack.PackPath, "forge",  $"install-{main.Version}.json"));
                 var dataInstaller = JsonConvert.DeserializeObject<ForgeInstallerJson>(contentInstaller);
                 if (File.Exists(Path.Combine(FilesManager.Directories.VersionsRoot, main.Version, $"forge.json"))) {
                     AnsiConsole.WriteLine("[Forge] Skipping processors, already done!");
@@ -407,7 +411,7 @@ namespace Blowaunch.Library
                 task.Description = "Processing artifact paths";
                 var descriptors = new Dictionary<string, string>();
                 foreach (var i in dataInstaller?.Data!)
-                    descriptors.Add(i.Key, ArtifactPath(i.Value.Client, false));
+                    descriptors.Add(i.Key, ArtifactPath(modpack, i.Value.Client, false));
                 task.IsIndeterminate = false;
                 task.MaxValue = dataInstaller!.Libraries.Length;
                 foreach (var lib in dataInstaller.Libraries) {
@@ -437,7 +441,8 @@ namespace Blowaunch.Library
                         Path = lib.Downloads.Artifact.Path,
                         Size = lib.Downloads.Artifact.Size,
                         Url = lib.Downloads.Artifact.Url
-                    }, main.Version, online);
+                        //}, main.Version, online);
+                    }, modpack, online);
                     task.Increment(1);
                 }
 
@@ -457,7 +462,7 @@ namespace Blowaunch.Library
                         task.Increment(1);
                         continue;
                     }
-                    var file = FilesManager.GetLibraryPath(new BlowaunchMainJson.JsonLibrary { Path = dataInstaller.Libraries
+                    var file = FilesManager.GetLibraryPath(modpack, new BlowaunchMainJson.JsonLibrary { Path = dataInstaller.Libraries
                         .FirstOrDefault(x => x.Name == proc.Jar)!.Downloads.Artifact.Path });
                     var mainClass = "<couldn't find>";
                     using (var fs = new FileStream(file, FileMode.Open, FileAccess.Read))
@@ -477,7 +482,7 @@ namespace Blowaunch.Library
                     var classpath = new StringBuilder();
                     var separator = Environment.OSVersion.Platform == PlatformID.Unix ? ":" : ";";
                     foreach (var str in proc.Classpath) {
-                        var file2 = FilesManager.GetLibraryPath(new BlowaunchMainJson.JsonLibrary { Path = dataInstaller.Libraries
+                        var file2 = FilesManager.GetLibraryPath(modpack, new BlowaunchMainJson.JsonLibrary { Path = dataInstaller.Libraries
                             .FirstOrDefault(x => x.Name == str)!.Downloads.Artifact.Path });
                         classpath.Append($"{file2}{separator}");
                     }
@@ -493,7 +498,7 @@ namespace Blowaunch.Library
                             .Replace("{MINECRAFT_VERSION}", main.Version.Split('-')[0]);
                         foreach (var desc in descriptors)
                             replaced = replaced.Replace("{" + desc.Key + "}", desc.Value);
-                        replaced = ArtifactPath(replaced, true);
+                        replaced = ArtifactPath(modpack, replaced, true);
                         if (replaced.StartsWith("/") || replaced.StartsWith("\\")) replaced = 
                             Path.Combine(Path.GetTempPath(), ".blowaunch-forge", replaced
                                 .Substring(1, replaced.Length - 1)
@@ -591,13 +596,13 @@ namespace Blowaunch.Library
                 if (currentOs || library.Allow.Length == 0) 
                 //if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && library.Allow.Contains("os-name:windows") || library.Allow.Length == 0)
                 {
-                    var file2 = FilesManager.GetLibraryPath(new BlowaunchMainJson.JsonLibrary
+                    var file2 = FilesManager.GetLibraryPath(modpack, new BlowaunchMainJson.JsonLibrary
                     {
                         Path = library.Path
                     });
                     if (!File.Exists(file2))
                     {
-                        FilesManager.DownloadLibrary(library, main.Version, online);
+                        FilesManager.DownloadLibrary(library, modpack, online);
                     }
                     classpath.Append($"{file2}{separator}");
                 }
@@ -606,19 +611,19 @@ namespace Blowaunch.Library
 
             foreach (var library in addonMain.Libraries)
             {
-                var file2 = FilesManager.GetLibraryPath(new BlowaunchMainJson.JsonLibrary
+                var file2 = FilesManager.GetLibraryPath(modpack, new BlowaunchMainJson.JsonLibrary
                 {
                     Path = library.Path
                 });
                 if (!File.Exists(file2))
                 {
-                    FilesManager.DownloadLibrary(library, main.Version, online);
+                    FilesManager.DownloadLibrary(library, modpack, online);
                 }
                 classpath.Append($"{file2}{separator}");
             }
-            if (ForgeThingy.IsProcessorsExists(main.Version))
+            if (ForgeThingy.IsProcessorsExists(modpack, main.Version))
             {
-                ForgeThingy.RunProcessors(main, online);
+                ForgeThingy.RunProcessors(modpack, main, online);
             }
             //TODO Add check for dir and file exist
             string file = Path.Combine(FilesManager.Directories.VersionsRoot, main.Version, $"{main.Version}.jar");

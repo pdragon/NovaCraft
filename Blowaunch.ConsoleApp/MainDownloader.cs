@@ -21,7 +21,7 @@ namespace Blowaunch.ConsoleApp
         /// </summary>
         /// <param name="main">Blowaunch Main JSON</param>
         /// <param name="online">Is in online mode</param>
-        public static void DownloadAll(BlowaunchMainJson main, bool online)
+        public static void DownloadAll(LauncherConfig.ModPack modpack, BlowaunchMainJson main, bool online)
         {
             FilesManager.InitializeDirectories();
             var progress = AnsiConsole.Progress()
@@ -37,7 +37,7 @@ namespace Blowaunch.ConsoleApp
                 task.MaxValue = main.Libraries.Length;
                 foreach (var lib in main.Libraries) {
                     task.Description = $"Downloading library {lib.Name} v{lib.Version} {lib.Platform}";
-                    FilesManager.DownloadLibrary(lib, main.Version, online);
+                    FilesManager.DownloadLibrary(lib, modpack, online);
                     task.Increment(1);
                 }
                 
@@ -136,7 +136,7 @@ namespace Blowaunch.ConsoleApp
         /// <param name="main">Blowaunch Main JSON</param>
         /// <param name="addon">Blowaunch Addon JSON</param>
         /// <param name="online">Is in online mode</param>
-        public static void DownloadAll(BlowaunchMainJson main, BlowaunchAddonJson addon, bool online)
+        public static void DownloadAll(LauncherConfig.ModPack modpack, BlowaunchMainJson main, BlowaunchAddonJson addon, bool online)
         {
             AnsiConsole.WriteLine("[Downloader] Blowaunch Addon JSON is used");
             if (main.Version != addon.BaseVersion) {
@@ -148,7 +148,7 @@ namespace Blowaunch.ConsoleApp
             newlibs.AddRange(addon.Libraries);
             main.Libraries = newlibs.ToArray();
             main.MainClass = addon.MainClass;
-            DownloadAll(main, online);
+            DownloadAll(modpack, main, online);
         }
     }
 }

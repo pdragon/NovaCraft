@@ -954,7 +954,7 @@ public class MainWindow : Window
         string id = (sender as Button)!.Name ?? "";
         Console.WriteLine((sender as Button)!.Name);
         var mp = Config.ModPacks.Find(x => x.Id == (id.Split(':')[1] ?? ""));
-        mp.Time = (int)DateTime.UtcNow.Subtract(new DateTime(2023, 1, 1)).TotalSeconds;
+        mp!.Time = (int)DateTime.UtcNow.Subtract(new DateTime(2023, 1, 1)).TotalSeconds;
         CurentModPack = mp;
         SaveModPackToConfig(mp);
         SaveConfig();
@@ -1404,7 +1404,9 @@ public class MainWindow : Window
                             break;
                     }
                     */
-                    LauncherConfig.ModPack modPack = Config.ModPacks.Find(mp => mp.Id == ((LauncherConfig.ModPack)_modPacksCombo.SelectedItem).Id) ?? new LauncherConfig.ModPack();
+                    //LauncherConfig.ModPack modPack = Config.ModPacks.Find(mp => mp.Id == _modPackId.Text) ?? new LauncherConfig.ModPack();
+                    LauncherConfig.ModPack modPack = new ModPack();
+                    modPack.Version.Id = ((LauncherConfig.VersionClass)_modPackVersionsCombo.SelectedItem!).Id;
                     ShowModPackVersions(modPack, textBox.Text);
 
                     if (textBox.Text == "Forge")
@@ -1758,7 +1760,7 @@ public class MainWindow : Window
             itemsDownloaded++;
             percent = (int)((float)itemsDownloaded / main.Libraries.Length * 100);
             ProgressModal("Loading libraries...", percent + " %", (short)percent);
-            FilesManager.DownloadLibrary(library, currentModpack.Version.Id, online);
+            FilesManager.DownloadLibrary(library, currentModpack, online);
         }
         //Assets
         var MojangJson = FilesManager.LoadMojangAssets(currentModpack.Version.Id, true, main);
@@ -1811,7 +1813,7 @@ public class MainWindow : Window
                 }
                 
                 
-                if (ForgeThingy.IsProcessorsExists(main.Version))
+                if (ForgeThingy.IsProcessorsExists(currentModpack, main.Version))
                 {
                     ProgressModal("starting processors", "", null);
                 }
@@ -1888,7 +1890,7 @@ public class MainWindow : Window
             */
             //string startStr = Runner.GenerateCommand(MojangFetcher.GetMain(Config.Version.Id), config);
             
-            string startStr = Runner.GenerateCommand(MojangFetcher.GetMain(config.Version), config);
+            string startStr = Runner.GenerateCommand(currentModpack, MojangFetcher.GetMain(config.Version), config);
             AnsiConsole.WriteLine("[INF] Running The Game");
             /*
             

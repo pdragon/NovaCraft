@@ -14,6 +14,7 @@ using Newtonsoft.Json;
 using Serilog.Core;
 using Spectre.Console;
 using static Blowaunch.Library.FilesManager;
+using static Blowaunch.Library.LauncherConfig;
 
 namespace Blowaunch.Library;
 
@@ -85,14 +86,14 @@ public static class Runner
     /// <param name="main">Blowaunch Main JSON</param>
     /// <param name="config">Configuration</param>
     /// <returns>Generated command</returns>
-    public static string GenerateCommand(BlowaunchMainJson main, Configuration config)
+    public static string GenerateCommand(LauncherConfig.ModPack modpack, BlowaunchMainJson main, Configuration config)
     {
         AnsiConsole.WriteLine("[Runner] Generating command");
         var sb = new StringBuilder();
 
         var forgeVersionName = FilesManager.GetFirstForgeVersion(main.Version);
         //TODO: Add forge libraries path to -cp
-        var forgeLibrariesList = FilesManager.GetForgeLibrariesPaths(forgeVersionName);
+        var forgeLibrariesList = FilesManager.GetForgeLibrariesPaths( modpack, forgeVersionName);
         if (forgeLibrariesList.Count != 0)
         {
             var tmpSourceList = main.Libraries.ToList();
@@ -118,11 +119,11 @@ public static class Runner
 
             if (process == false) continue;
             if (arg.ValueList.Length != 0) {
-                foreach (var str in arg.ValueList) sb.Append($"{ReplaceJavaArguments(main, str, config)} ");
+                foreach (var str in arg.ValueList) sb.Append($"{ReplaceJavaArguments(modpack, main, str, config)} ");
                 continue;
             }
 
-            sb.Append($"{ReplaceJavaArguments(main, arg.Value, config)} ");
+            sb.Append($"{ReplaceJavaArguments(modpack, main, arg.Value, config)} ");
         }
 
         sb.Append($"{main.MainClass} ");
@@ -158,7 +159,7 @@ public static class Runner
     /// <param name="main">Blowaunch Main JSON</param>
     /// <param name="config">Configuration class</param>
     /// <returns>Classpath string</returns>
-    private static string GenerateClasspath(BlowaunchMainJson main, Configuration config)
+    private static string GenerateClasspath(LauncherConfig.ModPack modpack, BlowaunchMainJson main, Configuration config)
     {
         var sb = new StringBuilder();
         //BlowaunchMainJson.JsonLibrary[] jsonlibraries = new BlowaunchMainJson.JsonLibrary[0];
@@ -216,8 +217,8 @@ public static class Runner
 
             if (process == false) continue;
             sb.Append(index == main.Libraries.Length - 1
-                ? FilesManager.GetLibraryPath(lib)
-                : $"{FilesManager.GetLibraryPath(lib)}{separator}");
+                ? FilesManager.GetLibraryPath(modpack, lib)
+                : $"{FilesManager.GetLibraryPath(modpack, lib)}{separator}");
         }
         sb.Append("\"");
         return sb.ToString();
@@ -230,14 +231,14 @@ public static class Runner
     /// <param name="str">String</param>
     /// <param name="config">Configuration class</param>
     /// <returns>Processed string</returns>
-    private static string ReplaceJavaArguments(BlowaunchMainJson main, string str, Configuration config)
+    private static string ReplaceJavaArguments(LauncherConfig.ModPack modpack, BlowaunchMainJson main, string str, Configuration config)
     {
         return str.Replace("${natives_directory}", Path.Combine(FilesManager.Directories.VersionsRoot,
                 main.Version, "natives")).Replace("${launcher_name}", "Blowaunch")
             .Replace("${launcher_version}", Assembly.GetExecutingAssembly().GetName().Version!.ToString())
-            .Replace("${classpath}", GenerateClasspath(main, config))
+            .Replace("${classpath}", GenerateClasspath(modpack, main, config))
             .Replace("${classpath_separator}", Environment.OSVersion.Platform == PlatformID.Unix ? ":" : ";")
-            .Replace("${library_directory}", FilesManager.Directories.LibrariesRoot)
+            .Replace("${library_directory}", FilesManager.Directories.GetLibrariesRoot(modpack))
             .Replace("${version_name}", main.Version)
             
             //.Replace("${user_properties}", "{}")
@@ -326,7 +327,7 @@ public static class Runner
     /// <param name="addon">Blowaunch Addon JSON</param>
     /// <param name="config">Configuration</param>
     /// <returns>Generated command</returns>
-    public static string GenerateCommand(BlowaunchMainJson main, BlowaunchAddonJson addon, Configuration config) 
+    public static string GenerateCommand(LauncherConfig.ModPack modpack, BlowaunchMainJson main, BlowaunchAddonJson addon, Configuration config) 
     {
         AnsiConsole.WriteLine("[Runner] Blowaunch Addon JSON is used");
         if (main.Version != addon.BaseVersion) {
@@ -347,7 +348,7 @@ public static class Runner
             main.Arguments.Java = javalist.ToArray();
         } else main.Arguments.Game = addon.Arguments.Game;
 
-        return GenerateCommand(main, config);
+        return GenerateCommand(modpack, main, config);
     }
 
     public static void StartTheGame(BlowaunchMainJson main, BlowaunchAddonJson addonMain, Account account, bool online, LauncherConfig.ModPack modpack)
@@ -394,13 +395,13 @@ public static class Runner
             if (currentOs || library.Allow.Length == 0)
             //if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && library.Allow.Contains("os-name:windows") || library.Allow.Length == 0)
             {
-                var file2 = FilesManager.GetLibraryPath(new BlowaunchMainJson.JsonLibrary
+                var file2 = FilesManager.GetLibraryPath(modpack, new BlowaunchMainJson.JsonLibrary
                 {
                     Path = library.Path
                 });
                 if (!File.Exists(file2))
                 {
-                    FilesManager.DownloadLibrary(library, main.Version, online);
+                    FilesManager.DownloadLibrary(library, modpack, online);
                 }
                 classpath.Append($"{file2}{separator}");
             }
@@ -416,20 +417,20 @@ public static class Runner
                 mainClass = addonMain.MainClass;
                 foreach (var library in addonMain.Libraries)
                 {
-                    var file2 = FilesManager.GetLibraryPath(new BlowaunchMainJson.JsonLibrary
+                    var file2 = FilesManager.GetLibraryPath(modpack, new BlowaunchMainJson.JsonLibrary
                     {
                         Path = library.Path
                     });
                     if (!File.Exists(file2))
                     {
-                        FilesManager.DownloadLibrary(library, main.Version, online);
+                        FilesManager.DownloadLibrary(library, modpack, online);
                     }
                     classpath.Append($"{file2}{separator}");
                 }
 
                 //if (ForgeThingy.IsProcessorsExists(main.Version) && !ForgeThingy.ForgeIsInstalled())
                 {
-                    ForgeThingy.RunProcessors(main, online);
+                    ForgeThingy.RunProcessors(modpack, main, online);
                 }
                 //TODO Add check for dir and file exist
                 string addonFile = Path.Combine(FilesManager.Directories.Root, "forge", $"{addonMain.FullVersion}.jar");
@@ -456,29 +457,9 @@ public static class Runner
 
                 break;
         }
-
-        foreach (var arg in main.Arguments.Game)
-        {
-            var replaced = arg.Value.Replace("${user_type}", "legacy")
-                //.Replace("${auth_access_token}", account.AccessToken)
-                //.Replace("${auth_uuid}", account.Uuid)
-                .Replace("${auth_access_token}", "0")
-                .Replace("${auth_uuid}", "0")
-                .Replace("${assets_index_name}", main.Assets.Id)
-                .Replace("${assets_root}", FilesManager.Directories.AssetsRoot)
-                .Replace("${game_directory}", modpack.PackPath) //FilesManager.Directories.Root)
-                .Replace("${version_name}", main.Version)
-                .Replace("${auth_player_name}", account.Name)
-                .Replace("${version_type}", "modified")//"Blowaunch")
-                                                      // greater than 1.12.2 vesions
-                .Replace("${clientid}", "\"\"")
-                .Replace("${auth_xuid}", "\"\"")
-                .Replace("--demo", "")
-
-                ;
-            args.Append($"{replaced} ");
-        }
-  
+        /*
+       
+  */
         if (modpack.CustomWindowSize)
         {
             args.Append($"-width {modpack.WindowSize.X} ");
@@ -514,30 +495,58 @@ public static class Runner
         }
 
         var addonGameArgs = new StringBuilder();
-        foreach (var arg in addonMain.Arguments.Game)
+        if (addonMain.Arguments != null && modpack.ModProxy == "Forge")
         {
-            var replaced = arg.Value.Replace("${user_type}", "legacy")
-                //.Replace("${auth_access_token}", account.AccessToken)
-                //.Replace("${auth_uuid}", account.Uuid)
-                .Replace("${auth_access_token}", "0")
-                .Replace("${auth_uuid}", "0")
-                .Replace("${assets_index_name}", main.Assets.Id)
-                .Replace("${assets_root}", FilesManager.Directories.AssetsRoot)
-                .Replace("${game_directory}", modpack.PackPath) //FilesManager.Directories.Root)
-                .Replace("${version_name}", main.Version)
-                .Replace("${auth_player_name}", account.Name)
-                .Replace("${version_type}", "modified")//"Blowaunch")
-                                                       // greater than 1.12.2 vesions
-                .Replace("${clientid}", "\"\"")
-                .Replace("${auth_xuid}", "\"\"");
-            addonGameArgs.Append( $" {replaced} " );
+            
+            foreach (var arg in addonMain.Arguments.Game)
+            {
+                var replaced = arg.Value.Replace("${user_type}", "legacy")
+                    //.Replace("${auth_access_token}", account.AccessToken)
+                    //.Replace("${auth_uuid}", account.Uuid)
+                    .Replace("${auth_access_token}", "0")
+                    .Replace("${auth_uuid}", "0")
+                    .Replace("${assets_index_name}", main.Assets.Id)
+                    .Replace("${assets_root}", FilesManager.Directories.AssetsRoot)
+                    .Replace("${game_directory}", modpack.PackPath) //FilesManager.Directories.Root)
+                    .Replace("${version_name}", main.Version)
+                    .Replace("${auth_player_name}", account.Name)
+                    .Replace("${version_type}", "Blowaunch")//"Blowaunch")
+                                                           // greater than 1.12.2 vesions
+                    .Replace("${clientid}", "\"\"")
+                    .Replace("${auth_xuid}", "\"\"")
+                    ;
+                addonGameArgs.Append($" {replaced} ");
+            }
+
+            //TODO: add empty jat to libraries
+
         }
+        if (!addonMain.Legacy)
+        {
+            foreach (var arg in main.Arguments.Game)
+            {
+                var replaced = arg.Value.Replace("${user_type}", "legacy")
+                    //.Replace("${auth_access_token}", account.AccessToken)
+                    //.Replace("${auth_uuid}", account.Uuid)
+                    .Replace("${auth_access_token}", "0")
+                    .Replace("${auth_uuid}", "0")
+                    .Replace("${assets_index_name}", main.Assets.Id)
+                    .Replace("${assets_root}", FilesManager.Directories.AssetsRoot)
+                    .Replace("${game_directory}", modpack.PackPath) //FilesManager.Directories.Root)
+                    .Replace("${version_name}", main.Version)
+                    .Replace("${auth_player_name}", account.Name)
+                    .Replace("${version_type}", "modified")//"Blowaunch")
+                                                           // greater than 1.12.2 vesions
+                    .Replace("${clientid}", "\"\"")
+                    .Replace("${auth_xuid}", "\"\"")
+                    .Replace("--demo", "")
 
-        //TODO: add empty jat to libraries
-
-
-        args.Remove(args.Length - 1, 1);
-
+                    ;
+                args.Append($"{replaced} ");
+            }
+        }
+            args.Remove(args.Length - 1, 1);
+        
         var command = $"{args2} -cp {file}{separator}{classpath} {mainClass} {args} {addonGameArgs}";
 
         if (main == null)

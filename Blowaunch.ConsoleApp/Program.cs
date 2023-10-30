@@ -114,16 +114,18 @@ namespace Blowaunch.ConsoleApp
                         mainJson = JsonConvert.DeserializeObject<BlowaunchMainJson>(File.ReadAllText(mainJsonPath));
                     }
                     
-                    MainDownloader.DownloadAll(mainJson, online);
-                    command = Runner.GenerateCommand(mainJson, json);
+                    MainDownloader.DownloadAll(null, mainJson, online);
+                    //command = Runner.GenerateCommand(mainJson, json);
+                    command = Runner.GenerateCommand(null, mainJson, json);
                     break;
                 case Runner.Configuration.VersionType.CustomVersionFromDir:
                     AnsiConsole.WriteLine($"[Unofficial] The version is a custom one");
                     mainJson = JsonConvert.DeserializeObject<BlowaunchMainJson>(
                         File.ReadAllText(Path.Combine(FilesManager.Directories.VersionsRoot, json.Version,
                             $"{json.Version}.json")));
-                    MainDownloader.DownloadAll(mainJson, online);
-                    command = Runner.GenerateCommand(mainJson, json);
+                    MainDownloader.DownloadAll(null, mainJson, online);
+                    //command = Runner.GenerateCommand(mainJson, json);
+                    command = Runner.GenerateCommand(null, mainJson, json);
                     break;
                 case Runner.Configuration.VersionType.CustomWithAddonConfig:
                     AnsiConsole.WriteLine($"[Unofficial] The version is a custom one");
@@ -134,8 +136,8 @@ namespace Blowaunch.ConsoleApp
                     addonJson = JsonConvert.DeserializeObject<BlowaunchAddonJson>(
                         File.ReadAllText(Path.Combine(FilesManager.Directories.VersionsRoot, json.Version, 
                             $"addon.json")));
-                    MainDownloader.DownloadAll(mainJson, addonJson, online);
-                    command = Runner.GenerateCommand(mainJson, addonJson, json);
+                    MainDownloader.DownloadAll(null, mainJson, addonJson, online);
+                    command = Runner.GenerateCommand(null, mainJson, addonJson, json);
                     break;
                 case Runner.Configuration.VersionType.OfficialWithAddonConfig:
                     if (online) {
@@ -162,8 +164,8 @@ namespace Blowaunch.ConsoleApp
                         mainJson = JsonConvert.DeserializeObject<BlowaunchMainJson>(File.ReadAllText(mainJsonPath));
                     }
                     
-                    MainDownloader.DownloadAll(mainJson, addonJson, online);
-                    command = Runner.GenerateCommand(mainJson, addonJson, json);
+                    MainDownloader.DownloadAll(null, mainJson, addonJson, online);
+                    command = Runner.GenerateCommand(null, mainJson, addonJson, json);
                     break;
                 case Runner.Configuration.VersionType.OfficialWithFabricModLoader:
                     if (online) {
@@ -191,8 +193,8 @@ namespace Blowaunch.ConsoleApp
                         addonJson = JsonConvert.DeserializeObject<BlowaunchAddonJson>(File.ReadAllText(addonFabricJsonPath));
                     }
                     
-                    MainDownloader.DownloadAll(mainJson, addonJson, online);
-                    command = Runner.GenerateCommand(mainJson, addonJson, json);
+                    MainDownloader.DownloadAll(null, mainJson, addonJson, online);
+                    command = Runner.GenerateCommand(null, mainJson, addonJson, json);
                     File.WriteAllText(addonFabricJsonPath, JsonConvert.SerializeObject(addonJson, Formatting.Indented));
                     break;
                 case Runner.Configuration.VersionType.OfficialWithForgeModLoader:
@@ -222,9 +224,9 @@ namespace Blowaunch.ConsoleApp
                         addonJson = JsonConvert.DeserializeObject<BlowaunchAddonJson>(File.ReadAllText(addonForgeJsonPath));
                     }
                     
-                    MainDownloader.DownloadAll(mainJson, addonJson, online);
-                    ForgeThingy.RunProcessors(mainJson, online);
-                    command = Runner.GenerateCommand(mainJson, addonJson, json);
+                    MainDownloader.DownloadAll(null, mainJson, addonJson, online);
+                    ForgeThingy.RunProcessors(null, mainJson, online);
+                    command = Runner.GenerateCommand(null, mainJson, addonJson, json);
                     File.WriteAllText(addonForgeJsonPath, JsonConvert.SerializeObject(addonJson, Formatting.Indented));
                     break;
             }

@@ -52,10 +52,10 @@ public static class FilesManager
         public static readonly string Forge =
             Path.Combine(Root, "forge");
 
-        
-
-        //public static string CurentModPackPath { get => curentModPackPath; set => curentModPackPath = value; }
-       
+       public static string GetLibrariesRoot(LauncherConfig.ModPack modpack)
+        {
+            return modpack != null ? Path.Combine(Root, modpack.PackPath, "libraries") : Path.Combine(Root, "libraries");
+        }
     }
 
     private static LauncherConfig.ModPack curentModPack;
@@ -74,7 +74,7 @@ public static class FilesManager
                 <LauncherConfig>(File.ReadAllText(
                     "config.json"))!;
         }
-        catch (Exception e)
+        catch (Exception)
         {
             return new LauncherConfig.ModPack();
         }
@@ -174,8 +174,9 @@ public static class FilesManager
     /// </summary>
     /// <param name="library">Blowaunch Library JSON</param>
     /// <returns>Path</returns>
-    public static string GetLibraryPath(BlowaunchMainJson.JsonLibrary library)
-        => Path.Combine(Directories.LibrariesRoot, library.Path.Replace('/', Path.DirectorySeparatorChar));
+    public static string GetLibraryPath(LauncherConfig.ModPack modpack, BlowaunchMainJson.JsonLibrary library)
+    //    => Path.Combine(Directories.LibrariesRoot, library.Path.Replace('/', Path.DirectorySeparatorChar));
+        => Path.Combine(Directories.GetLibrariesRoot(modpack), library.Path.Replace('/', Path.DirectorySeparatorChar));
     //public static string GetLibraryPath(BlowaunchMainJson.JsonLibrary library)
     //    => Path.Combine(CurentModPack.PackPath, "libraries", library.Path.Replace('/', Path.DirectorySeparatorChar));
 
@@ -195,9 +196,10 @@ public static class FilesManager
     /// <param name="online">Is in online mode</param>
     [SuppressMessage("ReSharper", "ConvertIfStatementToConditionalTernaryExpression")]
     //public static void DownloadLibrary(BlowaunchMainJson.JsonLibrary library, string version, bool online)
-    public static void DownloadLibrary(BlowaunchMainJson.JsonLibrary library, string version, bool online)
+    public static void DownloadLibrary(BlowaunchMainJson.JsonLibrary library, LauncherConfig.ModPack modpack, bool online)
     {
-        var path = GetLibraryPath(library);
+        string version = modpack.Version.Id;
+        var path = GetLibraryPath(modpack, library);
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
         var debug = $"{library.Package}:{library.Name}:{library.Version}:{library.Platform}";
         if (!File.Exists(path) && online) Fetcher.Download(library.Url, path);
@@ -207,7 +209,8 @@ public static class FilesManager
             if (online) {
                 AnsiConsole.MarkupLine($"[yellow]{debug} hash mismatch: {hash} and {library.ShaHash}, redownloading...[/]");
                 File.Delete(path);
-                DownloadLibrary(library, version, true);
+                //DownloadLibrary(library, version, true);
+                DownloadLibrary(library, modpack, true);
             } else AnsiConsole.MarkupLine($"[yellow]{debug} hash mismatch: {hash} and {library.ShaHash}, " +
                                           $"can't redownload in offline mode![/]");
         }
@@ -385,12 +388,13 @@ public static class FilesManager
         return null;
     }
 
-    public static List<BlowaunchMainJson.JsonLibrary> GetForgeLibrariesPaths(string version)
+    public static List<BlowaunchMainJson.JsonLibrary> GetForgeLibrariesPaths(LauncherConfig.ModPack modpack, string version)
     {
         var result = new List<BlowaunchMainJson.JsonLibrary>();
         
         var ext = new List<string> { "json" };
-        var dir = Path.Combine(Directories.VersionsRoot, version);
+        //var dir = Path.Combine(Directories.VersionsRoot, version);
+        var dir = Path.Combine(modpack.PackPath, version);
         var installFiles = Directory
             .EnumerateFiles(dir, "*.*", SearchOption.AllDirectories)
             .Where(s => ext.Contains(Path.GetExtension(s).TrimStart('.').ToLowerInvariant()));

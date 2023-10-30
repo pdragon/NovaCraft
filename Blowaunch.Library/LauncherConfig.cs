@@ -53,5 +53,5 @@ public class LauncherConfig
     [JsonProperty("isDemo")] public bool DemoUser;                                                                             // [ ]
     [JsonProperty("modPacks")] public List<ModPack> ModPacks = new();
     [JsonProperty("selectedModPackId")] public string SelectedModPackId = "";
-    [JsonProperty("forgeInstalledVersions")] public List<string> ForgeInstalledVersions;
+    //[JsonProperty("forgeInstalledVersions")] public List<string> ForgeInstalledVersions;
 }
