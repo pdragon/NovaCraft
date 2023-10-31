@@ -407,8 +407,9 @@ public static class Runner
             }
         }
         //classpath.Remove(classpath.Length - 1, 1);
-        //TODO Add check for dir and file exist
-        string file = Path.Combine(FilesManager.Directories.VersionsRoot, main.Version, $"{main.Version}.jar");
+        //TODO Add check for dir and file exist 
+        //string file = Path.Combine(FilesManager.Directories.VersionsRoot, main.Version, $"{main.Version}.jar");
+        string file = Path.Combine(modpack.PackPath, main.Version, $"{main.Version}.jar");
         var args = new StringBuilder();
         string mainClass = main.MainClass;
         switch (modpack.ModProxy)
@@ -429,11 +430,14 @@ public static class Runner
                 }
 
                 //if (ForgeThingy.IsProcessorsExists(main.Version) && !ForgeThingy.ForgeIsInstalled())
+                if(!main.Legacy)
                 {
                     ForgeThingy.RunProcessors(modpack, main, online);
                 }
                 //TODO Add check for dir and file exist
-                string addonFile = Path.Combine(FilesManager.Directories.Root, "forge", $"{addonMain.FullVersion}.jar");
+                //string addonFile = Path.Combine(FilesManager.Directories.Root, "forge", $"{addonMain.FullVersion}.jar");
+                //string addonFile = Path.Combine(modpack.PackPath, "forge", $"{addonMain.FullVersion}.jar");
+                string addonFile = Path.Combine(modpack.PackPath, "forge", $"{modpack.ModProxyVersion.Name}.jar");
                 classpath.Append($"{addonFile}{separator}");
                 /*
                 foreach (var arg in addonMain.Arguments.Game)
@@ -479,7 +483,8 @@ public static class Runner
         {
             var javaArgsReplaced = arg.Replace("${xms}", "512")
                     .Replace("${xmx}", modpack.RamMax)
-                    .Replace("${native_path}", Path.Combine(Directories.VersionsRoot, main.Version, "natives"));//"C:\\Users\\UserA\\AppData\\Roaming\\.blowaunch\\versions\\1.12.2\\natives");
+                    //.Replace("${native_path}", Path.Combine(Directories.VersionsRoot, main.Version, "natives"));//"C:\\Users\\UserA\\AppData\\Roaming\\.blowaunch\\versions\\1.12.2\\natives");
+                    .Replace("${native_path}", Path.Combine(CurentModPack.PackPath, main.Version, "natives"));
             args2.Append($"{javaArgsReplaced} ");
         }
 
@@ -487,9 +492,8 @@ public static class Runner
         foreach (var arg in addonMain.Arguments.Java)
         {
             var javaArgsReplaced = arg.Value.Replace("${version_name}", modpack.Version.Id)
-                    .Replace("${library_directory}", Path.Combine(Directories.Root, "libraries"))
-                    //.Replace("${library_directory}", Path.Combine(CurentModPack.PackPath, "libraries"))
-                    //TODO change to OS detirminated
+                    //.Replace("${library_directory}", Path.Combine(Directories.Root, "libraries"))
+                    .Replace("${library_directory}", Path.Combine(CurentModPack.PackPath, "libraries"))
                     .Replace("${classpath_separator}", separator);
             args2.Append($"{javaArgsReplaced} ");
         }

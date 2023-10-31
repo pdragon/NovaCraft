@@ -55,7 +55,7 @@ namespace Blowaunch.ConsoleApp
                 
                 task.IsIndeterminate = true;
                 task.Description = $"Downloading client";
-                FilesManager.DownloadClient(main, online);
+                FilesManager.DownloadClient(modpack, main, online);
 
                 var dir = Path.Combine(FilesManager.Directories.JavaRoot, main.JavaMajor.ToString());
                 var extract = Path.Combine(FilesManager.Directories.JavaRoot);

@@ -318,7 +318,9 @@ namespace Blowaunch.Library
                 task.StartTask();
                 string forgeFile = ForgeThingy.GetForgeFileByLink(main.Version);
                 //var jar = Path.Combine(Path.GetTempPath(), ".blowaunch-forge", "installer.jar");
+                //string forgeFileName = forgeFile == "" ? $"forge-{version}" : forgeFile;
                 string forgeFileName = forgeFile == "" ? $"forge-{version}" : forgeFile;
+                //forgeFile = forgeFile == "" ? $"forge-{version}.jar" : forgeFile;
                 forgeFile = forgeFile == "" ? $"forge-{version}.jar" : forgeFile;
                 //var jar = Path.Combine(Directories.Root, "forge", forgeFile + ".installer.jar");
                 var dir = Path.Combine(Path.GetTempPath(), ".blowaunch-forge");
@@ -490,9 +492,11 @@ namespace Blowaunch.Library
                     classpath.Remove(classpath.Length - 1, 1);
                     var args = new StringBuilder();
                     foreach (var arg in proc.Arguments) {
-                        var replaced = arg.Replace("{ROOT}", FilesManager.Directories.Root)
+                        //var replaced = arg.Replace("{ROOT}", FilesManager.Directories.Root)
+                        var replaced = arg.Replace("{ROOT}", modpack.PackPath)
                             .Replace("{INSTALLER}", jar)
-                            .Replace("{MINECRAFT_JAR}", Path.Combine(FilesManager.Directories.VersionsRoot,
+                            //.Replace("{MINECRAFT_JAR}", Path.Combine(FilesManager.Directories.VersionsRoot,
+                            .Replace("{MINECRAFT_JAR}", Path.Combine(modpack.PackPath,
                                 main.Version,
                                 $"{main.Version}.jar")).Replace("{SIDE}", "client")
                             .Replace("{MINECRAFT_VERSION}", main.Version.Split('-')[0]);
@@ -510,7 +514,8 @@ namespace Blowaunch.Library
                     var command = $"-cp {file}{separator}{classpath} {mainClass} {args}";
                     var process = new Process();
                     process.StartInfo = new ProcessStartInfo {
-                        WorkingDirectory = FilesManager.Directories.Root,
+                        //WorkingDirectory = FilesManager.Directories.Root,
+                        WorkingDirectory = modpack.PackPath,
                         FileName = Path.Combine(Path.Combine(FilesManager.Directories.JavaRoot, 
                             main.JavaMajor.ToString()), "bin", "java"),
                         RedirectStandardOutput = true,

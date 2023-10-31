@@ -1750,7 +1750,7 @@ public class MainWindow : Window
         }
         BlowaunchMainJson main = (MojangFetcher.GetMain(currentModpack.Version.Id));
         ProgressModal("Loading client", "please wait");
-        FilesManager.DownloadClient(main, online);
+        FilesManager.DownloadClient(currentModpack, main, online);
         AnsiConsole.MarkupLine($"[grey] checking and downdloadeing needed libraries " + $"[/]");
         int itemsDownloaded = 0;
         

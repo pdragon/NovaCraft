@@ -216,7 +216,8 @@ public static class FilesManager
         }
             
         if (library.Extract) {
-            var natives = Path.Combine(Directories.VersionsRoot, version, "natives");
+            //var natives = Path.Combine(Directories.VersionsRoot, version, "natives");
+            var natives = Path.Combine(modpack.PackPath, version, "natives");
             if (!Directory.Exists(natives)) Directory.CreateDirectory(natives);
             ZipFile.ExtractToDirectory(path, natives, true);
             foreach (var i in library.Exclude) {
@@ -237,9 +238,10 @@ public static class FilesManager
     /// </summary>
     /// <param name="main">Blowaunch Main JSON</param>
     /// <param name="online">Is in online mode</param>
-    public static void DownloadClient(BlowaunchMainJson main, bool online)
+    public static void DownloadClient(LauncherConfig.ModPack modpack, BlowaunchMainJson main, bool online)
     {
-        var path = Path.Combine(Directories.VersionsRoot, main.Version);
+        //var path = Path.Combine(Directories.VersionsRoot, main.Version);
+        var path = Path.Combine(modpack.PackPath, main.Version);
         var version = Path.Combine(path, $"{main.Version}.jar");
         var logging = Path.Combine(path, "logging.xml");
         Directory.CreateDirectory(path);
