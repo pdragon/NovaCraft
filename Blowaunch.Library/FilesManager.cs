@@ -202,7 +202,13 @@ public static class FilesManager
         var path = GetLibraryPath(modpack, library);
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
         var debug = $"{library.Package}:{library.Name}:{library.Version}:{library.Platform}";
-        if (!File.Exists(path) && online) Fetcher.Download(library.Url, path);
+        try
+        {
+            if (!File.Exists(path) && online) Fetcher.Download(library.Url, path);
+        }catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message.ToString());
+        }
             
         var hash = HashHelper.Hash(path);
         if (hash != library.ShaHash) {

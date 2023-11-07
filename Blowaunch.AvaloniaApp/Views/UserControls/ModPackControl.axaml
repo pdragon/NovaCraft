@@ -7,10 +7,11 @@
 	<StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
 				Name="ModPackPanel">
 		<StackPanel VerticalAlignment="Center" Background="LightBlue">
-			<Image Source="/Assets/background.png"
+			<Image Source="/Assets/server-icon.png"
 						 Name="ModPackImage"
 				   HorizontalAlignment="Stretch"
-				   Width="160"
+				   Height="80"
+				   ToolTip.Tip="{Binding $self.Tag}"
 						/>
 		</StackPanel>
 		<Border Background="LightBlue" 
@@ -46,7 +47,8 @@
 						   Background="Wheat"
 								Foreground="Black"
 								   TextWrapping="WrapWithOverflow"
-								   VerticalAlignment="Center" Name="ModPackLabel">
+								   VerticalAlignment="Top" 
+						   Name="ModPackLabel">
 					Some Modpack Info
 				</TextBlock>
 			</Grid>

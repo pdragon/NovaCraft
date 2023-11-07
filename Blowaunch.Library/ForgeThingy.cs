@@ -39,6 +39,8 @@ namespace Blowaunch.Library
             public int? ComboboxItemId { get; set; }
             public string Name { get; set; }
             public string Url { get; set; }
+            public string mainVersion { get; set; }
+            public bool Installed { get; set; }
         }
 
         async private static Task<bool> LinkIsBronen(string uri)
@@ -73,7 +75,8 @@ namespace Blowaunch.Library
                     var subst3 = subst2.Substring(url);
                     var end = subst3.IndexOf("\"", StringComparison.Ordinal);
                     //return "https://maven.minecraftforge.net/net/minecraftforge/forge/1.19.2-43.3.2/forge-1.19.2-43.3.2-installer.jar";
-                    return subst3.Substring(0, end);
+                    return "https://maven.minecraftforge.net/net/minecraftforge/forge/1.16.2-33.0.60/forge-1.16.2-33.0.60-installer.jar";
+                    //return subst3.Substring(0, end);
                 }
             } catch (Exception e) {
                 AnsiConsole.MarkupLine("[red]Unable to parse the website: An exception occured.[/]");
@@ -258,7 +261,7 @@ namespace Blowaunch.Library
                     content = File.ReadAllText(Path.Combine(dir, "version.json"));
                 }
                 */
-            string content = GetForgeData(CurentModPack, main, online);
+            string content = GetForgeData(selectedModPack, main, online);
             var progress = AnsiConsole.Progress()
                 .HideCompleted(true)
                 .Columns(new TaskDescriptionColumn(),
@@ -270,7 +273,7 @@ namespace Blowaunch.Library
                 task.StartTask();
                 var data = MojangLegacyMainJson.IsLegacyJson(content) 
                     ? BlowaunchMainJson.MojangToBlowaunchPartial(JsonConvert.DeserializeObject<MojangLegacyMainJson>(content)) 
-                    : BlowaunchMainJson.MojangToBlowaunchPartial(JsonConvert.DeserializeObject<MojangMainJson>(content));
+                    : BlowaunchMainJson.MojangToBlowaunchPartial(JsonConvert.DeserializeObject<MojangMainJson>(content));                
                 task.Description = "Processing addon";
                 var addon = new BlowaunchAddonJson {
                     Legacy = MojangLegacyMainJson.IsLegacyJson(content),
@@ -281,6 +284,9 @@ namespace Blowaunch.Library
                     Arguments = new BlowaunchMainJson.JsonArguments(),
                     MainClass = data.MainClass
                 };
+
+
+                
                 var libraries = new List<BlowaunchMainJson.JsonLibrary>();
                 foreach (var lib in data.Libraries) {
                     if (string.IsNullOrEmpty(lib.Url)) {
@@ -293,7 +299,26 @@ namespace Blowaunch.Library
                     }
                     libraries.Add(lib);
                 }
+                /*
+                var contentInstaller = File.ReadAllText(Path.Combine(selectedModPack.PackPath, "forge", $"install-{main.Version}.json"));
+                //var dataInstaller = JsonConvert.DeserializeObject<ForgeInstallerJson>(contentInstaller);
+                var dataInstaller = JsonConvert.DeserializeObject<MojangMainJson>(contentInstaller);
+                var dataInst = BlowaunchMainJson.MojangToBlowaunchPartial(dataInstaller);
 
+                foreach (var lib in dataInst.Libraries)
+                {
+                    if (string.IsNullOrEmpty(lib.Url))
+                    {
+                        var dest = Path.Combine(selectedModPack.PackPath, "forge", $"{lib.Name}-{lib.Version}.jar");
+                        if (!Directory.Exists(Path.GetDirectoryName(dest))) Directory.CreateDirectory(Path.GetDirectoryName(dest)!);
+                        if (!File.Exists(dest)) File.Copy(Path.Combine(dir, "maven", lib.Path.Replace('/',
+                            Path.DirectorySeparatorChar)), dest);
+                        lib.Url = $"file://{dest}"; // :bigbrain:
+                        //lib.Url = $"https://maven.minecraftforge.net/{lib.Path}";
+                    }
+                    libraries.Add(lib);
+                }
+                */
                 addon.Arguments.Game = data.Arguments.Game;
                 addon.Arguments.Java = data.Arguments.Java;
                 addon.Libraries = libraries.ToArray();
@@ -333,18 +358,14 @@ namespace Blowaunch.Library
                 string contentInstaller;
 
                 //if (!File.Exists(jar) || !File.Exists(forgeJsonFile) || !File.Exists(forgeInstallJsonFile))
-                if (!File.Exists(forgeJsonFile) || !File.Exists(forgeInstallJsonFile))
+                //if (!File.Exists(forgeJsonFile) || !File.Exists(forgeInstallJsonFile))
+                if(!selectedModPack.ModProxyVersion.Installed)
                 {
                     if (!online) return "";
                     if (Directory.Exists(dir)) Directory.Delete(dir, true);
                     Directory.CreateDirectory(dir);
                     //string link = ForgeThingy.GetLink(version).GetAwaiter().GetResult();
-                    if (CurentModPack.ModProxyVersion == null)
-                    {
-                        CurentModPack.ModProxyVersion = new Versions();
-                        CurentModPack.ModProxyVersion.Url = ForgeThingy.GetLink(CurentModPack.Version.Id).GetAwaiter().GetResult();
-                        //return "";
-                    }
+                   
                     string link = CurentModPack.ModProxyVersion.Url;
                     Fetcher.Download(link, jar);
                  
@@ -419,14 +440,33 @@ namespace Blowaunch.Library
                 foreach (var lib in dataInstaller.Libraries) {
                     var split = lib.Name.Split(":");
                     split[2] = split[2].Split('@')[0];
+                    if(split.Count() > 3)
+                    {
+                        Console.WriteLine(lib.Downloads.Artifact.Url);
+                    }
                     task.Description = $"Downloading {split[1]} v{split[2]}";
                     if (string.IsNullOrEmpty(lib.Downloads.Artifact.Url)) {
-                        var dest = Path.Combine(FilesManager.Directories.Root, "forge", 
-                            $"{split[1]}-{split[2]}{Path.GetExtension(lib.Downloads.Artifact.Path)}");
-                        if (!Directory.Exists(Path.GetDirectoryName(dest))) Directory.CreateDirectory(Path.GetDirectoryName(dest)!);
-                        if (!File.Exists(dest)) File.Copy(Path.Combine(dir, "maven", lib.Downloads.Artifact.Path!.Replace('/', 
-                            Path.DirectorySeparatorChar)), dest);
-                        lib.Downloads.Artifact.Url = $"file://{dest}"; // :bigbrain:
+                        if (split.Length == 4 && split[3].Equals("universal"))
+                        {
+                            var dest = Path.Combine(FilesManager.Directories.Root, "forge",
+                                $"{split[1]}-{split[2]}-{split[3]}{Path.GetExtension(lib.Downloads.Artifact.Path)}");
+                            if (!Directory.Exists(Path.GetDirectoryName(dest))) Directory.CreateDirectory(Path.GetDirectoryName(dest)!);
+                            if (!File.Exists(dest)) File.Copy(Path.Combine(dir, "maven", lib.Downloads.Artifact.Path!.Replace('/',
+                                Path.DirectorySeparatorChar)), dest);
+                            if (string.IsNullOrEmpty(lib.Downloads.Artifact.Url))
+                            {
+                                lib.Downloads.Artifact.Url = $"https://maven.minecraftforge.net/{lib.Downloads.Artifact.Path}";
+                            }
+                        }
+                        else
+                        {
+                            var dest = Path.Combine(FilesManager.Directories.Root, "forge",
+                                $"{split[1]}-{split[2]}{Path.GetExtension(lib.Downloads.Artifact.Path)}");
+                            if (!Directory.Exists(Path.GetDirectoryName(dest))) Directory.CreateDirectory(Path.GetDirectoryName(dest)!);
+                            if (!File.Exists(dest)) File.Copy(Path.Combine(dir, "maven", lib.Downloads.Artifact.Path!.Replace('/',
+                                Path.DirectorySeparatorChar)), dest);
+                            lib.Downloads.Artifact.Url = $"file://{dest}"; // :bigbrain:
+                        }
                         continue;
                     }
                     
@@ -451,11 +491,6 @@ namespace Blowaunch.Library
                 task.Value = 0;
                 task.Description = $"Running processors";
                 task.MaxValue = dataInstaller.Processors.Length;
-                // On early versions processors is absent
-                if (dataInstaller.Processors.Length < 1)
-                {
-                    //RunWithoutProcessors(main, dataInstaller, online);
-                }
 
                 for (var index = 0; index < dataInstaller.Processors.Length; index++) {
                     var proc = dataInstaller.Processors[index];
@@ -559,6 +594,8 @@ namespace Blowaunch.Library
             });
         }
         //public static void Run(BlowaunchMainJson main, BlowaunchAddonJson addonMain, Account account, string maxRam, bool customWindowSize, float width, float height, bool online, string gamePath)
+
+        /*
         public static void _Run(BlowaunchMainJson main, BlowaunchAddonJson addonMain, Account account, bool online, LauncherConfig.ModPack modpack)
         {
             
@@ -716,6 +753,7 @@ namespace Blowaunch.Library
             // Secure errror on start
             // https://github.com/OpenFeign/feign/issues/935#issuecomment-521236281
         }
+        */
         /*
         public static void RunWithoutProcessors(BlowaunchMainJson main, ForgeInstallerJson dataInstaller, bool online)
         {
@@ -800,7 +838,8 @@ namespace Blowaunch.Library
         static public string GetForgeFileByLink(string version)
         {
             Regex regex = new Regex($"forge-{version}-(.*).jar$");
-            var matches = Directory.EnumerateFiles(Directories.Forge).Where(f => regex.IsMatch(f));
+            //var matches = Directory.EnumerateFiles(Directories.Forge).Where(f => regex.IsMatch(f));
+            var matches = Directory.EnumerateFiles(Directories.Forge).Where(f => regex.IsMatch(f)).Where(f => !f.Contains("-universal"));
             List<int[]> IntVersion = new List<int[]>();
             foreach (var match in matches)
             {

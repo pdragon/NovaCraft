@@ -7,6 +7,7 @@ using Blowaunch.Library;
 using ICSharpCode.SharpZipLib.Core;
 using ICSharpCode.SharpZipLib.GZip;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Spectre.Console;
 
 namespace Blowaunch.ConsoleApp
@@ -149,6 +150,24 @@ namespace Blowaunch.ConsoleApp
             main.Libraries = newlibs.ToArray();
             main.MainClass = addon.MainClass;
             DownloadAll(modpack, main, online);
+        }
+
+        public static string GetUUID(string nickname)
+        {
+            LauncherConfig.AccountResponse json;
+            try
+            {
+                json = JsonConvert.DeserializeObject<LauncherConfig.AccountResponse>(Fetcher.Fetch(@"https://api.mojang.com/users/profiles/minecraft/" + nickname));
+            }catch (Exception ex)
+            {
+                // This nickname not exist or invalid
+                //if(ex.Message == "The remote server returned an error: (400) Bad Request.")
+                //{
+                    return "0";
+                //}
+                //return null;
+            }
+                return json.Id;
         }
     }
 }

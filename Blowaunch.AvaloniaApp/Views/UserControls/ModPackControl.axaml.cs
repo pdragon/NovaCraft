@@ -49,23 +49,41 @@ public class ModPackControl : UserControl
 
     private void LoadItems()
     {
+        string path = AppDomain.CurrentDomain.BaseDirectory; //Directory.GetCurrentDirectory();
+        DirectoryInfo diPath = new DirectoryInfo(@path);
+        string iconPath = "";
+        string targetIconPath = Path.Combine(ModPack.PackPath, "server-icon.png");
         if (_image != null)
         {
             _modPackLabel.Text = ModPack.Name;
-            using var fileStream = File.OpenRead("f:/tmp/3/minecraft-small.png");
+            //TODO: download from inet on first start, and load then from .blowaunch folder
+            //iconPath = File.Exists(targetIconPath) ? targetIconPath : Path.Combine(path, "server-icon.png");
+            //iconPath = File.Exists(targetIconPath)? targetIconPath: Path.Combine(path, "minecraft-small.png");
+            if (File.Exists(targetIconPath))
+            {
+                iconPath = targetIconPath;
+            }
+            else
+            {
+                _image.Tag = "If you what see here your own image here, please copy you png file into: " + targetIconPath;
+                iconPath = Path.Combine(path, "minecraft-small.png");
+            }
+            using var fileStream = File.OpenRead(iconPath);
             _image.Source = new Bitmap(fileStream);
             this.Name = ModPack.Id;
         }
         if(_mainImage != null)
         {
-            using var fileStream = File.OpenRead("f:/tmp/3/minecraft.png");
+            //TODO: download from inet on first start, and load then from .blowaunch folder
+            iconPath = File.Exists(targetIconPath) ? targetIconPath : Path.Combine(path, "minecraft.png");
+            using var fileStream = File.OpenRead(iconPath);
             _mainImage.Source = new Bitmap(fileStream);
         }
     }
     
     private void OnEraseModPack(object? sender, RoutedEventArgs args)
     {
-        (sender as Button)!.Content = "Test";
+        //(sender as Button)!.Content = "Test";
     }
     
 }

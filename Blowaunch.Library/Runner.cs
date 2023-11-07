@@ -14,6 +14,7 @@ using Newtonsoft.Json;
 using Serilog.Core;
 using Spectre.Console;
 using static Blowaunch.Library.FilesManager;
+using static Blowaunch.Library.ForgeThingy;
 using static Blowaunch.Library.LauncherConfig;
 
 namespace Blowaunch.Library;
@@ -277,7 +278,6 @@ public static class Runner
                         config.Account.Uuid);
                 break;
             default:
-                // https://mojang-api-docs.gapple.pw/no-auth/username-to-uuid-get
                 newstr = newstr.Replace("${clientid}", "noauth").Replace("${auth_access_token}", "noauth")
                     .Replace("${user_type}", "noauth").Replace("${auth_xuid}", "noauth")
                     .Replace("${auth_uuid}", "noauth");
@@ -386,6 +386,10 @@ public static class Runner
 
         foreach (var library in main.Libraries)
         {
+            if (modpack.ModProxy.Equals("Forge") && addonMain.Libraries.Where(p => p.Name.Equals(library.Name)).Count() > 0)
+            {
+                continue;
+            }
             bool currentOs = false;
             foreach (var allowedOs in library.Allow)
             {
@@ -412,6 +416,7 @@ public static class Runner
         string file = Path.Combine(modpack.PackPath, main.Version, $"{main.Version}.jar");
         var args = new StringBuilder();
         string mainClass = main.MainClass;
+        
         switch (modpack.ModProxy)
         {
             case "Forge":
@@ -422,7 +427,9 @@ public static class Runner
                     {
                         Path = library.Path
                     });
-                    if (!File.Exists(file2))
+                    var hash = HashHelper.Hash(file2);
+                   
+                    if ((modpack.ModProxyVersion == null || !modpack.ModProxyVersion.Installed) || hash != library.ShaHash)
                     {
                         FilesManager.DownloadLibrary(library, modpack, online);
                     }
@@ -430,32 +437,19 @@ public static class Runner
                 }
 
                 //if (ForgeThingy.IsProcessorsExists(main.Version) && !ForgeThingy.ForgeIsInstalled())
-                if(!main.Legacy)
+                if(!main.Legacy && !modpack.ModProxyVersion.Installed)
                 {
                     ForgeThingy.RunProcessors(modpack, main, online);
                 }
                 //TODO Add check for dir and file exist
                 //string addonFile = Path.Combine(FilesManager.Directories.Root, "forge", $"{addonMain.FullVersion}.jar");
-                //string addonFile = Path.Combine(modpack.PackPath, "forge", $"{addonMain.FullVersion}.jar");
-                string addonFile = Path.Combine(modpack.PackPath, "forge", $"{modpack.ModProxyVersion.Name}.jar");
-                classpath.Append($"{addonFile}{separator}");
-                /*
-                foreach (var arg in addonMain.Arguments.Game)
+                if (main.Legacy)
                 {
-                    var replaced = arg.Value.Replace("${user_type}", "legacy")
-                        //.Replace("${auth_access_token}", account.AccessToken)
-                        //.Replace("${auth_uuid}", account.Uuid)
-                        //.Replace("${auth_access_token}", "0")
-                        //.Replace("${auth_uuid}", "0")
-                        //.Replace("${assets_index_name}", main.Assets.Id)
-                        //.Replace("${assets_root}", FilesManager.Directories.AssetsRoot)
-                        //.Replace("${game_directory}", modpack.PackPath) //FilesManager.Directories.Root)
-                        //.Replace("${version_name}", main.Version)
-                        //.Replace("${auth_player_name}", account.Name)
-                        ;
-                    args.Append($"{replaced} ");
+                    string addonFile = Path.Combine(modpack.PackPath, "forge", $"{addonMain.FullVersion}.jar");
+                    //string addonFile = Path.Combine(modpack.PackPath, "forge", $"{modpack.ModProxyVersion.Name}.jar");
+                    classpath.Append($"{addonFile}{separator}");
                 }
-                */
+
                 break;
             default:
 
@@ -508,7 +502,7 @@ public static class Runner
                     //.Replace("${auth_access_token}", account.AccessToken)
                     //.Replace("${auth_uuid}", account.Uuid)
                     .Replace("${auth_access_token}", "0")
-                    .Replace("${auth_uuid}", "0")
+                    .Replace("${auth_uuid}", $"{account.Uuid}")
                     .Replace("${assets_index_name}", main.Assets.Id)
                     .Replace("${assets_root}", FilesManager.Directories.AssetsRoot)
                     .Replace("${game_directory}", modpack.PackPath) //FilesManager.Directories.Root)
@@ -533,7 +527,7 @@ public static class Runner
                     //.Replace("${auth_access_token}", account.AccessToken)
                     //.Replace("${auth_uuid}", account.Uuid)
                     .Replace("${auth_access_token}", "0")
-                    .Replace("${auth_uuid}", "0")
+                    .Replace("${auth_uuid}", $"{account.Uuid}")
                     .Replace("${assets_index_name}", main.Assets.Id)
                     .Replace("${assets_root}", FilesManager.Directories.AssetsRoot)
                     .Replace("${game_directory}", modpack.PackPath) //FilesManager.Directories.Root)

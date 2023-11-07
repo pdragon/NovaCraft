@@ -125,7 +125,69 @@ public class BlowaunchAddonJson
         json = ProcessLibraries(json);
         return json;
     }
-        
+    /*
+    /// <summary>
+    /// Converts Forge -> Blowaunch
+    /// </summary>
+    /// <param name="fabric">Fabric JSON</param>
+    /// <returns>Blowaunch JSON</returns>
+    public static BlowaunchAddonJson ForgeToBlowaunch(ForgeJson forge)
+    {
+        var json = new BlowaunchAddonJson
+        {
+            MainClass = fabric.MainClass,
+            Author = "FabricMC Contributors",
+            Information = "Fabric JSON made to work with Blowaunch",
+            BaseVersion = fabric.BaseVersion,
+        };
+
+        var libraries = new List<BlowaunchMainJson.JsonLibrary>();
+        foreach (var lib in fabric.Libraries)
+        {
+            var split = lib.Name.Split(':');
+            var main = new BlowaunchMainJson.JsonLibrary
+            {
+                Allow = Array.Empty<string>(),
+                Disallow = Array.Empty<string>(),
+                Path = $"{split[0]}/{split[1]}/{split[2]}/{split[1]}-{split[2]}.jar",
+                Package = split[0],
+                Name = split[1],
+                Version = split[2],
+                Platform = "any",
+                Url = lib.Url
+            };
+
+            libraries.Add(main);
+        }
+
+        var game = new List<BlowaunchMainJson.JsonArgument>();
+        var java = new List<BlowaunchMainJson.JsonArgument>();
+        foreach (var i in fabric.Arguments.Game)
+            game.Add(new BlowaunchMainJson.JsonArgument
+            {
+                Allow = Array.Empty<string>(),
+                Disallow = Array.Empty<string>(),
+                ValueList = Array.Empty<string>(),
+                Value = i.Replace(" ", "")
+            });
+        foreach (var i in fabric.Arguments.Java)
+            java.Add(new BlowaunchMainJson.JsonArgument
+            {
+                Allow = Array.Empty<string>(),
+                Disallow = Array.Empty<string>(),
+                ValueList = Array.Empty<string>(),
+                Value = i.Replace(" ", "")
+            });
+        json.Arguments = new BlowaunchMainJson.JsonArguments
+        {
+            Game = game.ToArray(),
+            Java = java.ToArray()
+        };
+        json.Libraries = libraries.ToArray();
+        json = ProcessLibraries(json);
+        return json;
+    }
+    */
     [JsonProperty("legacy")] public bool Legacy;
     [JsonProperty("baseVersion")] public string BaseVersion;
     [JsonProperty("fullVersion")] public string FullVersion;
@@ -134,5 +196,4 @@ public class BlowaunchAddonJson
     [JsonProperty("libraries")] public BlowaunchMainJson.JsonLibrary[] Libraries;
     [JsonProperty("args")] public BlowaunchMainJson.JsonArguments Arguments;
     [JsonProperty("mainClass")] public string MainClass;
-
 }

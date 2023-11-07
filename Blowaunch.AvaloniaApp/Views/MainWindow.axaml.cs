@@ -34,6 +34,8 @@ using static Blowaunch.Library.FilesManager;
 using Blowaunch.AvaloniaApp.Views.UserControls;
 using DynamicData;
 using Avalonia.OpenGL;
+using static Blowaunch.Library.ForgeThingy;
+using Blowaunch.ConsoleApp;
 //using System.Timers;
 
 namespace Blowaunch.AvaloniaApp.Views;
@@ -138,6 +140,7 @@ public class MainWindow : Window
         };
 
     private bool ProxyComboBoxOnChangeEnable = true;
+    private ForgeThingy.Versions ModProxyVersionInModal = new();
 
     private class VersionsReturn
     {
@@ -342,7 +345,7 @@ public class MainWindow : Window
         _modPackControl = this.FindControl<ModPackControl>("ModPackControl1");
         _modPacksPanel = this.FindControl<WrapPanel>("ModPacksPanel");
 
-        _modProxyPanelMcVersion = this.FindControl<ComboBox>("ModProxyPanelMcVersion");
+        //_modProxyPanelMcVersion = this.FindControl<ComboBox>("ModProxyPanelMcVersion");
         _modProxyPanelForgeVersion = this.FindControl<ComboBox>("ModProxyPanelForgeVersion");
 
         /*
@@ -738,6 +741,7 @@ public class MainWindow : Window
     /// </summary>
     private void SaveConfig()
     {
+        /*
         try { 
             File.WriteAllText("config.json",
             JsonConvert.SerializeObject(
@@ -747,20 +751,29 @@ public class MainWindow : Window
         }
         catch (Exception e) {
             Logger.Error("Unable to save config! {0}", e);
-            /*
-            var msBoxStandardWindow = MessageBoxManager
-                .GetMessageBoxStandardWindow(new MessageBoxStandardParams{
-                    Icon = MessageBox.Avalonia.Enums.Icon.Error,
-                    ButtonDefinitions = ButtonEnum.Ok,
-                    ContentMessage = "Blowaunch is unable to save " +
+            
+        //    var msBoxStandardWindow = MessageBoxManager
+        //        .GetMessageBoxStandardWindow(new MessageBoxStandardParams{
+        //            Icon = MessageBox.Avalonia.Enums.Icon.Error,
+        //            ButtonDefinitions = ButtonEnum.Ok,
+        //            ContentMessage = "Blowaunch is unable to save " +
+        //                             "the configuration file.\n" +
+        //                             "Settings would be reset " +
+        //                             "when you close and open " +
+        //                             "Blowaunch again.",
+        //            ContentTitle = "An error occured!"
+        //        });
+        //    msBoxStandardWindow.Show();
+            
+        }
+        */
+        if (!LauncherConfig.SaveConfig(Config)) {
+            string ContentMessage = "Blowaunch is unable to save " +
                                      "the configuration file.\n" +
                                      "Settings would be reset " +
                                      "when you close and open " +
-                                     "Blowaunch again.",
-                    ContentTitle = "An error occured!"
-                });
-            msBoxStandardWindow.Show();
-            */
+                                     "Blowaunch again.";
+            ShowMessage(ContentMessage, "An error occured!", ButtonEnum.Ok, MessageBox.Avalonia.Enums.Icon.Error).GetAwaiter();
         }
     }
     #endregion
@@ -877,7 +890,6 @@ public class MainWindow : Window
 
             modpackItem.Margin = new Avalonia.Thickness(4);
 
-            Console.WriteLine(eraseBtn.Parent?.Parent?.ToString());
             if (eraseBtn != null) { 
                 eraseBtn.Click += OnEraseModPack!;
                 changeBtn.Click += OnChangeModPack!;
@@ -904,7 +916,6 @@ public class MainWindow : Window
         }
         
         string id = (sender as Button)!.Name ?? "";
-        Console.WriteLine((sender as Button)!.Name);
         OnEraseModPack(id.Split(':')[1] ?? "");
         
     }
@@ -952,7 +963,6 @@ public class MainWindow : Window
         bool online = true;
 
         string id = (sender as Button)!.Name ?? "";
-        Console.WriteLine((sender as Button)!.Name);
         var mp = Config.ModPacks.Find(x => x.Id == (id.Split(':')[1] ?? ""));
         mp!.Time = (int)DateTime.UtcNow.Subtract(new DateTime(2023, 1, 1)).TotalSeconds;
         CurentModPack = mp;
@@ -1027,12 +1037,25 @@ public class MainWindow : Window
     /// </summary>
     public void CrackedLogin(object? sender, RoutedEventArgs e)
     {
+        if(_usernameCracked.Text == null || _usernameCracked.Text.Length <= 0)
+        {
+            ShowMessage("Empty nickname is not allowed", "Error", ButtonEnum.Ok, MessageBox.Avalonia.Enums.Icon.Error).GetAwaiter();
+            return;
+        }
         Logger.Information("Adding cracked account...");
         Config.Accounts.Add(new Account {
            Type = Account.AuthType.None,
            Name = _usernameCracked.Text,
-           Id = Guid.NewGuid().ToString()
+           Id = Guid.NewGuid().ToString(),
+           Uuid =  MainDownloader.GetUUID(_usernameCracked.Text)
         });
+
+        if (_usernameCracked.Text == null || _usernameCracked.Text.Length <= 0)
+        {
+            ShowMessage("Empty nickname is not allowed", "Error", ButtonEnum.Ok, MessageBox.Avalonia.Enums.Icon.Error).GetAwaiter();
+            return;
+        }
+
         Logger.Information("Successfully logged in!");
         SaveConfig(); ReloadAccounts();
         
@@ -1188,16 +1211,16 @@ public class MainWindow : Window
         _showSnaphots.IsChecked = Config.ShowSnapshots;
         _showAlpha.IsChecked = Config.ShowAlpha;
         _showBeta.IsChecked = Config.ShowBeta;
-        _forceOffline.IsChecked = Config.ForceOffline;
+        //_forceOffline.IsChecked = Config.ForceOffline;
         _minecraftDemo.IsChecked = Config.DemoUser;
 
         _modPackRamSlider.Maximum = _info.MemoryList.Sum(
             x => (long)x.Capacity) / 1000000;
-        _modPackRamManual.Value = int.Parse(Config.RamMax);
-        _modPackRamSlider.Value = int.Parse(Config.RamMax);
+        //_modPackRamManual.Value = int.Parse(Config.RamMax);
+        //_modPackRamSlider.Value = int.Parse(Config.RamMax);
 
-        if (Config.ForceOffline)
-            OfflineMode = true;
+        //if (Config.ForceOffline)
+        //    OfflineMode = true;
     }
     
     /// <summary>
@@ -1262,6 +1285,16 @@ public class MainWindow : Window
         LauncherConfig.ModPack modpackConfig = new LauncherConfig.ModPack();
         if (_modPackVersionsCombo.SelectedItem is LauncherConfig.VersionClass)
         {
+            LauncherConfig.VersionClass version = (LauncherConfig.VersionClass)_modPackVersionsCombo.SelectedItem;
+            modpackConfig.ModProxyVersion = ModProxyVersionInModal;
+            if (!version.Name.Equals(modpackConfig.Version))
+            {
+                if(modpackConfig.ModProxyVersion == null)
+                {
+                    modpackConfig.ModProxyVersion = new Versions();
+                }
+                modpackConfig.ModProxyVersion.Installed = false;
+            }
             modpackConfig.Version = (LauncherConfig.VersionClass)_modPackVersionsCombo.SelectedItem;
         }
 
@@ -1274,20 +1307,29 @@ public class MainWindow : Window
         modpackConfig.GameArgs = _modPackGameArguments.Text;
         modpackConfig.RamMax = _modPackRamManual.Value.ToString(CultureInfo.InvariantCulture);
         
-        
-        
         modpackConfig.Id = id;
         modpackConfig.Name = _modPackName.Text;
         modpackConfig.RamMax = _modPackRamSlider.Value.ToString(CultureInfo.InvariantCulture);
         modpackConfig.PackPath = _modPackPathInstance.Text;
+        modpackConfig.ForceOffline = _forceOffline.IsChecked!.Value;
+        
         //var modEngine = _modPackModProxyCombo.Items.(_modPackModProxyCombo.SelectedIndex);
         var cb = (ComboBoxItem?)_modPackModProxyCombo.SelectedItem;
         if(cb != null)
             modpackConfig.ModProxy = ((TextBlock)(cb).Content).Text.ToString();
 
-        SaveModPackToConfig(modpackConfig);
-        modpackConfig.ModProxyVersion = (ForgeThingy.Versions)_modPackModProxyComboVersions!.SelectedItem!;
-        modpackConfig.ModProxyVersion.ComboboxItemId = _modPackModProxyComboVersions.SelectedIndex;
+        ProgressModal("Please wait", modpackConfig.Version.Id, "Checking minecraft forge version exist");
+        List<ForgeThingy.Versions> versions = await ForgeThingy.GetLinks(modpackConfig.Version.Id);
+        ProgressModalDisable();
+        if (versions == null || versions.Count == 0)
+        {
+            await ShowMessage("For this version of minecraft forge version does not exist, please select another version", "Error"); 
+            return;
+        }
+
+        //modpackConfig.ModProxyVersion = (ForgeThingy.Versions)_modPackModProxyComboVersions!.SelectedItem!;
+        //modpackConfig.ModProxyVersion.ComboboxItemId = _modPackModProxyComboVersions.SelectedIndex;
+
         /*
             var index = Config.ModPacks.FindIndex(mp => mp.Id == modpackConfig.Id);
         if (index != -1)
@@ -1304,6 +1346,7 @@ public class MainWindow : Window
             await ShowMessage("Name can't be empty", "Error occured");
             return;
         }
+        SaveModPackToConfig(modpackConfig);
         SaveConfig();
         ReloadModPacks();
 
@@ -1328,6 +1371,8 @@ public class MainWindow : Window
 
     private void SaveModPackToConfig(ModPack? modpackConfig)
     {
+        LauncherConfig.SaveModPackToConfig(Config, modpackConfig);
+        /*
         var index = Config.ModPacks.FindIndex(mp => mp.Id == modpackConfig?.Id);
         if (index != -1)
         {
@@ -1337,6 +1382,7 @@ public class MainWindow : Window
         {
             Config.ModPacks.Add(modpackConfig);
         }
+        */
     }
 
     /// <summary>
@@ -1346,19 +1392,19 @@ public class MainWindow : Window
     {
         Logger.Information("Resetting settings...");
         var conf = new LauncherConfig();
-        Config.CustomWindowSize = conf.CustomWindowSize;
-        Config.WindowSize = conf.WindowSize;
-        Config.JvmArgs = conf.JvmArgs;
-        Config.GameArgs = conf.GameArgs;
-        Config.RamMax = conf.RamMax;
-        Config.ShowSnapshots = conf.ShowSnapshots;
-        Config.ShowAlpha = conf.ShowAlpha;
-        Config.ShowBeta = conf.ShowBeta;
-        Config.ForceOffline = conf.ForceOffline;
-        Config.DemoUser = conf.DemoUser;
+        //Config.CustomWindowSize = conf.CustomWindowSize;
+        //Config.WindowSize = conf.WindowSize;
+        //Config.JvmArgs = conf.JvmArgs;
+        //Config.GameArgs = conf.GameArgs;
+        //Config.RamMax = conf.RamMax;
+        //Config.ShowSnapshots = conf.ShowSnapshots;
+        //Config.ShowAlpha = conf.ShowAlpha;
+        //Config.ShowBeta = conf.ShowBeta;
+        //Config.ForceOffline = conf.ForceOffline;
+        //Config.DemoUser = conf.DemoUser;
         SaveConfig(); LoadSettings();
     }
-
+    /*
     async public void ModProxyMcVersionComboChanged(object? sender, SelectionChangedEventArgs e)
     {
         if (e.AddedItems.Count > 0)
@@ -1368,7 +1414,8 @@ public class MainWindow : Window
             _modProxyPanelForgeVersion.Items = versions;
         }
     }
-
+    */
+    /*
     /// <summary>
     /// On Change ModProxy
     /// </summary>
@@ -1389,46 +1436,15 @@ public class MainWindow : Window
                 TextBlock textBox = (TextBlock)(items).Content;
                 if (textBox != null)
                 {
-                    /*
-                    switch(textBox.Text)
-                    {
-                        case "Forge":
-                            //TODO: Проверяем на наличие Форж версии и показываем поле версий форжа, далее туда подгружаем все версии форжа, в рамках версии майнкрафта.
-                            List<ForgeThingy.Versions> versions = await ForgeThingy.GetLinks("1.12.2");
-                            _modPackModProxyComboVersions.IsVisible = true;
-                            _modPackModProxyComboVersions.Items = versions;
-                            Console.WriteLine(textBox.Text.ToString());
-                            break;
-                        default:
-                            _modPackModProxyComboVersions.IsVisible = false;
-                            break;
-                    }
-                    */
                     //LauncherConfig.ModPack modPack = Config.ModPacks.Find(mp => mp.Id == _modPackId.Text) ?? new LauncherConfig.ModPack();
                     LauncherConfig.ModPack modPack = new ModPack();
                     modPack.Version.Id = ((LauncherConfig.VersionClass)_modPackVersionsCombo.SelectedItem!).Id;
-                    ShowModPackVersions(modPack, textBox.Text);
-
-                    if (textBox.Text == "Forge")
-                    {
-                        if (_modPackModProxyCombo.SelectedIndex == 1)
-                        {
-                            //ProgressModal(string progressInfo, string progressFiles, string ? loadingTextBlock = null);
-                            ProgressModal(modPack.Version.Id ?? "", "please wait", "Checking forge version for selected minecraft version");
-                            var version = await ForgeThingy.GetLinks(modPack.Version.Id);
-                            if (version == null)
-                            {
-                                await ShowMessage("For this version of minecraft forge version is NOT exist, please select another version or deselect forge to continue", "Error");
-                                ProgressModalDisable();
-                                return;
-                            }
-                            ProgressModalDisable();
-                        }   
-                    }
+                   
                 }
             }
         }
     }
+    */
     #endregion
     #region Events
     /// <summary>
@@ -1446,6 +1462,7 @@ public class MainWindow : Window
     public void OpenAuthPanel(object? sender, RoutedEventArgs e)
         => _authPanel.IsVisible = true;
 
+    /*
     /// <summary>
     /// Open modProxy panel
     /// </summary>
@@ -1459,6 +1476,7 @@ public class MainWindow : Window
             _modProxyPanelMcVersion.Items = versions;
         }
     }
+    */
 
     /// <summary>
     /// Open root directory
@@ -1484,17 +1502,17 @@ public class MainWindow : Window
              UseShellExecute = true,
              Verb = "open"
          });
-
+    /*
     public void ForgeInstall(object? sender, RoutedEventArgs e)
     { 
     
     }
-
+    
     public void ForgeDelete(object? sender, RoutedEventArgs e)
     {
 
     }
-
+    */
 
     /// <summary>
     /// Close Modpack panel
@@ -1502,6 +1520,7 @@ public class MainWindow : Window
     public void CloseModPackPanel(object? sender, RoutedEventArgs e)
         => _modPackPanel.IsVisible = false;
 
+    /*
     /// <summary>
     /// Open Modpack panel
     /// </summary>
@@ -1535,6 +1554,8 @@ public class MainWindow : Window
             _modPackName.Text =  modPack.Name;
             _modPackRamSlider.Value = Convert.ToDouble(modPack.RamMax);
             _modPackPathInstance.Text = modPack.PackPath;
+            ModProxyVersionInModal = modPack.ModProxyVersion;
+
             //_modPackVersionsCombo.Items.F = (LauncherConfig.VersionClass?)modPack.Version;
             //LauncherConfig.VersionClass? a = _modPackVersionsCombo.FirstOrDefault(modPack.Version);
             //_modPackVersionsCombo.SelectedItem = modPack.Version;
@@ -1570,6 +1591,8 @@ public class MainWindow : Window
             }
         }
     }
+
+    */
     /*
     /// <summary>
     /// Open Modpack panel
@@ -1638,7 +1661,7 @@ public class MainWindow : Window
             ProxyComboBoxOnChangeEnable = false;
 
             var proxyIndex = ProxyDict.FirstOrDefault(x => x.Value == modPack.ModProxy).Key;
-            ShowModPackVersions(modPack, modPack.ModProxy);
+            //ShowModPackVersions(modPack, modPack.ModProxy);
             if (proxyIndex != -1)
             {
                 _modPackModProxyCombo.SelectedIndex = proxyIndex;
@@ -1647,12 +1670,14 @@ public class MainWindow : Window
         _modPackName.Text = modPack.Name;
         _modPackRamSlider.Value = Convert.ToDouble(modPack.RamMax);
         _modPackPathInstance.Text = modPack.PackPath;
+        _forceOffline.IsChecked = modPack.ForceOffline;
+        ModProxyVersionInModal = modPack.ModProxyVersion;
         //_modPackVersionsCombo.Items.F = (LauncherConfig.VersionClass?)modPack.Version;
         //LauncherConfig.VersionClass? a = _modPackVersionsCombo.FirstOrDefault(modPack.Version);
         //_modPackVersionsCombo.SelectedItem = modPack.Version;
         //_modPackModProxyCombo.SelectedItem = modPack.ModProxy;
 
-            _modPackPanel.IsVisible = true;
+        _modPackPanel.IsVisible = true;
         
             var versionsClass = GetVersions();
             if (versionsClass != null)
@@ -1798,9 +1823,24 @@ public class MainWindow : Window
         switch (currentModpack.ModProxy)
         {
             case "Forge":
+                if(currentModpack.ForceOffline && (currentModpack.ModProxyVersion == null || !currentModpack.ModProxyVersion.Installed))
+                {
+                    await ShowMessage("Offline mode and forge not installed, can't continue", "Error", ButtonEnum.Ok, MessageBox.Avalonia.Enums.Icon.Error);
+                    return;
+                }
                 ProgressModal("Getting Forge", "please wait");
+                if (currentModpack.ModProxyVersion == null || !currentModpack.ModProxyVersion.Installed || currentModpack.ModProxyVersion.Url == null)
+                {
+                    currentModpack.ModProxyVersion = new Versions();
+                    currentModpack.ModProxyVersion.Url = ForgeThingy.GetLink(currentModpack.Version.Id).GetAwaiter().GetResult();
+                    currentModpack.ModProxyVersion.mainVersion = currentModpack.Version.Id;
+                }
+                LauncherConfig.SaveModPackToConfig(Config, currentModpack);
                 data = ForgeThingy.GetAddonJson(currentModpack, main, online);
-                if(data == null)
+
+                LauncherConfig.SaveConfig(Config);
+
+                if (data == null)
                 {
                     await ShowMessage("Can't download forge in offline mode", "critical error");
                     return;
@@ -1829,8 +1869,14 @@ public class MainWindow : Window
                 //FilesManager.DownloadForge(currentModpack.Version.Id, online);   
         }
         Runner.StartTheGame(main, data, account, online, currentModpack);
+        if (currentModpack.ModProxy == "Forge")
+        {
+            currentModpack.ModProxyVersion.Installed = true;
+            LauncherConfig.SaveModPackToConfig(Config, currentModpack);
+            LauncherConfig.SaveConfig(Config);
+        }
     }
-
+    /*
     private async Task RunMinecraftProgress(bool online)
     {
         var User = Config.Accounts.Where(a => a.Id == Config.SelectedAccountId).FirstOrDefault();
@@ -1859,8 +1905,8 @@ public class MainWindow : Window
                 WindowSize = currentModpack.WindowSize,//new(320, 200),
                 Version = currentModpack.Version.Id,//version,
                 Type = currentModpack.ModProxy == ""? Runner.Configuration.VersionType.OfficialMojang:Configuration.VersionType.OfficialWithForgeModLoader,
-                ForceOffline = Config.ForceOffline,
-                DemoUser = Config.DemoUser,
+                //ForceOffline = Config.ForceOffline,
+                //DemoUser = Config.DemoUser,
                 Account = new Account()
                 {
                     Id = Config.SelectedAccountId,
@@ -1868,55 +1914,13 @@ public class MainWindow : Window
                     Name = User.Name
                 }
             };
-            /*
-            Runner.Configuration config = new Runner.Configuration()
-            {
-                RamMax = Config.RamMax,
-                JvmArgs = Config.JvmArgs,
-                GameArgs = Config.GameArgs,
-                CustomWindowSize = Config.CustomWindowSize,
-                WindowSize = Config.WindowSize,//new(320, 200),
-                Version = Config.Version.Id,//version,
-                Type = Runner.Configuration.VersionType.OfficialMojang,
-                ForceOffline = Config.ForceOffline,
-                DemoUser = Config.DemoUser,
-                Account = new Account()
-                {
-                    Id = Config.SelectedAccountId,
-                    Type = Account.AuthType.None,
-                    Name = User.Name
-                }
-            };
-            */
             //string startStr = Runner.GenerateCommand(MojangFetcher.GetMain(Config.Version.Id), config);
             
             string startStr = Runner.GenerateCommand(currentModpack, MojangFetcher.GetMain(config.Version), config);
             AnsiConsole.WriteLine("[INF] Running The Game");
-            /*
-            
-            //System.Environment.SetEnvironmentVariable("DBname", comboBoxDataBaseName.Text, EnvironmentVariableTarget.User);
-
-            //For getting
-
-            //string DBselect = System.Environment.GetEnvironmentVariable("DBname", EnvironmentVariableTarget.User);
-            ProcessStartInfo JavaProcessStartInfo = new ProcessStartInfo
-            {
-                Arguments = startStr,
-                FileName = "java.exe",
-                //RedirectStandardError = true,
-                UseShellExecute = true
-            };
-            Process JavaProcess = new Process();
-            JavaProcess.StartInfo = JavaProcessStartInfo;
-            if (!JavaProcess.Start())
-            {
-                _progressPanel.IsVisible = false;
-            };
-            JavaProcess.WaitForExit();
-            AnsiConsole.WriteLine("[INF] Stopping The Game");
-            */
         }
     }
+    */
     #endregion
 
     #region Helpers
@@ -1957,7 +1961,7 @@ public class MainWindow : Window
         MessageBoxIsShown = false;
         return result;
     }
-
+    /*
     /// <summary>
     /// Shown forge version list in forge version ComboBox
     /// </summary>
@@ -1977,16 +1981,11 @@ public class MainWindow : Window
                     _modPackModProxyComboVersions.SelectedIndex = (int)selectedModPack.ModProxyVersion.ComboboxItemId;
                 }
                 break;
-            /*
-        case "Fabric":
-            break;
-        case "None":
-            break;
-            */
             default:
                 _modPackModProxyComboVersions.IsVisible = false;
                 break;
         }
     }
+    */
     #endregion
 }
