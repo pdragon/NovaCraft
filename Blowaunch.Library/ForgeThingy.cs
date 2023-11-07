@@ -75,8 +75,8 @@ namespace Blowaunch.Library
                     var subst3 = subst2.Substring(url);
                     var end = subst3.IndexOf("\"", StringComparison.Ordinal);
                     //return "https://maven.minecraftforge.net/net/minecraftforge/forge/1.19.2-43.3.2/forge-1.19.2-43.3.2-installer.jar";
-                    return "https://maven.minecraftforge.net/net/minecraftforge/forge/1.16.2-33.0.60/forge-1.16.2-33.0.60-installer.jar";
-                    //return subst3.Substring(0, end);
+                    //return "https://maven.minecraftforge.net/net/minecraftforge/forge/1.16.2-33.0.60/forge-1.16.2-33.0.60-installer.jar";
+                    return subst3.Substring(0, end);
                 }
             } catch (Exception e) {
                 AnsiConsole.MarkupLine("[red]Unable to parse the website: An exception occured.[/]");
@@ -299,12 +299,18 @@ namespace Blowaunch.Library
                     }
                     libraries.Add(lib);
                 }
-                /*
+                
                 var contentInstaller = File.ReadAllText(Path.Combine(selectedModPack.PackPath, "forge", $"install-{main.Version}.json"));
                 //var dataInstaller = JsonConvert.DeserializeObject<ForgeInstallerJson>(contentInstaller);
                 var dataInstaller = JsonConvert.DeserializeObject<MojangMainJson>(contentInstaller);
                 var dataInst = BlowaunchMainJson.MojangToBlowaunchPartial(dataInstaller);
-
+                var forgeUniversalLib = dataInst.Libraries.Where(p => p.Name.Equals("forge") && p.Path.Contains("universal")).FirstOrDefault();
+                if(forgeUniversalLib != null)
+                {
+                    forgeUniversalLib.Url = $"https://maven.minecraftforge.net/{forgeUniversalLib.Path}";
+                    libraries.Add(forgeUniversalLib);
+                }
+                /*
                 foreach (var lib in dataInst.Libraries)
                 {
                     if (string.IsNullOrEmpty(lib.Url))

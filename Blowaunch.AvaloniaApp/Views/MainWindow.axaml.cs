@@ -100,8 +100,8 @@ public class MainWindow : Window
 
     private ModPackControl _modPackControl;
 
-    private ComboBox _modProxyPanelMcVersion;
-    private ComboBox _modProxyPanelForgeVersion;
+    //private ComboBox _modProxyPanelMcVersion;
+    //private ComboBox _modProxyPanelForgeVersion;
 
     #endregion
     #region Other stuff
@@ -346,7 +346,7 @@ public class MainWindow : Window
         _modPacksPanel = this.FindControl<WrapPanel>("ModPacksPanel");
 
         //_modProxyPanelMcVersion = this.FindControl<ComboBox>("ModProxyPanelMcVersion");
-        _modProxyPanelForgeVersion = this.FindControl<ComboBox>("ModProxyPanelForgeVersion");
+        //_modProxyPanelForgeVersion = this.FindControl<ComboBox>("ModProxyPanelForgeVersion");
 
         /*
         _ramManual.ValueChanged += (_, e) => {
@@ -1492,7 +1492,12 @@ public class MainWindow : Window
     {
         ModPack? modpack = Config.ModPacks.Find(mp => mp.Id == _modPackId.Text);
         var dialog = new OpenFolderDialog() { Directory = modpack?.PackPath, Title = "Select modpack instance folder" };
+        var prevFolder = modpack!.PackPath;
         _modPackPathInstance.Text = await dialog.ShowAsync(this);
+        if (prevFolder.Equals(_modPackPathInstance.Text))
+        {
+            ModProxyVersionInModal.Installed = false;
+        }
     }
 
     public void AddModpack(object? sender, RoutedEventArgs e)
