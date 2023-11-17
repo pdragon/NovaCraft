@@ -276,16 +276,19 @@ public class MainWindow : Window
             {
                 Timeout = TimeSpan.FromMilliseconds(timeoutMs)
             };
-            var request = Client.GetStringAsync(url);
-            request.Wait();
-            string response = request.Result;
+            var request = Client.GetStringAsync(url).GetAwaiter().GetResult();
+            //request.Wait();
+            //string response = request.Result;
+            string response = request;
 
             //var request = (HttpWebRequest)WebRequest.Create("https://google.com");
             //request.KeepAlive = false;
             //request.Timeout = timeoutMs;
             //using var response = (HttpWebResponse)request.GetResponse();
             return true;
-        } catch { return false; }
+        } catch { 
+            return false; 
+        }
     }
     #endregion
     #region InitializeFields()
@@ -1317,16 +1320,17 @@ public class MainWindow : Window
         var cb = (ComboBoxItem?)_modPackModProxyCombo.SelectedItem;
         if(cb != null)
             modpackConfig.ModProxy = ((TextBlock)(cb).Content).Text.ToString();
-
-        ProgressModal("Please wait", modpackConfig.Version.Id, "Checking minecraft forge version exist");
-        List<ForgeThingy.Versions> versions = await ForgeThingy.GetLinks(modpackConfig.Version.Id);
-        ProgressModalDisable();
-        if (versions == null || versions.Count == 0)
+        if (modpackConfig.ModProxy.Equals("Forge"))
         {
-            await ShowMessage("For this version of minecraft forge version does not exist, please select another version", "Error"); 
-            return;
+            ProgressModal("Please wait", modpackConfig.Version.Id, "Checking minecraft forge version exist");
+            List<ForgeThingy.Versions> versions = await ForgeThingy.GetLinks(modpackConfig.Version.Id);
+            ProgressModalDisable();
+            if (versions == null || versions.Count == 0)
+            {
+                await ShowMessage("For this version of minecraft forge version does not exist, please select another version", "Error");
+                return;
+            }
         }
-
         //modpackConfig.ModProxyVersion = (ForgeThingy.Versions)_modPackModProxyComboVersions!.SelectedItem!;
         //modpackConfig.ModProxyVersion.ComboboxItemId = _modPackModProxyComboVersions.SelectedIndex;
 
@@ -1497,6 +1501,7 @@ public class MainWindow : Window
         if (prevFolder.Equals(_modPackPathInstance.Text))
         {
             ModProxyVersionInModal.Installed = false;
+
         }
     }
 
@@ -1845,7 +1850,7 @@ public class MainWindow : Window
 
                 LauncherConfig.SaveConfig(Config);
 
-                if (data == null)
+                if (data == null && !main.Legacy)
                 {
                     await ShowMessage("Can't download forge in offline mode", "critical error");
                     return;

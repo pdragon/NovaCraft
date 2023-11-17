@@ -7,6 +7,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -271,12 +272,32 @@ namespace Blowaunch.Library
             return progress.Start(ctx => {
                 var task = ctx.AddTask("Downloading installer").IsIndeterminate();
                 task.StartTask();
-                var data = MojangLegacyMainJson.IsLegacyJson(content) 
-                    ? BlowaunchMainJson.MojangToBlowaunchPartial(JsonConvert.DeserializeObject<MojangLegacyMainJson>(content)) 
-                    : BlowaunchMainJson.MojangToBlowaunchPartial(JsonConvert.DeserializeObject<MojangMainJson>(content));                
+                if (content == null)
+                {
+                    return null;
+                }
+                BlowaunchMainJson data = new();
+                bool skipInstallerJson = false;
+                switch (ForgeJson.GetType(content))
+                {
+                    case ForgeJson.Type.PreLegacy:
+                        data = ForgeLegacyInstallerJson.ForgeToBlowaunchPartial(JsonConvert.DeserializeObject<ForgeLegacyInstallerJson>(content));
+                        skipInstallerJson = true;
+                        break;
+                    case ForgeJson.Type.Legacy:
+                        data = BlowaunchMainJson.MojangToBlowaunchPartial(JsonConvert.DeserializeObject<MojangLegacyMainJson>(content));
+                        break;
+                        case ForgeJson.Type.Ordinary:
+                        data = BlowaunchMainJson.MojangToBlowaunchPartial(JsonConvert.DeserializeObject<MojangMainJson>(content));
+                        break;
+                }
+
+                // var data = MojangLegacyMainJson.IsLegacyJson(content) 
+                //     ? BlowaunchMainJson.MojangToBlowaunchPartial(JsonConvert.DeserializeObject<MojangLegacyMainJson>(content)) 
+                //     : BlowaunchMainJson.MojangToBlowaunchPartial(JsonConvert.DeserializeObject<MojangMainJson>(content));                
                 task.Description = "Processing addon";
                 var addon = new BlowaunchAddonJson {
-                    Legacy = MojangLegacyMainJson.IsLegacyJson(content),
+                    Legacy = skipInstallerJson ? true : MojangLegacyMainJson.IsLegacyJson(content),
                     Author = "LexManos and contributors",
                     Information = "Black magic performed on the installer JAR",
                     BaseVersion = data.Version.Split('-')[0],
@@ -302,13 +323,17 @@ namespace Blowaunch.Library
                 
                 var contentInstaller = File.ReadAllText(Path.Combine(selectedModPack.PackPath, "forge", $"install-{main.Version}.json"));
                 //var dataInstaller = JsonConvert.DeserializeObject<ForgeInstallerJson>(contentInstaller);
-                var dataInstaller = JsonConvert.DeserializeObject<MojangMainJson>(contentInstaller);
-                var dataInst = BlowaunchMainJson.MojangToBlowaunchPartial(dataInstaller);
-                var forgeUniversalLib = dataInst.Libraries.Where(p => p.Name.Equals("forge") && p.Path.Contains("universal")).FirstOrDefault();
-                if(forgeUniversalLib != null)
+                if (!skipInstallerJson)
                 {
-                    forgeUniversalLib.Url = $"https://maven.minecraftforge.net/{forgeUniversalLib.Path}";
-                    libraries.Add(forgeUniversalLib);
+                    var dataInstaller = JsonConvert.DeserializeObject<MojangMainJson>(contentInstaller);
+                    var dataInst = BlowaunchMainJson.MojangToBlowaunchPartial(dataInstaller);
+
+                    var forgeUniversalLib = dataInst.Libraries.Where(p => p.Name.Equals("forge") && p.Path.Contains("universal")).FirstOrDefault();
+                    if (forgeUniversalLib != null)
+                    {
+                        forgeUniversalLib.Url = $"https://maven.minecraftforge.net/{forgeUniversalLib.Path}";
+                        libraries.Add(forgeUniversalLib);
+                    }
                 }
                 /*
                 foreach (var lib in dataInst.Libraries)
@@ -354,7 +379,8 @@ namespace Blowaunch.Library
                 //forgeFile = forgeFile == "" ? $"forge-{version}.jar" : forgeFile;
                 forgeFile = forgeFile == "" ? $"forge-{version}.jar" : forgeFile;
                 //var jar = Path.Combine(Directories.Root, "forge", forgeFile + ".installer.jar");
-                var dir = Path.Combine(Path.GetTempPath(), ".blowaunch-forge");
+                //var dir = Path.Combine(Path.GetTempPath(), ".blowaunch-forge");
+                var dir = Path.Combine(Directories.Root, "tmp", ".blowaunch-forge");
                 //var jar = Path.Combine(Directories.Root, "forge", forgeFileName + ".installer.jar");
                 var jar = Path.Combine(dir, forgeFileName + ".installer.jar");
                 var forgeDir = Path.Combine(selectedModPack.PackPath, "forge");
@@ -379,23 +405,43 @@ namespace Blowaunch.Library
                     ZipFile.ExtractToDirectory(jar, dir);
                     //ZipFile.ExtractToDirectory(jar, forgeDir);
                     task.Description = "Parsing";
-                    content = File.ReadAllText(Path.Combine(dir, "version.json"));
+                    var versionFile = Path.Combine(dir, "version.json");
                     contentInstaller = File.ReadAllText(Path.Combine(dir, "install_profile.json"));
-                    //File.WriteAllText(forgeJsonFile, content);
-                    var o = (Newtonsoft.Json.Linq.JObject)JsonConvert.DeserializeObject(content);
                     var i = (Newtonsoft.Json.Linq.JObject)JsonConvert.DeserializeObject(contentInstaller);
-                    o.Property("_comment_").Remove();
-                    i.Property("_comment_").Remove();
-                    var sPrettyStr = JToken.Parse(o.ToString(Newtonsoft.Json.Formatting.None));
+                    if (i.ContainsKey("_comment_"))
+                    {
+                        i.Property("_comment_").Remove();
+                    }
                     var sPrettyStrI = JToken.Parse(i.ToString(Newtonsoft.Json.Formatting.None));
-                    File.WriteAllText(forgeJsonFile, JsonConvert.SerializeObject(sPrettyStr, Formatting.Indented));
                     File.WriteAllText(forgeInstallJsonFile, JsonConvert.SerializeObject(sPrettyStrI, Formatting.Indented));
+                    if (File.Exists(versionFile))
+                    {
+                        content = File.ReadAllText(Path.Combine(dir, "version.json"));
+                        var o = (Newtonsoft.Json.Linq.JObject)JsonConvert.DeserializeObject(content);
+                        o.Property("_comment_").Remove();
+                        var sPrettyStr = JToken.Parse(o.ToString(Newtonsoft.Json.Formatting.None));
+                        File.WriteAllText(forgeJsonFile, JsonConvert.SerializeObject(sPrettyStr, Formatting.Indented));
+                    }
+                    else
+                    {
+                        content = File.ReadAllText(forgeInstallJsonFile);
+                        task.StopTask();
+                        return content;
+                        return null;
+                    }
                 }
                 else
                 {
                     //content = File.ReadAllText(Path.Combine(dir, "version.json"));
-                    content = File.ReadAllText(Path.Combine(forgeDir, $"version-{main.Version}.json"));
-                    contentInstaller = File.ReadAllText(forgeInstallJsonFile);
+                    if (File.Exists(Path.Combine(forgeDir, $"version-{main.Version}.json")))
+                    {
+                        content = File.ReadAllText(Path.Combine(forgeDir, $"version-{main.Version}.json"));
+                    }
+                    else
+                    {
+                        content = File.ReadAllText(forgeInstallJsonFile);
+                    }
+                    //contentInstaller = File.ReadAllText(forgeInstallJsonFile);
                     
                 }
                 task.StopTask();

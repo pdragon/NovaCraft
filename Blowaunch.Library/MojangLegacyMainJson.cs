@@ -171,6 +171,7 @@ public class MojangLegacyMainJson
         try {
             var main = JsonConvert.DeserializeObject<MojangLegacyMainJson>(json);
             return main?.Arguments != null;
+
         } catch { return false; }
     }
 }

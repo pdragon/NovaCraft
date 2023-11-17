@@ -204,21 +204,32 @@ public static class FilesManager
         var debug = $"{library.Package}:{library.Name}:{library.Version}:{library.Platform}";
         try
         {
-            if (!File.Exists(path) && online) Fetcher.Download(library.Url, path);
+            if (!File.Exists(path) && online) 
+                Fetcher.Download(library.Url, path);
         }catch (Exception ex)
         {
             Console.WriteLine(ex.Message.ToString());
         }
             
         var hash = HashHelper.Hash(path);
-        if (hash != library.ShaHash) {
-            if (online) {
-                AnsiConsole.MarkupLine($"[yellow]{debug} hash mismatch: {hash} and {library.ShaHash}, redownloading...[/]");
-                File.Delete(path);
+        if (hash != library.ShaHash && (File.Exists(path) && library.ShaHash != null || !File.Exists(path)))
+        {
+            if (online)
+            {
+                if (File.Exists(path))
+                {
+                    AnsiConsole.MarkupLine($"[yellow]{debug} hash mismatch: {hash} and {library.ShaHash}, redownloading...[/]");
+                    File.Delete(path);
+                }
+                else
+                {
+                    AnsiConsole.MarkupLine($"[green] Donwloading {debug}[/]");
+                }
                 //DownloadLibrary(library, version, true);
                 DownloadLibrary(library, modpack, true);
-            } else AnsiConsole.MarkupLine($"[yellow]{debug} hash mismatch: {hash} and {library.ShaHash}, " +
-                                          $"can't redownload in offline mode![/]");
+            }
+            else AnsiConsole.MarkupLine($"[yellow]{debug} hash mismatch: {hash} and {library.ShaHash}, " +
+                                            $"can't redownload in offline mode![/]"); 
         }
             
         if (library.Extract) {

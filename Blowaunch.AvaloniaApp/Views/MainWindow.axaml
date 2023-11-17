@@ -450,10 +450,12 @@
 									<TextBlock Text="Forge"
 											   HorizontalAlignment="Left"/>
 								</ComboBoxItem>
+								<!--
 								<ComboBoxItem Name="ModPackFabric">
 									<TextBlock Text="Fabric"
 											   HorizontalAlignment="Left"/>
 								</ComboBoxItem>
+								-->
 							</ComboBox>
 							
 							<ComboBox HorizontalAlignment="Center"

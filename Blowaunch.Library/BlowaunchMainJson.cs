@@ -277,7 +277,8 @@ public class BlowaunchMainJson
                         ShaHash = lib.Downloads.Classifiers.NativeWindows.ShaHash,
                         Url = lib.Downloads.Classifiers.NativeWindows.Url,
                         Exclude = Array.Empty<string>(),
-                        Extract = false
+                        //Extract = false
+                        Extract = lib.Natives.Count > 0 && lib.Natives.Keys.Contains("windows")
                     };
                     ProcessLibraryRules(newlib, lib);
                     libraries.Add(newlib);
@@ -296,7 +297,8 @@ public class BlowaunchMainJson
                         ShaHash = lib.Downloads.Classifiers.NativeMacOs.ShaHash,
                         Url = lib.Downloads.Classifiers.NativeMacOs.Url,
                         Exclude = Array.Empty<string>(),
-                        Extract = false
+                        //Extract = false
+                        Extract = true
                     };
                     ProcessLibraryRules(newlib, lib);
                     libraries.Add(newlib);
@@ -315,7 +317,8 @@ public class BlowaunchMainJson
                         ShaHash = lib.Downloads.Classifiers.NativeOsx.ShaHash,
                         Url = lib.Downloads.Classifiers.NativeOsx.Url,
                         Exclude = Array.Empty<string>(),
-                        Extract = false
+                        //Extract = false
+                        Extract = true
                     };
                     ProcessLibraryRules(newlib, lib);
                     libraries.Add(newlib);

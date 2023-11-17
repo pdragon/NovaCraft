@@ -241,7 +241,7 @@ public static class Runner
             .Replace("${classpath_separator}", Environment.OSVersion.Platform == PlatformID.Unix ? ":" : ";")
             .Replace("${library_directory}", FilesManager.Directories.GetLibrariesRoot(modpack))
             .Replace("${version_name}", main.Version)
-            
+            .Replace("${user_properties}", "{}")
             //.Replace("${user_properties}", "{}")
             ;
     }
@@ -386,10 +386,11 @@ public static class Runner
 
         foreach (var library in main.Libraries)
         {
-            if (modpack.ModProxy.Equals("Forge") && addonMain.Libraries.Where(p => p.Name.Equals(library.Name)).Count() > 0)
-            {
-                continue;
-            }
+            if(addonMain != null)
+                if (modpack.ModProxy.Equals("Forge") &&  addonMain.Libraries.Where(p => p.Name.Equals(library.Name)).Count() > 0)
+                {
+                    continue;
+                }
             bool currentOs = false;
             foreach (var allowedOs in library.Allow)
             {
@@ -420,36 +421,38 @@ public static class Runner
         switch (modpack.ModProxy)
         {
             case "Forge":
-                mainClass = addonMain.MainClass;
-                foreach (var library in addonMain.Libraries)
+                if (addonMain != null)
                 {
-                    var file2 = FilesManager.GetLibraryPath(modpack, new BlowaunchMainJson.JsonLibrary
+                    mainClass = addonMain.MainClass;
+                    foreach (var library in addonMain.Libraries)
                     {
-                        Path = library.Path
-                    });
-                    var hash = HashHelper.Hash(file2);
-                   
-                    if ((modpack.ModProxyVersion == null || !modpack.ModProxyVersion.Installed) || hash != library.ShaHash)
-                    {
-                        FilesManager.DownloadLibrary(library, modpack, online);
+                        var file2 = FilesManager.GetLibraryPath(modpack, new BlowaunchMainJson.JsonLibrary
+                        {
+                            Path = library.Path
+                        });
+                        var hash = HashHelper.Hash(file2);
+
+                        if ((modpack.ModProxyVersion == null || !modpack.ModProxyVersion.Installed) || hash != library.ShaHash)
+                        {
+                            FilesManager.DownloadLibrary(library, modpack, online);
+                        }
+                        classpath.Append($"{file2}{separator}");
                     }
-                    classpath.Append($"{file2}{separator}");
-                }
 
-                //if (ForgeThingy.IsProcessorsExists(main.Version) && !ForgeThingy.ForgeIsInstalled())
-                if(!main.Legacy && !modpack.ModProxyVersion.Installed)
-                {
-                    ForgeThingy.RunProcessors(modpack, main, online);
+                    //if (ForgeThingy.IsProcessorsExists(main.Version) && !ForgeThingy.ForgeIsInstalled())
+                    if (!main.Legacy && !modpack.ModProxyVersion.Installed)
+                    {
+                        ForgeThingy.RunProcessors(modpack, main, online);
+                    }
+                    //TODO Add check for dir and file exist
+                    //string addonFile = Path.Combine(FilesManager.Directories.Root, "forge", $"{addonMain.FullVersion}.jar");
+                    if (main.Legacy)
+                    {
+                        string addonFile = Path.Combine(modpack.PackPath, "forge", $"{addonMain.FullVersion}.jar");
+                        //string addonFile = Path.Combine(modpack.PackPath, "forge", $"{modpack.ModProxyVersion.Name}.jar");
+                        classpath.Append($"{addonFile}{separator}");
+                    }
                 }
-                //TODO Add check for dir and file exist
-                //string addonFile = Path.Combine(FilesManager.Directories.Root, "forge", $"{addonMain.FullVersion}.jar");
-                if (main.Legacy)
-                {
-                    string addonFile = Path.Combine(modpack.PackPath, "forge", $"{addonMain.FullVersion}.jar");
-                    //string addonFile = Path.Combine(modpack.PackPath, "forge", $"{modpack.ModProxyVersion.Name}.jar");
-                    classpath.Append($"{addonFile}{separator}");
-                }
-
                 break;
             default:
 
@@ -482,7 +485,7 @@ public static class Runner
             args2.Append($"{javaArgsReplaced} ");
         }
 
-        if(addonMain.Arguments != null && addonMain.Arguments.Java != null)
+        if(addonMain != null && addonMain.Arguments != null && addonMain.Arguments.Java != null)
         foreach (var arg in addonMain.Arguments.Java)
         {
             var javaArgsReplaced = arg.Value.Replace("${version_name}", modpack.Version.Id)
@@ -512,6 +515,7 @@ public static class Runner
                                                            // greater than 1.12.2 vesions
                     .Replace("${clientid}", "\"\"")
                     .Replace("${auth_xuid}", "\"\"")
+                    .Replace("${user_properties}", "{}")
                     ;
                 addonGameArgs.Append($" {replaced} ");
             }
@@ -538,6 +542,7 @@ public static class Runner
                     .Replace("${clientid}", "\"\"")
                     .Replace("${auth_xuid}", "\"\"")
                     .Replace("--demo", "")
+                    .Replace("${user_properties}", "{}")
 
                     ;
                 args.Append($"{replaced} ");
