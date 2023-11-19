@@ -7,7 +7,7 @@
 	<StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
 				Name="ModPackPanel">
 		<StackPanel VerticalAlignment="Center" Background="LightBlue">
-			<Image Source="/Assets/server-icon.png"
+			<Image Source="/Assets/minecraft-small.png"
 						 Name="ModPackImage"
 				   HorizontalAlignment="Stretch"
 				   Height="80"

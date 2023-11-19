@@ -8,6 +8,7 @@
         <NeutralLanguage>en</NeutralLanguage>
         <ApplicationIcon>minecraft.ico</ApplicationIcon>
         <AssemblyVersion>0.0.0.1</AssemblyVersion>
+        <Platforms>AnyCPU;x64</Platforms>
     </PropertyGroup>
 
     <ItemGroup>

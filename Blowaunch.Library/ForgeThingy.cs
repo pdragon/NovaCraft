@@ -218,7 +218,12 @@ namespace Blowaunch.Library
         public static BlowaunchAddonJson GetAddonJson(LauncherConfig.ModPack selectedModPack, BlowaunchMainJson main, bool online)
         {
             string version = selectedModPack.Version.Id;
-            var dir = Path.Combine(Path.GetTempPath(), ".blowaunch-forge");
+            //var dir = Path.Combine(Path.GetTempPath(), ".blowaunch-forge");
+            var dir = Path.Combine(selectedModPack.PackPath, ".blowaunch-forge");
+            if (!Directory.Exists(dir))
+            {
+                Directory.CreateDirectory(dir);
+            }
             string forgeDir = Path.Combine(selectedModPack.PackPath, "forge");
             if (!Directory.Exists(forgeDir))
             {
@@ -380,7 +385,8 @@ namespace Blowaunch.Library
                 forgeFile = forgeFile == "" ? $"forge-{version}.jar" : forgeFile;
                 //var jar = Path.Combine(Directories.Root, "forge", forgeFile + ".installer.jar");
                 //var dir = Path.Combine(Path.GetTempPath(), ".blowaunch-forge");
-                var dir = Path.Combine(Directories.Root, "tmp", ".blowaunch-forge");
+                //var dir = Path.Combine(Directories.Root, "tmp", ".blowaunch-forge");
+                var dir = Path.Combine(selectedModPack.PackPath, ".blowaunch-forge");
                 //var jar = Path.Combine(Directories.Root, "forge", forgeFileName + ".installer.jar");
                 var jar = Path.Combine(dir, forgeFileName + ".installer.jar");
                 var forgeDir = Path.Combine(selectedModPack.PackPath, "forge");
@@ -427,7 +433,7 @@ namespace Blowaunch.Library
                         content = File.ReadAllText(forgeInstallJsonFile);
                         task.StopTask();
                         return content;
-                        return null;
+                        //return null;
                     }
                 }
                 else
@@ -475,8 +481,10 @@ namespace Blowaunch.Library
             progress.Start(ctx => {
                 var task = ctx.AddTask("Downloading installer").IsIndeterminate();
                 task.StartTask();
-                var jar = Path.Combine(Path.GetTempPath(), ".blowaunch-forge", "installer.jar");
-                var dir = Path.Combine(Path.GetTempPath(), ".blowaunch-forge");
+                //var jar = Path.Combine(Path.GetTempPath(), ".blowaunch-forge", "installer.jar");
+                //var dir = Path.Combine(Path.GetTempPath(), ".blowaunch-forge");
+                var jar = Path.Combine(modpack.PackPath, ".blowaunch-forge", "installer.jar");
+                var dir = Path.Combine(modpack.PackPath, ".blowaunch-forge");
                 var contentInstaller = File.ReadAllText(Path.Combine(modpack.PackPath, "forge",  $"install-{main.Version}.json"));
                 var dataInstaller = JsonConvert.DeserializeObject<ForgeInstallerJson>(contentInstaller);
                 if (File.Exists(Path.Combine(FilesManager.Directories.VersionsRoot, main.Version, $"forge.json"))) {
@@ -590,8 +598,9 @@ namespace Blowaunch.Library
                         foreach (var desc in descriptors)
                             replaced = replaced.Replace("{" + desc.Key + "}", desc.Value);
                         replaced = ArtifactPath(modpack, replaced, true);
-                        if (replaced.StartsWith("/") || replaced.StartsWith("\\")) replaced = 
-                            Path.Combine(Path.GetTempPath(), ".blowaunch-forge", replaced
+                        if (replaced.StartsWith("/") || replaced.StartsWith("\\")) replaced =
+                            //Path.Combine(Path.GetTempPath(), ".blowaunch-forge", replaced
+                            Path.Combine(modpack.PackPath, ".blowaunch-forge", replaced
                                 .Substring(1, replaced.Length - 1)
                                 .Replace('/', '\\'));
                         args.Append($"{replaced} ");

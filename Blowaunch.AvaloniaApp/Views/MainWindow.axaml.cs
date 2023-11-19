@@ -36,6 +36,7 @@ using DynamicData;
 using Avalonia.OpenGL;
 using static Blowaunch.Library.ForgeThingy;
 using Blowaunch.ConsoleApp;
+using Blowaunch.Library.UsableClasses;
 //using System.Timers;
 
 namespace Blowaunch.AvaloniaApp.Views;
@@ -122,11 +123,12 @@ public class MainWindow : Window
     /// Is in offline mode?
     /// </summary>
     public static bool OfflineMode;
-    
+
     /// <summary>
     /// Hardware information
     /// </summary>
-    private HardwareInfo _info = new();
+    //private HardwareInfo _info = new();
+    private HardwareInfo _info;
 
     /// <summary>
     /// Did the SelectionChanged event was set?
@@ -153,59 +155,6 @@ public class MainWindow : Window
     /// </summary>
     private bool MessageBoxIsShown = false;
 
-    /// <summary>
-    /// Show progress actions modal
-    /// </summary>
-    /// <param name="progressInfo">Info about current process</param>
-    /// <param name="progressFiles">Info about current progress stage</param>
-    /// <returns></returns>
-    private void ProgressModal(string progressInfo, string progressFiles, string? loadingTextBlock = null)
-    {
-        Dispatcher.UIThread.InvokeAsync(() =>
-        {
-            _loadingPanel.IsVisible = true;
-            _progressPanel.IsVisible = true;
-            _progressBar.IsIndeterminate = true;
-            _progressInfo!.Text = progressInfo;
-            _progressFiles!.Text = progressFiles;
-            if (loadingTextBlock != null)
-            {
-                _loadingTextBlock!.Text = loadingTextBlock;
-            }
-        });
-    }
-
-    private void ProgressModal(string progressInfo, string progressFiles, short value, string? loadingTextBlock = null)
-    {
-        Dispatcher.UIThread.InvokeAsync(() =>
-        {
-            _progressBar.Maximum = 100;
-            _loadingPanel.IsVisible = true;
-            _progressPanel.IsVisible = true;
-            _progressBar.IsIndeterminate = false;
-            _progressBar.Value = value;
-            _progressInfo!.Text = progressInfo;
-            _progressFiles!.Text = progressFiles;
-            if (loadingTextBlock != null)
-            {
-                _loadingTextBlock!.Text = loadingTextBlock;
-            }
-        });
-    }
-
-    /// <summary>
-    /// Close progress actions modal
-    /// </summary>
-    /// <returns></returns>
-    private void ProgressModalDisable()
-    {
-        Dispatcher.UIThread.InvokeAsync(() => {
-            _loadingPanel.IsVisible = false;
-            _progressPanel.IsVisible = false;
-            _progressBar.IsIndeterminate = false;
-        });
-    }
-
     #endregion
     #region Initialization
     /// <summary>
@@ -213,6 +162,13 @@ public class MainWindow : Window
     /// </summary>
     public MainWindow()
     {
+        try{
+            _info = new();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
         InitializeComponent();
         InitializeFields();
         _loadingPanel!.IsVisible = true;
@@ -906,9 +862,30 @@ public class MainWindow : Window
     {
         var result = await ShowMessage("Erase also folder with modpack?", "Erasing modPack", ButtonEnum.YesNoAbort, MessageBox.Avalonia.Enums.Icon.Question);
         var br1 = result;
+        string id = (sender as Button)!.Name ?? "";
+        string modPackId = string.IsNullOrEmpty(id.Split(':')[1]) ? "0" : id.Split(':')[1];
         switch (br1)
         {
             case ButtonResult.Yes:
+                if(await ShowMessage("All file in modpack folder will be lost,\n this operation can't undo", "You are sure?", ButtonEnum.YesNo, MessageBox.Avalonia.Enums.Icon.Question) == ButtonResult.Yes) {
+                    if (modPackId != null)
+                    {
+                        LauncherConfig.ModPack mp = modPackId == "0" ? new ModPack() : Config.ModPacks.Where(m => m.Id == modPackId).FirstOrDefault()!;
+                        if (mp != null)
+                        {
+                            System.IO.DirectoryInfo di = new DirectoryInfo(mp.PackPath);
+                            foreach (FileInfo file in di.GetFiles())
+                            {
+                                file.Delete();
+                            }
+                            foreach (DirectoryInfo dir in di.GetDirectories())
+                            {
+                                dir.Delete(true);
+                            }
+                            di.Delete(true);
+                        }
+                    }
+                }
                 break;
             case ButtonResult.No:
                 break;
@@ -917,10 +894,7 @@ public class MainWindow : Window
             case null:
                 return;
         }
-        
-        string id = (sender as Button)!.Name ?? "";
-        OnEraseModPack(id.Split(':')[1] ?? "");
-        
+        OnEraseModPack(modPackId);  
     }
 
     public async void OnChangeModPack(object sender, RoutedEventArgs e)
@@ -1494,7 +1468,7 @@ public class MainWindow : Window
 
     public async void OpenPathDirectory(object? sender, RoutedEventArgs e)
     {
-        ModPack? modpack = Config.ModPacks.Find(mp => mp.Id == _modPackId.Text);
+        ModPack? modpack = Config.ModPacks.Find(mp => mp.Id == _modPackId.Text) ?? new ModPack();
         var dialog = new OpenFolderDialog() { Directory = modpack?.PackPath, Title = "Select modpack instance folder" };
         var prevFolder = modpack!.PackPath;
         _modPackPathInstance.Text = await dialog.ShowAsync(this);
@@ -1878,7 +1852,17 @@ public class MainWindow : Window
                 break;
                 //FilesManager.DownloadForge(currentModpack.Version.Id, online);   
         }
-        Runner.StartTheGame(main, data, account, online, currentModpack);
+        //var assembly = System.Reflection.Assembly.GetExecutingAssembly();
+        //if (assembly != null && assembly.GetName().Version != null)
+        //{
+        //    Version version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version!;
+        //    Console.WriteLine(version);
+        //}
+        Runner.StartTheGame(
+            new LauncherGlobalProperties() { AccountData = account, MinecraftClientData = main, AddonData = data, ModpackData = currentModpack, Online = online },
+            ProgressModal
+            );
+        //Runner.StartTheGame(main, data, account, online, currentModpack);
         if (currentModpack.ModProxy == "Forge")
         {
             currentModpack.ModProxyVersion.Installed = true;
@@ -1934,6 +1918,65 @@ public class MainWindow : Window
     #endregion
 
     #region Helpers
+
+    private void ProgressModal(string progressInfo, string progressFiles, short value, string? loadingTextBlock = null)
+    {
+        Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            _progressBar.Maximum = 100;
+            _loadingPanel.IsVisible = true;
+            _progressPanel.IsVisible = true;
+            _progressBar.IsIndeterminate = false;
+            _progressBar.Value = value;
+            _progressInfo!.Text = progressInfo;
+            _progressFiles!.Text = progressFiles;
+            if (loadingTextBlock != null)
+            {
+                _loadingTextBlock!.Text = loadingTextBlock;
+            }
+        });
+    }
+
+    /// <summary>
+    /// Show progress actions modal
+    /// </summary>
+    /// <param name="progressInfo">Info about current process</param>
+    /// <param name="progressFiles">Info about current progress stage</param>
+    /// <returns></returns>
+    private void ProgressModal(string progressInfo, string progressFiles, string? loadingTextBlock = null)
+    {
+        if (string.IsNullOrEmpty(progressInfo) && string.IsNullOrEmpty(progressFiles) && string.IsNullOrEmpty(loadingTextBlock))
+        {
+            ProgressModalDisable();
+            return;
+        }
+
+        Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            _loadingPanel.IsVisible = true;
+            _progressPanel.IsVisible = true;
+            _progressBar.IsIndeterminate = true;
+            _progressInfo!.Text = progressInfo;
+            _progressFiles!.Text = progressFiles;
+            if (loadingTextBlock != null)
+            {
+                _loadingTextBlock!.Text = loadingTextBlock;
+            }
+        });
+    }
+
+    /// <summary>
+    /// Close progress actions modal
+    /// </summary>
+    /// <returns></returns>
+    private void ProgressModalDisable()
+    {
+        Dispatcher.UIThread.InvokeAsync(() => {
+            _loadingPanel.IsVisible = false;
+            _progressPanel.IsVisible = false;
+            _progressBar.IsIndeterminate = false;
+        });
+    }
 
     async private Task<ButtonResult?> ShowMessage(
         string message, 

@@ -68,8 +68,11 @@ public class ModPackControl : UserControl
                 _image.Tag = "If you what see here your own image here, please copy you png file into: " + targetIconPath;
                 iconPath = Path.Combine(path, "minecraft-small.png");
             }
-            using var fileStream = File.OpenRead(iconPath);
-            _image.Source = new Bitmap(fileStream);
+            if (File.Exists("minecraft-small.png"))
+            {
+                using var fileStream = File.OpenRead(iconPath);
+                _image.Source = new Bitmap(fileStream);
+            }
             this.Name = ModPack.Id;
         }
         if(_mainImage != null)
