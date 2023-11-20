@@ -100,6 +100,7 @@ namespace Blowaunch.ConsoleApp
                             var path = Path.Combine(Path.GetTempPath(),
                                 Path.GetFileName(link)!);
                             task.Description = "Downloading";
+                            AnsiConsole.MarkupLine($"[margenta] downloading java to {path}![/]");
                             Fetcher.Download(link, path);
                             task.Description = "Extracting";
                             ExtractTar(path, extract);

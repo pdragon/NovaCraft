@@ -464,9 +464,33 @@ public static class FilesManager
                     AnsiConsole.MarkupLine($"[red]Please report it to us on the GitHub issues page.[/]");
                     return JavaDownloadError.UnableToFindOpenJDK;
                 }
-
+                
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
+                    /************************************************************
+                    //----
+                    AnsiConsole.WriteLine("[OpenJDK] Detected Linux!");
+                    var link = openjdk.Versions[main.JavaMajor].Linux;
+                    var path = Path.Combine(Path.GetTempPath(),
+                        Path.GetFileName(link)!);
+                    if (task != null)
+                    {
+                        task.Description = "Downloading";
+                    }
+                    Fetcher.Download(link, path);
+                    if (task != null)
+                    {
+                        task.Description = "Extracting";
+                    }
+                    if (!Directory.Exists(extract))
+                    {
+                        Directory.CreateDirectory(extract);
+                    }
+                    //string extractTo = Path.Combine(extract, Path.GetFileName(link));
+                    ExtractTar(path, extract);
+
+                    //----
+                    ************************************************************/
                     AnsiConsole.WriteLine("[OpenJDK] Detected Windows!");
                     var link = openjdk.Versions[main.JavaMajor].Windows;
                     var path = Path.Combine(Path.GetTempPath(),
