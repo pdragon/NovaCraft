@@ -37,6 +37,7 @@ using Avalonia.OpenGL;
 using static Blowaunch.Library.ForgeThingy;
 using Blowaunch.ConsoleApp;
 using Blowaunch.Library.UsableClasses;
+using System.Runtime.InteropServices;
 //using System.Timers;
 
 namespace Blowaunch.AvaloniaApp.Views;
@@ -128,12 +129,11 @@ public class MainWindow : Window
     /// Hardware information
     /// </summary>
     //private HardwareInfo _info = new();
-    private HardwareInfo _info;
 
     /// <summary>
     /// Did the SelectionChanged event was set?
     /// </summary>
-    private bool _selectionChanged;
+    //private bool _selectionChanged = false;
 
     private Dictionary<int, string> ProxyDict = new Dictionary<int, string>() {
             { 0 , "None" },
@@ -141,7 +141,7 @@ public class MainWindow : Window
             { 2 , "Fabric" },
         };
 
-    private bool ProxyComboBoxOnChangeEnable = true;
+    //private bool ProxyComboBoxOnChangeEnable = true;
     private ForgeThingy.Versions ModProxyVersionInModal = new();
 
     private class VersionsReturn
@@ -161,14 +161,7 @@ public class MainWindow : Window
     /// Initialize everything
     /// </summary>
     public MainWindow()
-    {
-        try{
-            _info = new();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine(ex.Message);
-        }
+    {        
         InitializeComponent();
         InitializeFields();
         _loadingPanel!.IsVisible = true;
@@ -182,7 +175,7 @@ public class MainWindow : Window
                 _progressInfo!.Text = "Loading hardware info...";
                 _progressFiles!.Text = "Step 1 out of 5";
             });
-            _info.RefreshMemoryList();
+            //_info.RefreshMemoryList();
             await Dispatcher.UIThread.InvokeAsync(() => {
                 _progressInfo!.Text = "Loading configuration...";
                 _progressFiles!.Text = "Step 2 out of 5";
@@ -894,7 +887,7 @@ public class MainWindow : Window
             case null:
                 return;
         }
-        OnEraseModPack(modPackId);  
+        OnEraseModPack(modPackId!);  
     }
 
     public async void OnChangeModPack(object sender, RoutedEventArgs e)
@@ -1191,8 +1184,8 @@ public class MainWindow : Window
         //_forceOffline.IsChecked = Config.ForceOffline;
         _minecraftDemo.IsChecked = Config.DemoUser;
 
-        _modPackRamSlider.Maximum = _info.MemoryList.Sum(
-            x => (long)x.Capacity) / 1000000;
+        //_modPackRamSlider.Maximum = _info.MemoryList.Sum( x => (long)x.Capacity) / 1000000;
+        _modPackRamSlider.Maximum = GetMaxMemory();
         //_modPackRamManual.Value = int.Parse(Config.RamMax);
         //_modPackRamSlider.Value = int.Parse(Config.RamMax);
 
@@ -1642,14 +1635,14 @@ public class MainWindow : Window
         _modPackId.Text = id == "New Instance" ? "0" : id;
         if (modPack.ModProxy != "")
         {
-            ProxyComboBoxOnChangeEnable = false;
+            //ProxyComboBoxOnChangeEnable = false;
 
-            var proxyIndex = ProxyDict.FirstOrDefault(x => x.Value == modPack.ModProxy).Key;
-            //ShowModPackVersions(modPack, modPack.ModProxy);
-            if (proxyIndex != -1)
-            {
-                _modPackModProxyCombo.SelectedIndex = proxyIndex;
-            }
+          //  var proxyIndex = ProxyDict.FirstOrDefault(x => x.Value == modPack.ModProxy).Key;
+          //  //ShowModPackVersions(modPack, modPack.ModProxy);
+          //  if (proxyIndex != -1)
+          //  {
+          //      _modPackModProxyCombo.SelectedIndex = proxyIndex;
+          //  }
         }
         _modPackName.Text = modPack.Name;
         _modPackRamSlider.Value = Convert.ToDouble(modPack.RamMax);
@@ -1677,7 +1670,7 @@ public class MainWindow : Window
                     _modPackVersionsCombo.Items = versionsClass.Versions;
                     _modPackVersionsCombo.SelectedIndex = index;
                     //_modPackVersionsCombo.SelectedItem = modPack.Version;
-                    if (_selectionChanged) return;
+                    //if (_selectionChanged) return;
 
                 });
             }
@@ -2040,5 +2033,20 @@ public class MainWindow : Window
         }
     }
     */
+
+    private long GetMaxMemory()
+    {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            HardwareInfo _info = new();
+            _info.RefreshMemoryList();
+            return _info.MemoryList.Sum(
+                x => (long)x.Capacity) / 1000000;
+        }
+        // for non windows system difficult determine hardware info
+        //TODO: get from json param
+        return 262144;
+    }
+
     #endregion
 }

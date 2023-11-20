@@ -11,6 +11,8 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Spectre.Console;
+using System.Formats.Tar;
+
 namespace Blowaunch.Library;
 
 /// <summary>
@@ -467,30 +469,6 @@ public static class FilesManager
                 
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
-                    /************************************************************
-                    //----
-                    AnsiConsole.WriteLine("[OpenJDK] Detected Linux!");
-                    var link = openjdk.Versions[main.JavaMajor].Linux;
-                    var path = Path.Combine(Path.GetTempPath(),
-                        Path.GetFileName(link)!);
-                    if (task != null)
-                    {
-                        task.Description = "Downloading";
-                    }
-                    Fetcher.Download(link, path);
-                    if (task != null)
-                    {
-                        task.Description = "Extracting";
-                    }
-                    if (!Directory.Exists(extract))
-                    {
-                        Directory.CreateDirectory(extract);
-                    }
-                    //string extractTo = Path.Combine(extract, Path.GetFileName(link));
-                    ExtractTar(path, extract);
-
-                    //----
-                    ************************************************************/
                     AnsiConsole.WriteLine("[OpenJDK] Detected Windows!");
                     var link = openjdk.Versions[main.JavaMajor].Windows;
                     var path = Path.Combine(Path.GetTempPath(),
@@ -516,6 +494,7 @@ public static class FilesManager
                 }
                 else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 {
+                    /*
                     AnsiConsole.WriteLine("[OpenJDK] Detected Linux!");
                     var link = openjdk.Versions[main.JavaMajor].Linux;
                     var path = Path.Combine(Path.GetTempPath(),
@@ -530,6 +509,35 @@ public static class FilesManager
                         task.Description = "Extracting";
                     }
                     ExtractTar(path, extract);
+                    */
+                    AnsiConsole.WriteLine("[OpenJDK] Detected Linux!");
+                    var link = openjdk.Versions[main.JavaMajor].Linux;
+                    var path = Path.Combine(Path.GetTempPath(),
+                        Path.GetFileName(link)!);
+                    if (task != null)
+                    {
+                        task.Description = "Downloading";
+                    }
+                    if (!File.Exists(path) || new System.IO.FileInfo(path).Length > 0)
+                    {
+                        Fetcher.Download(link, path);
+                    }
+                    if (task != null)
+                    {
+                        task.Description = "Extracting";
+                    }
+                    if (!Directory.Exists(extract))
+                    {
+                        Directory.CreateDirectory(extract);
+                    }
+                    string tarFileName = GZip.Decompress(new FileInfo(path));
+                    string runtimeTarFileName = Path.Combine(extract, Path.GetFileName(tarFileName));
+                    if (!File.Exists(runtimeTarFileName))
+                    {
+                        File.Copy(tarFileName, runtimeTarFileName);
+                    }
+                    TarFile.ExtractToDirectory(runtimeTarFileName, extract, true);
+
                     if (task != null)
                     {
                         task.Description = "Renaming";
