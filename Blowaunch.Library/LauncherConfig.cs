@@ -34,8 +34,8 @@ public class LauncherConfig
     }
     public class ModPack
     {
-        [JsonProperty("id")] public string? Id { get; set; }
-        [JsonProperty("name")] public string? Name { get; set; }
+        [JsonProperty("id")] public string Id { get; set; }
+        [JsonProperty("name")] public string Name { get; set; }
         [JsonProperty("version")] public VersionClass Version = new VersionClass() { Id = "1.7.10", Name = "Release 1.7.10" };
         [JsonProperty("jvmArgs")] public string JvmArgs = "";
         [JsonProperty("maxRam")] public string RamMax = "2048";
@@ -91,7 +91,7 @@ public class LauncherConfig
         }
     }
 
-    public static void SaveModPackToConfig(LauncherConfig Config, ModPack? modpackConfig)
+    public static void SaveModPackToConfig(LauncherConfig Config, ModPack modpackConfig)
     {
         var index = Config.ModPacks.FindIndex(mp => mp.Id == modpackConfig?.Id);
         if (index != -1)

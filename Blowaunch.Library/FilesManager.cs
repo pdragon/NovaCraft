@@ -492,9 +492,9 @@ public static class FilesManager
                     Directory.Move(Path.Combine(extract, openjdk.Versions[main
                         .JavaMajor].Directory), dir);
                 }
-                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) 
                 {
-                    /*
                     AnsiConsole.WriteLine("[OpenJDK] Detected Linux!");
                     var link = openjdk.Versions[main.JavaMajor].Linux;
                     var path = Path.Combine(Path.GetTempPath(),
@@ -503,22 +503,7 @@ public static class FilesManager
                     {
                         task.Description = "Downloading";
                     }
-                    Fetcher.Download(link, path);
-                    if (task != null)
-                    {
-                        task.Description = "Extracting";
-                    }
-                    ExtractTar(path, extract);
-                    */
-                    AnsiConsole.WriteLine("[OpenJDK] Detected Linux!");
-                    var link = openjdk.Versions[main.JavaMajor].Linux;
-                    var path = Path.Combine(Path.GetTempPath(),
-                        Path.GetFileName(link)!);
-                    if (task != null)
-                    {
-                        task.Description = "Downloading";
-                    }
-                    if (!File.Exists(path) || new System.IO.FileInfo(path).Length > 0)
+                    if (!File.Exists(path) || new System.IO.FileInfo(path).Length == 0)
                     {
                         Fetcher.Download(link, path);
                     }
@@ -531,12 +516,12 @@ public static class FilesManager
                         Directory.CreateDirectory(extract);
                     }
                     string tarFileName = GZip.Decompress(new FileInfo(path));
-                    string runtimeTarFileName = Path.Combine(extract, Path.GetFileName(tarFileName));
-                    if (!File.Exists(runtimeTarFileName))
+                    string runtimeTarFileNamePath = Path.Combine(extract, Path.GetFileName(tarFileName));
+                    if (!File.Exists(runtimeTarFileNamePath))
                     {
-                        File.Copy(tarFileName, runtimeTarFileName);
+                        File.Copy(tarFileName, runtimeTarFileNamePath);
                     }
-                    TarFile.ExtractToDirectory(runtimeTarFileName, extract, true);
+                    TarFile.ExtractToDirectory(runtimeTarFileNamePath, extract, true);
 
                     if (task != null)
                     {
@@ -548,20 +533,33 @@ public static class FilesManager
                 else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 {
                     AnsiConsole.WriteLine("[OpenJDK] Detected MacOS!");
-                    var link = openjdk.Versions[main.JavaMajor].MacOs;
+                    var link = openjdk.Versions[main.JavaMajor].Linux;
                     var path = Path.Combine(Path.GetTempPath(),
                         Path.GetFileName(link)!);
                     if (task != null)
                     {
                         task.Description = "Downloading";
                     }
-                    Fetcher.Download(link, Path.Combine(Path.GetTempPath(),
-                        Path.GetFileName(link)!));
+                    if (!File.Exists(path) || new System.IO.FileInfo(path).Length == 0)
+                    {
+                        Fetcher.Download(link, path);
+                    }
                     if (task != null)
                     {
                         task.Description = "Extracting";
                     }
-                    ExtractTar(path, extract);
+                    if (!Directory.Exists(extract))
+                    {
+                        Directory.CreateDirectory(extract);
+                    }
+                    string tarFileName = GZip.Decompress(new FileInfo(path));
+                    string runtimeTarFileNamePath = Path.Combine(extract, Path.GetFileName(tarFileName));
+                    if (!File.Exists(runtimeTarFileNamePath))
+                    {
+                        File.Copy(tarFileName, runtimeTarFileNamePath);
+                    }
+                    TarFile.ExtractToDirectory(runtimeTarFileNamePath, extract, true);
+
                     if (task != null)
                     {
                         task.Description = "Renaming";

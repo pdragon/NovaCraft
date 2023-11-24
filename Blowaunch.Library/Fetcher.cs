@@ -1,4 +1,7 @@
+using System;
+using System.IO;
 using System.Net;
+using System.Net.Http;
 
 namespace Blowaunch.Library;
 
@@ -32,8 +35,11 @@ public static class Fetcher
         
     public static string Fetch(string url)
     {
-        using var wc = new WebClient();
-        return wc.DownloadString(url);
+        //using var wc = new WebClient();
+        //return wc.DownloadString(url);
+        using var wc = new HttpClient();
+        var content = wc.GetAsync(url).GetAwaiter().GetResult().Content;
+        return content.ReadAsStringAsync().Result;
     }
 
     public static void Download(string url, string path)

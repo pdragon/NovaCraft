@@ -1775,8 +1775,8 @@ public class MainWindow : Window
             ProgressModal("Loading assets...", (i + 1)  + " in " + assetsJson.Assets.Length + "(" + percent + " %)", (short)percent);
         }
         AnsiConsole.MarkupLine($"[yellow] downoading complete " + $"[/]");
-
-        JavaDownloadError javaDownloadResult =  FilesManager.JavaDownload(main, null, online);
+        ProgressModal("", "", "Loading Java");
+        JavaDownloadError javaDownloadResult = FilesManager.JavaDownload(main, null, online);
         switch (javaDownloadResult)
         {
             case JavaDownloadError.OSIsNotSupported:
@@ -1796,7 +1796,7 @@ public class MainWindow : Window
         }
 
         BlowaunchAddonJson data = new BlowaunchAddonJson();
-
+        ProgressModalDisable();
         switch (currentModpack.ModProxy)
         {
             case "Forge":

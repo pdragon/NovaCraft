@@ -582,6 +582,15 @@ public static class Runner
             Arguments = command
         };
 
+        // TODO: console in MainTab
+        //string std = process.StandardOutput.ReadToEnd();
+        string startFileContent = Path.Combine(Path.Combine(FilesManager.Directories.JavaRoot, game.MinecraftClientData.JavaMajor.ToString()), "bin", !RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "java" : "javaw") + " " + command;
+        string startFilePath = Path.Combine(game.ModpackData.PackPath, game.ModpackData.Version.Id + "_" + game.ModpackData.ModProxy + "." + (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "cmd":"sh"));
+        if (!File.Exists(startFilePath))
+        {
+            File.WriteAllText(startFilePath, startFileContent);
+        }
+
         Console.WriteLine(Path.Combine(Path.Combine(FilesManager.Directories.JavaRoot,
                 game.MinecraftClientData.JavaMajor.ToString()), "bin", !RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "java" : "javaw") + " " + command);
         progressBar("processing", "", "Game started, enjoy :-)");

@@ -159,7 +159,9 @@ namespace Blowaunch.ConsoleApp
             try
             {
                 json = JsonConvert.DeserializeObject<LauncherConfig.AccountResponse>(Fetcher.Fetch(@"https://api.mojang.com/users/profiles/minecraft/" + nickname));
-            }catch (Exception ex)
+                //}catch (Exception ex)
+            }
+            catch
             {
                 // This nickname not exist or invalid
                 //if(ex.Message == "The remote server returned an error: (400) Bad Request.")

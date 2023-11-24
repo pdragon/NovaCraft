@@ -18,6 +18,7 @@ namespace Blowaunch.ConsoleApp
             try {
                 //var request = (HttpWebRequest)WebRequest.Create("https://google.com");
                 var request = (HttpWebRequest)WebRequest.Create("https://google.com");
+                //var request = WebRequest.Create("https://google.com");
                 request.KeepAlive = false;
                 request.Timeout = timeoutMs;
                 using var response = (HttpWebResponse)request.GetResponse();
