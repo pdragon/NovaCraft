@@ -138,13 +138,21 @@
                                       Foreground="White"/>
                         </Button>
                     </StackPanel>
-                </StackPanel>
+					<TextBlock Name="VersionTextBox" Text="Version = '0.0.0'"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Bottom"
+                                           Margin="0 220 0 0"/>
+					<StackPanel>
+                    </StackPanel>
+				    
+				</StackPanel>
             </SplitView.Pane>
             
             <SplitView.PaneBackground>
                 <SolidColorBrush Opacity="50"
                                  Color="Black"/>
             </SplitView.PaneBackground>
+			
 
             <!-- Right Panel -->
             <Grid>

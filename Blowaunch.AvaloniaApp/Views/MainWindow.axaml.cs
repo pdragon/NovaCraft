@@ -99,11 +99,20 @@ public class MainWindow : Window
     private ComboBox _modPackModProxyCombo;
     private ComboBox _modPackModProxyComboVersions;
     private TextBox _modPackPathInstance;
+    private TextBlock _launcherVersionTextBox;
 
     private ModPackControl _modPackControl;
 
     //private ComboBox _modProxyPanelMcVersion;
     //private ComboBox _modProxyPanelForgeVersion;
+    public static class LauncherVersion
+    {
+        private static ushort MajorVersion = 0;
+        private static ushort MinorVersion = 0;
+        private static ushort BuildVersion = 1;
+        public static string Value { get { return $"{MajorVersion}.{MinorVersion}.{BuildVersion}"; } set { } }
+    }
+    //private string LauncherVersion = "0.0.0.1";
 
     #endregion
     #region Other stuff
@@ -296,6 +305,7 @@ public class MainWindow : Window
 
         _modPackControl = this.FindControl<ModPackControl>("ModPackControl1");
         _modPacksPanel = this.FindControl<WrapPanel>("ModPacksPanel");
+        _launcherVersionTextBox = this.FindControl<TextBlock>("VersionTextBox");
 
         //_modProxyPanelMcVersion = this.FindControl<ComboBox>("ModProxyPanelMcVersion");
         //_modProxyPanelForgeVersion = this.FindControl<ComboBox>("ModProxyPanelForgeVersion");
@@ -351,6 +361,8 @@ public class MainWindow : Window
             SaveConfig();
         };
         */
+
+        _launcherVersionTextBox.Text = "Version: " + LauncherVersion.Value;
     }
     #endregion
     #region LoadVersions()
