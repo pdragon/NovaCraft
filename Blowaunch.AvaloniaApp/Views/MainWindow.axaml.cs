@@ -46,6 +46,15 @@ namespace Blowaunch.AvaloniaApp.Views;
 #pragma warning disable CS1998
 public class MainWindow : Window
 {
+    //[DllImport("libc.so.6")]
+    //private static extern int getpid();
+    [DllImport("libdl.so")]
+    protected static extern IntPtr dlopen(string filename, int flags);
+    const int RTLD_NOW = 2; // for dlopen's flags 
+
+    [DllImport("libdl.so")]
+    protected static extern IntPtr dlsym(IntPtr handle, string symbol);
+
     #region UI Elements
     // All fields used
     private Panel _authPanel;
@@ -109,7 +118,7 @@ public class MainWindow : Window
     {
         private static ushort MajorVersion = 0;
         private static ushort MinorVersion = 0;
-        private static ushort BuildVersion = 1;
+        private static ushort BuildVersion = 2;
         public static string Value { get { return $"{MajorVersion}.{MinorVersion}.{BuildVersion}"; } set { } }
     }
     //private string LauncherVersion = "0.0.0.1";
@@ -170,7 +179,19 @@ public class MainWindow : Window
     /// Initialize everything
     /// </summary>
     public MainWindow()
-    {        
+    {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
+            IntPtr moduleHandle = dlopen("libgtk-3.so.0", RTLD_NOW);
+            if (moduleHandle.ToInt64() == 0)
+            {
+                ShowMessage("Please install libgtk-3-common package in your distro to continue", "Error", ButtonEnum.Ok, MessageBox.Avalonia.Enums.Icon.Error).GetAwaiter();
+                Logger.Error("libgtk-3-common not found, please install libgtk-3-common package");
+                //new ApplicationException("Please install libgtk-3-common package in your distro to continue");
+                System.Environment.Exit(2);
+            }
+        }
+
         InitializeComponent();
         InitializeFields();
         _loadingPanel!.IsVisible = true;
@@ -363,6 +384,15 @@ public class MainWindow : Window
         */
 
         _launcherVersionTextBox.Text = "Version: " + LauncherVersion.Value;
+
+        //Process process = new Process();
+        //process.StartInfo.FileName = "cmd.exe";
+        //process.StartInfo.UseShellExecute = true;
+        //process.StartInfo.Arguments = "/start notepad.exe";
+        //process.Start();
+
+        //int pid = getpid();
+        //Console.WriteLine(pid);        
     }
     #endregion
     #region LoadVersions()
@@ -1638,7 +1668,6 @@ public class MainWindow : Window
     */
     public void OpenModpackPanel(string ModPackId)
     {
-
         //if (ModPackId != null && ModPackId != "")
         //{
         LauncherConfig.ModPack modPack = Config.ModPacks.Find(mp => mp.Id == ModPackId) ?? new LauncherConfig.ModPack();
