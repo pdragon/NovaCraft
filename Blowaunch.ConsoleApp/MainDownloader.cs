@@ -8,6 +8,7 @@ using ICSharpCode.SharpZipLib.Core;
 using ICSharpCode.SharpZipLib.GZip;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Serilog.Core;
 using Spectre.Console;
 
 namespace Blowaunch.ConsoleApp

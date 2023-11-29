@@ -1902,6 +1902,11 @@ public class MainWindow : Window
             currentModpack.ModProxyVersion.Installed = true;
             LauncherConfig.SaveModPackToConfig(Config, currentModpack);
             LauncherConfig.SaveConfig(Config);
+            var dir = Path.Combine(currentModpack.PackPath, ".tmp-forge");
+            if (Directory.Exists(dir))
+            {
+                Directory.Delete(dir, true);
+            }
         }
     }
     /*

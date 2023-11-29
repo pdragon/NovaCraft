@@ -219,7 +219,7 @@ namespace Blowaunch.Library
         {
             string version = selectedModPack.Version.Id;
             //var dir = Path.Combine(Path.GetTempPath(), ".blowaunch-forge");
-            var dir = Path.Combine(selectedModPack.PackPath, ".blowaunch-forge");
+            var dir = Path.Combine(selectedModPack.PackPath, ".tmp-forge");
             if (!Directory.Exists(dir))
             {
                 Directory.CreateDirectory(dir);
@@ -268,6 +268,10 @@ namespace Blowaunch.Library
                 }
                 */
             string content = GetForgeData(selectedModPack, main, online);
+            if(content == null)
+            {
+
+            }
             var progress = AnsiConsole.Progress()
                 .HideCompleted(true)
                 .Columns(new TaskDescriptionColumn(),
@@ -316,7 +320,7 @@ namespace Blowaunch.Library
                 var libraries = new List<BlowaunchMainJson.JsonLibrary>();
                 foreach (var lib in data.Libraries) {
                     if (string.IsNullOrEmpty(lib.Url)) {
-                        var dest = Path.Combine(selectedModPack.PackPath, "forge", $"{lib.Name}-{lib.Version}.jar");
+                        var dest = Path.Combine(selectedModPack.PackPath, ".forge", $"{lib.Name}-{lib.Version}.jar");
                         if (!Directory.Exists(Path.GetDirectoryName(dest))) Directory.CreateDirectory(Path.GetDirectoryName(dest)!);
                         if (!File.Exists(dest)) File.Copy(Path.Combine(dir, "maven", lib.Path.Replace('/', 
                             Path.DirectorySeparatorChar)), dest);
@@ -326,7 +330,7 @@ namespace Blowaunch.Library
                     libraries.Add(lib);
                 }
                 
-                var contentInstaller = File.ReadAllText(Path.Combine(selectedModPack.PackPath, "forge", $"install-{main.Version}.json"));
+                var contentInstaller = File.ReadAllText(Path.Combine(selectedModPack.PackPath, ".forge", $"install-{main.Version}.json"));
                 //var dataInstaller = JsonConvert.DeserializeObject<ForgeInstallerJson>(contentInstaller);
                 if (!skipInstallerJson)
                 {
@@ -378,41 +382,39 @@ namespace Blowaunch.Library
                 var task = ctx.AddTask("Downloading installer").IsIndeterminate();
                 task.StartTask();
                 string forgeFile = ForgeThingy.GetForgeFileByLink(main.Version);
-                //var jar = Path.Combine(Path.GetTempPath(), ".blowaunch-forge", "installer.jar");
-                //string forgeFileName = forgeFile == "" ? $"forge-{version}" : forgeFile;
                 string forgeFileName = forgeFile == "" ? $"forge-{version}" : forgeFile;
-                //forgeFile = forgeFile == "" ? $"forge-{version}.jar" : forgeFile;
                 forgeFile = forgeFile == "" ? $"forge-{version}.jar" : forgeFile;
-                //var jar = Path.Combine(Directories.Root, "forge", forgeFile + ".installer.jar");
-                //var dir = Path.Combine(Path.GetTempPath(), ".blowaunch-forge");
-                //var dir = Path.Combine(Directories.Root, "tmp", ".blowaunch-forge");
-                var dir = Path.Combine(selectedModPack.PackPath, ".blowaunch-forge");
-                //var jar = Path.Combine(Directories.Root, "forge", forgeFileName + ".installer.jar");
-                var jar = Path.Combine(dir, forgeFileName + ".installer.jar");
-                var forgeDir = Path.Combine(selectedModPack.PackPath, "forge");
+                //var dir = Path.Combine(selectedModPack.PackPath, ".blowaunch-forge");
+                //var jar = Path.Combine(dir, forgeFileName + ".installer.jar");
+                var tmpForgeDir = Path.Combine(selectedModPack.PackPath, ".tmp-forge");
+                var forgeDir = Path.Combine(selectedModPack.PackPath, ".forge");
+                var jar = Path.Combine(tmpForgeDir, forgeFileName + ".installer.jar");
+                if (!Directory.Exists(forgeDir))
+                {
+                    Directory.CreateDirectory(forgeDir);
+                }
+                
                 string forgeJsonFile = Path.Combine(forgeDir, $"version-{main.Version}.json");
                 string forgeInstallJsonFile = Path.Combine(forgeDir, $"install-{main.Version}.json");
                 string content;
                 string contentInstaller;
 
-                //if (!File.Exists(jar) || !File.Exists(forgeJsonFile) || !File.Exists(forgeInstallJsonFile))
-                //if (!File.Exists(forgeJsonFile) || !File.Exists(forgeInstallJsonFile))
-                if(!selectedModPack.ModProxyVersion.Installed)
+                if (!selectedModPack.ModProxyVersion.Installed || !File.Exists(forgeInstallJsonFile))
                 {
                     if (!online) return "";
-                    if (Directory.Exists(dir)) Directory.Delete(dir, true);
-                    Directory.CreateDirectory(dir);
-                    //string link = ForgeThingy.GetLink(version).GetAwaiter().GetResult();
+                    Logger.Information("Downloading forge");
+
+                    if (Directory.Exists(tmpForgeDir)) Directory.Delete(tmpForgeDir, true);
+                    Directory.CreateDirectory(tmpForgeDir);
                    
                     string link = CurentModPack.ModProxyVersion.Url;
                     Fetcher.Download(link, jar);
                  
                     task.Description = "Extracting";
-                    ZipFile.ExtractToDirectory(jar, dir);
-                    //ZipFile.ExtractToDirectory(jar, forgeDir);
+                    ZipFile.ExtractToDirectory(jar, tmpForgeDir);
                     task.Description = "Parsing";
-                    var versionFile = Path.Combine(dir, "version.json");
-                    contentInstaller = File.ReadAllText(Path.Combine(dir, "install_profile.json"));
+                    var versionFile = Path.Combine(tmpForgeDir, "version.json");
+                    contentInstaller = File.ReadAllText(Path.Combine(tmpForgeDir, "install_profile.json"));
                     var i = (Newtonsoft.Json.Linq.JObject)JsonConvert.DeserializeObject(contentInstaller);
                     if (i.ContainsKey("_comment_"))
                     {
@@ -422,7 +424,7 @@ namespace Blowaunch.Library
                     File.WriteAllText(forgeInstallJsonFile, JsonConvert.SerializeObject(sPrettyStrI, Formatting.Indented));
                     if (File.Exists(versionFile))
                     {
-                        content = File.ReadAllText(Path.Combine(dir, "version.json"));
+                        content = File.ReadAllText(Path.Combine(tmpForgeDir, "version.json"));
                         var o = (Newtonsoft.Json.Linq.JObject)JsonConvert.DeserializeObject(content);
                         o.Property("_comment_").Remove();
                         var sPrettyStr = JToken.Parse(o.ToString(Newtonsoft.Json.Formatting.None));
@@ -445,7 +447,7 @@ namespace Blowaunch.Library
                     }
                     else
                     {
-                        content = File.ReadAllText(forgeInstallJsonFile);
+                            content = File.ReadAllText(forgeInstallJsonFile);
                     }
                     //contentInstaller = File.ReadAllText(forgeInstallJsonFile);
                     
@@ -458,7 +460,7 @@ namespace Blowaunch.Library
 
         public static bool IsProcessorsExists(LauncherConfig.ModPack modpack, string version)
         {
-            var forgeDir = Path.Combine(modpack.PackPath, "forge");
+            var forgeDir = Path.Combine(modpack.PackPath, ".forge");
             var contentInstaller = File.ReadAllText(Path.Combine(forgeDir, $"install-{version}.json"));
             var dataInstaller = JsonConvert.DeserializeObject<ForgeInstallerJson>(contentInstaller);
             return dataInstaller.Processors != null;
