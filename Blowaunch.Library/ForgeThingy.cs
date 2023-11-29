@@ -485,9 +485,9 @@ namespace Blowaunch.Library
                 task.StartTask();
                 //var jar = Path.Combine(Path.GetTempPath(), ".blowaunch-forge", "installer.jar");
                 //var dir = Path.Combine(Path.GetTempPath(), ".blowaunch-forge");
-                var jar = Path.Combine(modpack.PackPath, ".blowaunch-forge", "installer.jar");
-                var dir = Path.Combine(modpack.PackPath, ".blowaunch-forge");
-                var contentInstaller = File.ReadAllText(Path.Combine(modpack.PackPath, "forge",  $"install-{main.Version}.json"));
+                var jar = Path.Combine(modpack.PackPath, ".tmp-forge", "installer.jar");
+                var dir = Path.Combine(modpack.PackPath, ".tmp-forge");
+                var contentInstaller = File.ReadAllText(Path.Combine(modpack.PackPath, ".forge",  $"install-{main.Version}.json"));
                 var dataInstaller = JsonConvert.DeserializeObject<ForgeInstallerJson>(contentInstaller);
                 if (File.Exists(Path.Combine(FilesManager.Directories.VersionsRoot, main.Version, $"forge.json"))) {
                     AnsiConsole.WriteLine("[Forge] Skipping processors, already done!");
@@ -602,7 +602,7 @@ namespace Blowaunch.Library
                         replaced = ArtifactPath(modpack, replaced, true);
                         if (replaced.StartsWith("/") || replaced.StartsWith("\\")) replaced =
                             //Path.Combine(Path.GetTempPath(), ".blowaunch-forge", replaced
-                            Path.Combine(modpack.PackPath, ".blowaunch-forge", replaced
+                            Path.Combine(modpack.PackPath, ".tmp-forge", replaced
                                 .Substring(1, replaced.Length - 1)
                                 .Replace('/', '\\'));
                         args.Append($"{replaced} ");
