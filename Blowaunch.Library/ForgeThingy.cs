@@ -202,8 +202,8 @@ namespace Blowaunch.Library
             } else if (original) return data;
             else if (data.StartsWith('\'') && data.EndsWith("\'")) path = data;
             else path = Path.Combine(FilesManager.Directories.GetLibrariesRoot(modpack), data);
-
-            if (Path.IsPathFullyQualified(path) && !Directory.Exists(Path.GetDirectoryName(path)))
+            //if (Path.IsPathFullyQualified(path) && !Directory.Exists(Path.GetDirectoryName(path)))
+            if (Path.IsPathFullyQualified(path) && !Directory.Exists(Path.GetDirectoryName(path)) && !data.Contains("client.lzma"))
                 Directory.CreateDirectory(Path.GetDirectoryName(path)!);
             return path;
         }
@@ -224,7 +224,7 @@ namespace Blowaunch.Library
             {
                 Directory.CreateDirectory(dir);
             }
-            string forgeDir = Path.Combine(selectedModPack.PackPath, "forge");
+            string forgeDir = Path.Combine(selectedModPack.PackPath, ".forge");
             if (!Directory.Exists(forgeDir))
             {
                 Directory.CreateDirectory(forgeDir);
@@ -381,7 +381,8 @@ namespace Blowaunch.Library
             {
                 var task = ctx.AddTask("Downloading installer").IsIndeterminate();
                 task.StartTask();
-                string forgeFile = ForgeThingy.GetForgeFileByLink(main.Version);
+                //string forgeFile = ForgeThingy.GetForgeFileByLink(main.Version);
+                string forgeFile = ForgeThingy.GetForgeFileByLink(selectedModPack);
                 string forgeFileName = forgeFile == "" ? $"forge-{version}" : forgeFile;
                 forgeFile = forgeFile == "" ? $"forge-{version}.jar" : forgeFile;
                 //var dir = Path.Combine(selectedModPack.PackPath, ".blowaunch-forge");
@@ -496,7 +497,17 @@ namespace Blowaunch.Library
                 task.Description = "Processing artifact paths";
                 var descriptors = new Dictionary<string, string>();
                 foreach (var i in dataInstaller?.Data!)
-                    descriptors.Add(i.Key, ArtifactPath(modpack, i.Value.Client, false));
+                {
+                    if(i.Key != "BINPATCH")
+                    {
+                        descriptors.Add(i.Key, ArtifactPath(modpack, i.Value.Client, false));
+                    }
+                    else
+                    {
+                        descriptors.Add(i.Key, Path.Combine(modpack.PackPath, ".tmp-forge", i.Value.Client));
+                    }
+                }
+                    
                 task.IsIndeterminate = false;
                 task.MaxValue = dataInstaller!.Libraries.Length;
                 foreach (var lib in dataInstaller.Libraries) {
@@ -510,7 +521,7 @@ namespace Blowaunch.Library
                     if (string.IsNullOrEmpty(lib.Downloads.Artifact.Url)) {
                         if (split.Length == 4 && split[3].Equals("universal"))
                         {
-                            var dest = Path.Combine(FilesManager.Directories.Root, "forge",
+                            var dest = Path.Combine(FilesManager.Directories.Root, ".forge",
                                 $"{split[1]}-{split[2]}-{split[3]}{Path.GetExtension(lib.Downloads.Artifact.Path)}");
                             if (!Directory.Exists(Path.GetDirectoryName(dest))) Directory.CreateDirectory(Path.GetDirectoryName(dest)!);
                             if (!File.Exists(dest)) File.Copy(Path.Combine(dir, "maven", lib.Downloads.Artifact.Path!.Replace('/',
@@ -600,11 +611,18 @@ namespace Blowaunch.Library
                         foreach (var desc in descriptors)
                             replaced = replaced.Replace("{" + desc.Key + "}", desc.Value);
                         replaced = ArtifactPath(modpack, replaced, true);
-                        if (replaced.StartsWith("/") || replaced.StartsWith("\\")) replaced =
-                            //Path.Combine(Path.GetTempPath(), ".blowaunch-forge", replaced
-                            Path.Combine(modpack.PackPath, ".tmp-forge", replaced
-                                .Substring(1, replaced.Length - 1)
-                                .Replace('/', '\\'));
+                        if (replaced.StartsWith("/") || replaced.StartsWith("\\"))
+                        {
+                            //replaced = Path.Combine(modpack.PackPath, ".tmp-forge", replaced.Substring(1, replaced.Length - 1).Replace('/', '\\'));
+                            if(replaced.Contains(".lzma")) //data/client.lzma
+                            {
+                                replaced = Path.Combine(modpack.PackPath, ".tmp-forge", replaced.Substring(1, replaced.Length - 1));
+                            }
+                        }
+                        //    replaced =    
+                        //    Path.Combine(modpack.PackPath, ".tmp-forge", replaced
+                        //        .Substring(1, replaced.Length - 1)
+                        //        .Replace('/', '\\'));
                         args.Append($"{replaced} ");
                     }
 
@@ -898,16 +916,16 @@ namespace Blowaunch.Library
             process.Start();
         }
         */
-        static public string GetForgeFileByLink(string version)
+        static public string GetForgeFileByLink(LauncherConfig.ModPack modPack)
         {
-            Regex regex = new Regex($"forge-{version}-(.*).jar$");
+            Regex regex = new Regex($"forge-{modPack.Version.Id}-(.*).jar$");
             //var matches = Directory.EnumerateFiles(Directories.Forge).Where(f => regex.IsMatch(f));
-            var matches = Directory.EnumerateFiles(Directories.Forge).Where(f => regex.IsMatch(f)).Where(f => !f.Contains("-universal"));
+            var matches = Directory.EnumerateFiles(Path.Combine(modPack.PackPath, ".forge")).Where(f => regex.IsMatch(f)).Where(f => !f.Contains("-universal"));
             List<int[]> IntVersion = new List<int[]>();
             foreach (var match in matches)
             {
                 Console.WriteLine(match);
-                string fileName = match.Split(Path.DirectorySeparatorChar).Last().Replace(".jar", "").Replace($"forge-{version}-", "");
+                string fileName = match.Split(Path.DirectorySeparatorChar).Last().Replace(".jar", "").Replace($"forge-{modPack.Version.Id}-", "");
                 var versions = fileName.Split(".");
                 if (versions.Length > 0)
                 {
@@ -934,7 +952,7 @@ namespace Blowaunch.Library
             if(lastVersion[0] != 0)
             {
                 //return $"forge-{version}-{String.Join(".", lastVersion)}.jar";
-                return $"forge-{version}-{String.Join(".", lastVersion)}";
+                return $"forge-{modPack.Version.Id}-{String.Join(".", lastVersion)}";
             }
             return "";
         }
