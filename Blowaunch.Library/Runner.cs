@@ -387,9 +387,11 @@ public static class Runner
             return false;
         }
 
-        foreach (var library in game.MinecraftClientData.Libraries)
+        //foreach (var library in game.MinecraftClientData.Libraries)
+        for (var i=0; i< game.MinecraftClientData.Libraries.Length; i++)
         {
-            if(game.AddonData != null)
+            var library = game.MinecraftClientData.Libraries[i];
+            if (game.AddonData != null)
                 if (game.ModpackData.ModProxy.Equals("Forge") && game.AddonData.Libraries.Where(p => p.Name.Equals(library.Name)).Count() > 0)
                 {
                     continue;
@@ -409,6 +411,7 @@ public static class Runner
                 });
                 if (!File.Exists(file2))
                 {
+                    progressBar("Loading additional libraries", ((i / 100) * game.MinecraftClientData.Libraries.Length).ToString(), library.Name);
                     FilesManager.DownloadLibrary(library, game.ModpackData, game.Online);
                 }
                 classpath.Append($"{file2}{separator}");
@@ -441,7 +444,7 @@ public static class Runner
                         if ((game.ModpackData.ModProxyVersion == null || !game.ModpackData.ModProxyVersion.Installed) || hash != library.ShaHash)
                         {
                             var percent = (int)((float)((int)i + 1) / game.AddonData.Libraries.Length * 100);
-                            progressBar("Downloading forge libraries", (i + 1) + " in " + game.AddonData.Libraries.Length + "(" + percent + " %)", "Please, be patient");
+                            progressBar(library.Name, (i + 1) + " in " + game.AddonData.Libraries.Length + "(" + percent + " %)", "Downloading forge libraries");
                             FilesManager.DownloadLibrary(library, game.ModpackData, game.Online);
                         }
                         classpath.Append($"{file2}{separator}");
@@ -450,7 +453,7 @@ public static class Runner
                     //if (ForgeThingy.IsProcessorsExists(main.Version) && !ForgeThingy.ForgeIsInstalled())
                     if (!game.MinecraftClientData.Legacy && !game.ModpackData.ModProxyVersion.Installed)
                     {
-                        progressBar("Processing forge libraries", "", "Please, be patient");
+                        progressBar("Please, be patient, it may spent some time", "", "Processing forge libraries");
                         ForgeThingy.RunProcessors(game.ModpackData, game.MinecraftClientData, game.Online);
                     }
                     progressBar("", "", "");
@@ -517,7 +520,7 @@ public static class Runner
                     .Replace("${auth_access_token}", "0")
                     .Replace("${auth_uuid}", $"{game.AccountData.Uuid}")
                     .Replace("${assets_index_name}", game.MinecraftClientData.Assets.Id)
-                    .Replace("${assets_root}", FilesManager.Directories.AssetsRoot)
+                    .Replace("${assets_root}", FilesManager.Directories.GetAssetsRoot(game.ModpackData))
                     .Replace("${game_directory}", game.ModpackData.PackPath) //FilesManager.Directories.Root)
                     .Replace("${version_name}", game.MinecraftClientData.Version)
                     .Replace("${auth_player_name}", game.AccountData.Name)
@@ -551,10 +554,14 @@ public static class Runner
                                                            // greater than 1.12.2 vesions
                     .Replace("${clientid}", "\"\"")
                     .Replace("${auth_xuid}", "\"\"")
-                    .Replace("--demo", "")
+                    //.Replace("--demo", "")
                     .Replace("${user_properties}", "{}")
 
                     ;
+                if (!game.ModpackData.DemoUser)
+                {
+                    replaced = replaced.Replace("--demo", "");
+                }
                 args.Append($"{replaced} ");
             }
         }

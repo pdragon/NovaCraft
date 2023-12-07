@@ -51,7 +51,7 @@ namespace Blowaunch.ConsoleApp
                 task.MaxValue = assetsBlowaunch.Assets.Length;
                 foreach (var asset in assetsBlowaunch.Assets) {
                     task.Description = $"Downloading asset {Path.GetFileName(asset.Name)}";
-                    FilesManager.DownloadAsset(asset, online);
+                    FilesManager.DownloadAsset(asset, modpack, online);
                     task.Increment(1);
                 }
                 

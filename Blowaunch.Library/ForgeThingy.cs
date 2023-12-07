@@ -59,7 +59,7 @@ namespace Blowaunch.Library
         /// </summary>
         /// <param name="version">Version</param>
         /// <returns>Installer link</returns>
-        async public static Task<string> GetLink(string version)
+        async public static Task<string> GetLink(string version, bool needLastForgeVersion = false)
         {
             try {
                 var forgeLink = string.Format(Fetcher.ForgeEndpoints.ForgeWebsite, version);
@@ -69,7 +69,7 @@ namespace Blowaunch.Library
                     var content = Fetcher.Fetch(forgeLink);
                     var recommended = content.IndexOf("Download Recommended", StringComparison.Ordinal);
                     var latest = content.IndexOf("Download Latest", StringComparison.Ordinal);
-                    var subst = content.Substring(recommended == -1 ? latest : recommended);
+                    var subst = content.Substring(recommended == -1 || needLastForgeVersion ? latest : recommended);
                     var download = subst.IndexOf("<a href=\"", StringComparison.Ordinal);
                     var subst2 = subst.Substring(download);
                     var url = subst2.IndexOf("url=", StringComparison.Ordinal) + "url=".Length;
@@ -924,7 +924,7 @@ namespace Blowaunch.Library
             List<int[]> IntVersion = new List<int[]>();
             foreach (var match in matches)
             {
-                Console.WriteLine(match);
+                //Console.WriteLine(match);
                 string fileName = match.Split(Path.DirectorySeparatorChar).Last().Replace(".jar", "").Replace($"forge-{modPack.Version.Id}-", "");
                 var versions = fileName.Split(".");
                 if (versions.Length > 0)

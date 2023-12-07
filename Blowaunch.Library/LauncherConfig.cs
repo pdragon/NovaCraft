@@ -46,7 +46,16 @@ public class LauncherConfig
         [JsonProperty("ModProxy")] public string ModProxy = "";
         [JsonProperty("LastStartTime")] public int? Time = 0;
         [JsonProperty("ModProxyVersion")] public ForgeThingy.Versions ModProxyVersion;
-        [JsonProperty("forceOffline")] public bool ForceOffline;                                                                   // [ ]
+        [JsonProperty("forceOffline")] public bool ForceOffline;
+        [JsonProperty("isDemo")] public bool DemoUser;
+        [JsonProperty("wholeDataInFolder")] public bool WholeDataInFolder = false;
+    }
+
+    public class Settings
+    {
+        [JsonProperty("downloadLastVersionForge")] public bool DownloadLastVersionForge;
+        [JsonProperty("autoupdate")] public bool Autoupdate;
+        
     }
 
     static VersionClass DefaultVersion = new VersionClass(){Id = "1.7.10", Name = "Realese 1.7.10" };
@@ -63,9 +72,10 @@ public class LauncherConfig
     //[JsonProperty("forceOffline")] public bool ForceOffline;                                                                   // [ ]
     [JsonProperty("showAlpha")] public bool ShowAlpha;                                                                         // [+]
     [JsonProperty("showBeta")] public bool ShowBeta;                                                                           // [+]
-    [JsonProperty("isDemo")] public bool DemoUser;                                                                             // [ ]
+    //[JsonProperty("isDemo")] public bool DemoUser;                                                                             // [ ]
     [JsonProperty("modPacks")] public List<ModPack> ModPacks = new();
     [JsonProperty("selectedModPackId")] public string SelectedModPackId = "";
+    [JsonProperty("mainSettings")] public Settings MainSettings = new();
     //[JsonProperty("forgeInstalledVersions")] public List<string> ForgeInstalledVersions;
 
     public static Logger Logger = new LoggerConfiguration()

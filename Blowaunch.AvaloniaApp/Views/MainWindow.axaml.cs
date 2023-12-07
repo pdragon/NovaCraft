@@ -91,6 +91,7 @@ public class MainWindow : Window
     private ToggleSwitch _showBeta;
     private ToggleSwitch _forceOffline;
     private ToggleSwitch _minecraftDemo;
+    private ToggleSwitch _settingsForgeLast;
     private Button _saveChanges;
     private Button _revertChanges;
 
@@ -308,6 +309,8 @@ public class MainWindow : Window
         _ramSlider = this.FindControl<Slider>("RamSlider");
         _loadingTextBlock = this.FindControl<TextBlock>("LoadingTextBlock");
         _modPackPanel = this.FindControl<Panel>("ModPackAdd");
+
+        _settingsForgeLast = this.FindControl<ToggleSwitch>("SettingsForgeLast");
 
         _modPackCustomWindowSize = this.FindControl<ToggleSwitch>("ModPackCustomWindowSize");
         _modPackWindowWidth = this.FindControl<NumericUpDown>("ModPackWindowWidth");
@@ -1224,17 +1227,19 @@ public class MainWindow : Window
         _showAlpha.IsChecked = Config.ShowAlpha;
         _showBeta.IsChecked = Config.ShowBeta;
         //_forceOffline.IsChecked = Config.ForceOffline;
-        _minecraftDemo.IsChecked = Config.DemoUser;
+        //_minecraftDemo.IsChecked = Config.DemoUser;
 
         //_modPackRamSlider.Maximum = _info.MemoryList.Sum( x => (long)x.Capacity) / 1000000;
         _modPackRamSlider.Maximum = GetMaxMemory();
         //_modPackRamManual.Value = int.Parse(Config.RamMax);
         //_modPackRamSlider.Value = int.Parse(Config.RamMax);
 
+        _settingsForgeLast.IsChecked = Config.MainSettings.DownloadLastVersionForge;
+
         //if (Config.ForceOffline)
         //    OfflineMode = true;
     }
-    
+
     /// <summary>
     /// Reloads settings
     /// </summary>
@@ -1247,39 +1252,8 @@ public class MainWindow : Window
     public void SaveChanges(object? sender, RoutedEventArgs e)
     {
         Logger.Information("Saving settings...");
-        /*
-        Config.CustomWindowSize = _customWindowSize.IsChecked!.Value;
-        Config.WindowSize = new Vector2(
-            (int)_windowWidth.Value,
-            (int)_windowHeight.Value);
-        Config.JvmArgs = _javaArguments.Text;
-        Config.GameArgs = _gameArguments.Text;
-        Config.RamMax = _ramManual.Value.ToString(
-            CultureInfo.InvariantCulture);
-        Config.ShowSnapshots = _showSnaphots.IsChecked!.Value;
-        Config.ShowAlpha = _showAlpha.IsChecked!.Value;
-        Config.ShowBeta = _showBeta.IsChecked!.Value;
-        Config.ForceOffline = _forceOffline.IsChecked!.Value;
-        Config.DemoUser = _minecraftDemo.IsChecked!.Value;
+        Config.MainSettings.DownloadLastVersionForge = _settingsForgeLast.IsChecked ?? false;
         SaveConfig();
-        
-        _loadingPanel.IsVisible = true;
-        _progressPanel.IsVisible = true;
-        _progressBar.IsIndeterminate = true;
-
-        new Thread(async () => {
-            await Dispatcher.UIThread.InvokeAsync(() => {
-                _progressInfo.Text = "Loading versions...";
-                _progressFiles.Text = "Step 1 out of 1";
-            });
-            await LoadVersions();
-            await Dispatcher.UIThread.InvokeAsync(() => {
-                _loadingPanel.IsVisible = false;
-                _progressPanel.IsVisible = false;
-                _progressBar.IsIndeterminate = false;
-            });
-        }).Start();
-        */
     }
 
     /// <summary>
@@ -1324,7 +1298,8 @@ public class MainWindow : Window
         modpackConfig.RamMax = _modPackRamSlider.Value.ToString(CultureInfo.InvariantCulture);
         modpackConfig.PackPath = _modPackPathInstance.Text;
         modpackConfig.ForceOffline = _forceOffline.IsChecked!.Value;
-        
+        modpackConfig.DemoUser =  _minecraftDemo.IsChecked!.Value;
+
         //var modEngine = _modPackModProxyCombo.Items.(_modPackModProxyCombo.SelectedIndex);
         var cb = (ComboBoxItem?)_modPackModProxyCombo.SelectedItem;
         if(cb != null)
@@ -1689,6 +1664,7 @@ public class MainWindow : Window
         _modPackRamSlider.Value = Convert.ToDouble(modPack.RamMax);
         _modPackPathInstance.Text = modPack.PackPath;
         _forceOffline.IsChecked = modPack.ForceOffline;
+        _minecraftDemo.IsChecked = modPack.DemoUser; // Config.DemoUser;
         ModProxyVersionInModal = modPack.ModProxyVersion;
         //_modPackVersionsCombo.Items.F = (LauncherConfig.VersionClass?)modPack.Version;
         //LauncherConfig.VersionClass? a = _modPackVersionsCombo.FirstOrDefault(modPack.Version);
@@ -1802,18 +1778,20 @@ public class MainWindow : Window
             AnsiConsole.MarkupLine($"[grey] library {library.Name} " + $"[/]");
             itemsDownloaded++;
             percent = (int)((float)itemsDownloaded / main.Libraries.Length * 100);
-            ProgressModal("Loading libraries...", percent + " %", (short)percent);
+            //ProgressModal("Loading libraries...", percent + " %", (short)percent);
+            ProgressModal(library.Name, percent + " %", (short)percent, "Loading libraries...");
             FilesManager.DownloadLibrary(library, currentModpack, online);
         }
         //Assets
-        var MojangJson = FilesManager.LoadMojangAssets(currentModpack.Version.Id, true, main);
+        var MojangJson = FilesManager.LoadMojangAssets(currentModpack, true, main);
         BlowaunchAssetsJson assetsJson = BlowaunchAssetsJson.MojangToBlowaunch(MojangJson);
 
         for (int i = 0; i < assetsJson.Assets.Length; i++)
         {
-            FilesManager.DownloadAsset(assetsJson.Assets[i], online);
+            FilesManager.DownloadAsset(assetsJson.Assets[i], currentModpack, online);
             percent = (int)((float)((int)i + 1) / assetsJson.Assets.Length * 100);
-            ProgressModal("Loading assets...", (i + 1)  + " in " + assetsJson.Assets.Length + "(" + percent + " %)", (short)percent);
+            //ProgressModal("Loading assets...", (i + 1)  + " in " + assetsJson.Assets.Length + "(" + percent + " %)", (short)percent);
+            ProgressModal(assetsJson.Assets[i].Name, (i + 1) + " in " + assetsJson.Assets.Length + "(" + percent + " %)", (short)percent, "Loading assets...");
         }
         AnsiConsole.MarkupLine($"[yellow] downoading complete " + $"[/]");
         ProgressModal("", "", "Loading Java");
@@ -1850,7 +1828,7 @@ public class MainWindow : Window
                 if (currentModpack.ModProxyVersion == null || !currentModpack.ModProxyVersion.Installed || currentModpack.ModProxyVersion.Url == null)
                 {
                     currentModpack.ModProxyVersion = new Versions();
-                    currentModpack.ModProxyVersion.Url = ForgeThingy.GetLink(currentModpack.Version.Id).GetAwaiter().GetResult();
+                    currentModpack.ModProxyVersion.Url = ForgeThingy.GetLink(currentModpack.Version.Id, Config.MainSettings.DownloadLastVersionForge).GetAwaiter().GetResult();
                     currentModpack.ModProxyVersion.mainVersion = currentModpack.Version.Id;
                 }
                 LauncherConfig.SaveModPackToConfig(Config, currentModpack);

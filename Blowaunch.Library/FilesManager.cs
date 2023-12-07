@@ -32,7 +32,7 @@ public static class FilesManager
     /// Minecraft Directories
     /// </summary>
     public static class Directories
-    {
+    {        
         public static readonly string Root =
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), ".blowaunch");
         //public static readonly string Root =
@@ -54,9 +54,21 @@ public static class FilesManager
         public static readonly string Forge =
             Path.Combine(Root, "forge");
 
-       public static string GetLibrariesRoot(LauncherConfig.ModPack modpack)
+        public static string GetLibrariesRoot(LauncherConfig.ModPack modpack)
         {
-            return modpack != null ? Path.Combine(Root, modpack.PackPath, "libraries") : Path.Combine(Root, "libraries");
+            return modpack != null && modpack.WholeDataInFolder ? Path.Combine(modpack.PackPath, "libraries") : Path.Combine(Root, "libraries");
+        }
+        public static string GetAssetsRoot(LauncherConfig.ModPack modpack)
+        {
+            return modpack != null && modpack.WholeDataInFolder ? Path.Combine(modpack.PackPath, "assets") : Path.Combine(Root, "assets");
+        }
+        public static string GetAssetsObjects(LauncherConfig.ModPack modpack)
+        {
+            return modpack != null && modpack.WholeDataInFolder ? Path.Combine(GetAssetsRoot(modpack),  "objects") : Path.Combine(AssetsRoot, "objects");
+        }
+        public static string GetAssetsIndexes(LauncherConfig.ModPack modpack)
+        {
+            return modpack != null && modpack.WholeDataInFolder ? Path.Combine(GetAssetsRoot(modpack), "indexes") : Path.Combine(AssetsRoot, "indexes");
         }
     }
 
@@ -98,27 +110,32 @@ public static class FilesManager
     }
 
 
-    public static MojangAssetsJson LoadMojangAssets(string version, bool online, BlowaunchMainJson mainJSON = null)
+    //public static MojangAssetsJson LoadMojangAssets(string version, bool online, BlowaunchMainJson mainJSON = null)
+    public static MojangAssetsJson LoadMojangAssets(LauncherConfig.ModPack modpack, bool online, BlowaunchMainJson mainJSON = null)
     {
         MojangAssetsJson actualJson = new MojangAssetsJson();
         if (mainJSON == null)
         {
-            mainJSON = (MojangFetcher.GetMain(version));
+            mainJSON = (MojangFetcher.GetMain(modpack.Version.Id));
         }
-        var path = Path.Combine(Directories.AssetsObject, mainJSON.Assets.ShaHash.Substring(0, 2), mainJSON.Assets.ShaHash);
-        var indexPath = Path.Combine(Directories.AssetsRoot, "indexes", mainJSON.Assets.Id + ".json");// String.Join(".", version.Split(".").SkipLast(1)) + ".json");
+        //var path = Path.Combine( Directories.AssetsObject, mainJSON.Assets.ShaHash.Substring(0, 2), mainJSON.Assets.ShaHash);
+        var path = Path.Combine(Directories.GetAssetsObjects(modpack), mainJSON.Assets.ShaHash.Substring(0, 2), mainJSON.Assets.ShaHash);
+        //var indexPath = Path.Combine(Directories.AssetsRoot, "indexes", mainJSON.Assets.Id + ".json");// String.Join(".", version.Split(".").SkipLast(1)) + ".json");
+        var indexPath = Path.Combine(Directories.GetAssetsRoot(modpack), "indexes", mainJSON.Assets.Id + ".json");
         //var indexPath = Path.Combine(Directories.AssetsRoot, "indexes", String.Join(".", version) + ".json");
         if (!File.Exists(path)){
             if (online)
-                DownloadMojangAssetsJson(version, true);
+                DownloadMojangAssetsJson(modpack, true);
             else
                 return null;
         }
         if (!File.Exists(indexPath))
         {
-            if (!Directory.Exists(Path.Combine(Directories.AssetsRoot, "indexes")))
+            //if (!Directory.Exists(Path.Combine(Directories.AssetsRoot, "indexes")))
+            if (!Directory.Exists(Path.Combine(Directories.GetAssetsRoot(modpack), "indexes")))
             {
-                Directory.CreateDirectory(Path.Combine(Directories.AssetsRoot, "indexes"));
+                //Directory.CreateDirectory(Path.Combine(Directories.AssetsRoot, "indexes"));
+                Directory.CreateDirectory(Path.Combine(Directories.GetAssetsRoot(modpack), "indexes"));
             }
             File.Copy(path, indexPath);
         }
@@ -132,9 +149,10 @@ public static class FilesManager
         return null;
     }
 
-    public static void DownloadMojangAssetsJson(string version, bool online)
+    //public static void DownloadMojangAssetsJson(string version, bool online)
+    public static void DownloadMojangAssetsJson(LauncherConfig.ModPack modpack, bool online)
     {
-        BlowaunchMainJson main = (MojangFetcher.GetMain(version));
+        BlowaunchMainJson main = (MojangFetcher.GetMain(modpack.Version.Id));
         BlowaunchAssetsJson.JsonAsset jsonAsset = new BlowaunchAssetsJson.JsonAsset()
         {
             Name = main.Assets.Id,
@@ -142,7 +160,7 @@ public static class FilesManager
             Size = main.Assets.Size ?? 0,
             Url = main.Assets.Url
         };
-        FilesManager.DownloadAsset(jsonAsset, online);
+        FilesManager.DownloadAsset(jsonAsset, modpack, online);
     }
 
     /// <summary>
@@ -150,9 +168,10 @@ public static class FilesManager
     /// </summary>
     /// <param name="asset">Blowaunch Asset JSON</param>
     /// <param name="online">Is in online mode</param>
-    public static void DownloadAsset(BlowaunchAssetsJson.JsonAsset asset, bool online)
+    public static void DownloadAsset(BlowaunchAssetsJson.JsonAsset asset, LauncherConfig.ModPack modpack, bool online)
     {
-        var path = Path.Combine(Directories.AssetsObject, asset.ShaHash.Substring(0, 2), asset.ShaHash);
+        //var path = Path.Combine(Directories.AssetsObject, asset.ShaHash.Substring(0, 2), asset.ShaHash);
+        var path = Path.Combine(Directories.GetAssetsObjects(modpack), asset.ShaHash.Substring(0, 2), asset.ShaHash);
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
         if (!File.Exists(path) && online)
         {
@@ -165,7 +184,7 @@ public static class FilesManager
             if (online) {
                 AnsiConsole.MarkupLine($"[yellow]{asset.Name} hash mismatch: {hash} and {asset.ShaHash}, redownloading...[/]");
                 File.Delete(path);
-                DownloadAsset(asset, true);
+                DownloadAsset(asset, modpack, true);
             } else AnsiConsole.MarkupLine($"[yellow]{asset.Name} hash mismatch: {hash} and {asset.ShaHash}, " +
                                           $"can't redownload in offline mode![/]");
         }
