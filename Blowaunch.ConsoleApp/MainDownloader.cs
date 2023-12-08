@@ -59,8 +59,10 @@ namespace Blowaunch.ConsoleApp
                 task.Description = $"Downloading client";
                 FilesManager.DownloadClient(modpack, main, online);
 
-                var dir = Path.Combine(FilesManager.Directories.JavaRoot, main.JavaMajor.ToString());
-                var extract = Path.Combine(FilesManager.Directories.JavaRoot);
+                //var dir = Path.Combine(FilesManager.Directories.JavaRoot, main.JavaMajor.ToString());
+                var dir = Path.Combine(FilesManager.Directories.GetJavaRoot(modpack), main.JavaMajor.ToString());
+                //var extract = Path.Combine(FilesManager.Directories.JavaRoot);
+                var extract = Path.Combine(FilesManager.Directories.GetJavaRoot(modpack));
                 if (online) {
                     if (!Directory.Exists(dir)) {
                         task.Description = "Fetching";

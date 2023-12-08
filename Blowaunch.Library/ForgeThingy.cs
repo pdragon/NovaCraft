@@ -632,7 +632,8 @@ namespace Blowaunch.Library
                     process.StartInfo = new ProcessStartInfo {
                         //WorkingDirectory = FilesManager.Directories.Root,
                         WorkingDirectory = modpack.PackPath,
-                        FileName = Path.Combine(Path.Combine(FilesManager.Directories.JavaRoot, 
+                        //FileName = Path.Combine(Path.Combine(FilesManager.Directories.JavaRoot, 
+                        FileName = Path.Combine(Path.Combine(FilesManager.Directories.GetJavaRoot(modpack),
                             main.JavaMajor.ToString()), "bin", "java"),
                         RedirectStandardOutput = true,
                         RedirectStandardError = true,

@@ -637,7 +637,7 @@
                             Padding="10"
 							Margin="5 5 5 5">
 						<StackPanel Orientation="Vertical"
-                                    Width="200">
+                                    Width="250">
 							<TextBlock HorizontalAlignment="Center"
                                         FontSize="18" Margin="0 0 0 5">
 								Additional
@@ -649,6 +649,10 @@
 							<ToggleSwitch OnContent="Minecraft Demo Mode"
                                             OffContent="Minecraft Demo Mode"
                                             Name="MinecraftDemo">
+							</ToggleSwitch>
+						    <ToggleSwitch OnContent="Download to modpack folder"
+                                            OffContent="Download to Launcher folder"
+                                            Name="WholeDataInFolder">
 							</ToggleSwitch>
 						</StackPanel>
 					</Border>

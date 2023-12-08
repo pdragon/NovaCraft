@@ -54,6 +54,11 @@ public static class FilesManager
         public static readonly string Forge =
             Path.Combine(Root, "forge");
 
+
+        public static string GetJavaRoot(LauncherConfig.ModPack modpack)
+        {
+            return modpack != null && modpack.WholeDataInFolder ? Path.Combine(modpack.PackPath, "runtime") : Path.Combine(Root, "runtime");
+        }
         public static string GetLibrariesRoot(LauncherConfig.ModPack modpack)
         {
             return modpack != null && modpack.WholeDataInFolder ? Path.Combine(modpack.PackPath, "libraries") : Path.Combine(Root, "libraries");
@@ -466,10 +471,12 @@ public static class FilesManager
         return result;
     }
 
-    public static JavaDownloadError JavaDownload(BlowaunchMainJson main, ProgressTask task, bool online)
+    public static JavaDownloadError JavaDownload(BlowaunchMainJson main, ProgressTask task, LauncherConfig.ModPack modpack, bool online)
     {
-        var dir = Path.Combine(FilesManager.Directories.JavaRoot, main.JavaMajor.ToString());
-        var extract = Path.Combine(FilesManager.Directories.JavaRoot);
+        //var dir = Path.Combine(FilesManager.Directories.JavaRoot, main.JavaMajor.ToString());
+        var dir = Path.Combine(FilesManager.Directories.GetJavaRoot(modpack), main.JavaMajor.ToString());
+        //var extract = Path.Combine(FilesManager.Directories.JavaRoot);
+        var extract = Path.Combine(FilesManager.Directories.GetJavaRoot(modpack));
         if (online)
         {
             if (!Directory.Exists(dir))

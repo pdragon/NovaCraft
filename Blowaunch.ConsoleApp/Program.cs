@@ -248,6 +248,7 @@ namespace Blowaunch.ConsoleApp
             proc.StartInfo = new ProcessStartInfo {
                 WorkingDirectory = FilesManager.Directories.Root,
                 FileName = Path.Combine(Path.Combine(FilesManager.Directories.JavaRoot, 
+                //FileName = Path.Combine(Path.Combine(FilesManager.Directories.GetJavaRoot(mainJson),
                     mainJson.JavaMajor.ToString()), "bin", "java"),
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,

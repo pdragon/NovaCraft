@@ -91,6 +91,7 @@ public class MainWindow : Window
     private ToggleSwitch _showBeta;
     private ToggleSwitch _forceOffline;
     private ToggleSwitch _minecraftDemo;
+    private ToggleSwitch _wholeDataInFolder;
     private ToggleSwitch _settingsForgeLast;
     private Button _saveChanges;
     private Button _revertChanges;
@@ -119,7 +120,7 @@ public class MainWindow : Window
     {
         private static ushort MajorVersion = 0;
         private static ushort MinorVersion = 0;
-        private static ushort BuildVersion = 2;
+        private static ushort BuildVersion = 3;
         public static string Value { get { return $"{MajorVersion}.{MinorVersion}.{BuildVersion}"; } set { } }
     }
     //private string LauncherVersion = "0.0.0.1";
@@ -299,6 +300,7 @@ public class MainWindow : Window
         _showBeta = this.FindControl<ToggleSwitch>("ShowBeta");
         _forceOffline = this.FindControl<ToggleSwitch>("ForceOffline");
         _minecraftDemo = this.FindControl<ToggleSwitch>("MinecraftDemo");
+        _wholeDataInFolder = this.FindControl<ToggleSwitch>("WholeDataInFolder");
         _windowWidth = this.FindControl<NumericUpDown>("WindowWidth");
         _windowHeight = this.FindControl<NumericUpDown>("WindowHeight");
         _ramManual = this.FindControl<NumericUpDown>("RamManual");
@@ -1273,7 +1275,7 @@ public class MainWindow : Window
         {
             LauncherConfig.VersionClass version = (LauncherConfig.VersionClass)_modPackVersionsCombo.SelectedItem;
             modpackConfig.ModProxyVersion = ModProxyVersionInModal;
-            if (!version.Name.Equals(modpackConfig.Version))
+            if (!version.Name.Equals(modpackConfig.Version.Name))
             {
                 if(modpackConfig.ModProxyVersion == null)
                 {
@@ -1299,6 +1301,7 @@ public class MainWindow : Window
         modpackConfig.PackPath = _modPackPathInstance.Text;
         modpackConfig.ForceOffline = _forceOffline.IsChecked!.Value;
         modpackConfig.DemoUser =  _minecraftDemo.IsChecked!.Value;
+        modpackConfig.WholeDataInFolder = _wholeDataInFolder.IsChecked!.Value;
 
         //var modEngine = _modPackModProxyCombo.Items.(_modPackModProxyCombo.SelectedIndex);
         var cb = (ComboBoxItem?)_modPackModProxyCombo.SelectedItem;
@@ -1482,7 +1485,7 @@ public class MainWindow : Window
         var dialog = new OpenFolderDialog() { Directory = modpack?.PackPath, Title = "Select modpack instance folder" };
         var prevFolder = modpack!.PackPath;
         _modPackPathInstance.Text = await dialog.ShowAsync(this);
-        if (prevFolder.Equals(_modPackPathInstance.Text))
+        if (!prevFolder.Equals(_modPackPathInstance.Text))
         {
             ModProxyVersionInModal.Installed = false;
 
@@ -1653,18 +1656,19 @@ public class MainWindow : Window
         {
             //ProxyComboBoxOnChangeEnable = false;
 
-          //  var proxyIndex = ProxyDict.FirstOrDefault(x => x.Value == modPack.ModProxy).Key;
-          //  //ShowModPackVersions(modPack, modPack.ModProxy);
-          //  if (proxyIndex != -1)
-          //  {
-          //      _modPackModProxyCombo.SelectedIndex = proxyIndex;
-          //  }
+            var proxyIndex = ProxyDict.FirstOrDefault(x => x.Value == modPack.ModProxy).Key;
+            //ShowModPackVersions(modPack, modPack.ModProxy);
+            if (proxyIndex != -1)
+            {
+                _modPackModProxyCombo.SelectedIndex = proxyIndex;
+            }
         }
         _modPackName.Text = modPack.Name;
         _modPackRamSlider.Value = Convert.ToDouble(modPack.RamMax);
         _modPackPathInstance.Text = modPack.PackPath;
         _forceOffline.IsChecked = modPack.ForceOffline;
         _minecraftDemo.IsChecked = modPack.DemoUser; // Config.DemoUser;
+        _wholeDataInFolder.IsChecked = modPack.WholeDataInFolder;
         ModProxyVersionInModal = modPack.ModProxyVersion;
         //_modPackVersionsCombo.Items.F = (LauncherConfig.VersionClass?)modPack.Version;
         //LauncherConfig.VersionClass? a = _modPackVersionsCombo.FirstOrDefault(modPack.Version);
@@ -1795,7 +1799,7 @@ public class MainWindow : Window
         }
         AnsiConsole.MarkupLine($"[yellow] downoading complete " + $"[/]");
         ProgressModal("", "", "Loading Java");
-        JavaDownloadError javaDownloadResult = FilesManager.JavaDownload(main, null, online);
+        JavaDownloadError javaDownloadResult = FilesManager.JavaDownload(main, null, currentModpack, online);
         switch (javaDownloadResult)
         {
             case JavaDownloadError.OSIsNotSupported:

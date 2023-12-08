@@ -566,7 +566,7 @@ public static class Runner
             }
         }
             args.Remove(args.Length - 1, 1);
-        
+
         var command = $"{args2} -cp {file}{separator}{classpath} {mainClass} {args} {addonGameArgs}";
 
         if (game.MinecraftClientData == null)
@@ -576,12 +576,15 @@ public static class Runner
         var process = new Process();
         // JAVA_HOME and PATH sets here 
         string envPath = System.Environment.GetEnvironmentVariable("Path", EnvironmentVariableTarget.User);
-        System.Environment.SetEnvironmentVariable("Path", Path.Combine(Directories.JavaRoot, "8", "bin") + ";" + envPath, EnvironmentVariableTarget.User);
-        System.Environment.SetEnvironmentVariable("JAVA_HOME", Path.Combine(Directories.JavaRoot, "8"), EnvironmentVariableTarget.User);
+        //System.Environment.SetEnvironmentVariable("Path", Path.Combine(Directories.JavaRoot, "8", "bin") + ";" + envPath, EnvironmentVariableTarget.User);
+        //System.Environment.SetEnvironmentVariable("JAVA_HOME", Path.Combine(Directories.JavaRoot, "8"), EnvironmentVariableTarget.User);
+        System.Environment.SetEnvironmentVariable("Path", Path.Combine(Directories.GetJavaRoot(game.ModpackData), "8", "bin") + ";" + envPath, EnvironmentVariableTarget.User);
+        System.Environment.SetEnvironmentVariable("JAVA_HOME", Path.Combine(Directories.GetJavaRoot(game.ModpackData), "8"), EnvironmentVariableTarget.User);
         process.StartInfo = new ProcessStartInfo
         {
             WorkingDirectory = FilesManager.Directories.Root,
-            FileName = Path.Combine(Path.Combine(FilesManager.Directories.JavaRoot,
+            //FileName = Path.Combine(Path.Combine(FilesManager.Directories.JavaRoot,
+            FileName = Path.Combine(Path.Combine(FilesManager.Directories.GetJavaRoot(game.ModpackData),
                 game.MinecraftClientData.JavaMajor.ToString()), "bin", !RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "java" : "javaw"),
             //RedirectStandardOutput = true,
             //RedirectStandardError = true,
@@ -591,14 +594,16 @@ public static class Runner
 
         // TODO: console in MainTab
         //string std = process.StandardOutput.ReadToEnd();
-        string startFileContent = Path.Combine(Path.Combine(FilesManager.Directories.JavaRoot, game.MinecraftClientData.JavaMajor.ToString()), "bin", !RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "java" : "javaw") + " " + command;
+        //string startFileContent = Path.Combine(Path.Combine(FilesManager.Directories.JavaRoot, game.MinecraftClientData.JavaMajor.ToString()), "bin", !RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "java" : "javaw") + " " + command;
+        string startFileContent = Path.Combine(Path.Combine(FilesManager.Directories.GetJavaRoot(game.ModpackData), game.MinecraftClientData.JavaMajor.ToString()), "bin", !RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "java" : "javaw") + " " + command;
         string startFilePath = Path.Combine(game.ModpackData.PackPath, game.ModpackData.Version.Id + "_" + game.ModpackData.ModProxy + "." + (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "cmd":"sh"));
         if (!File.Exists(startFilePath))
         {
             File.WriteAllText(startFilePath, startFileContent);
         }
 
-        Console.WriteLine(Path.Combine(Path.Combine(FilesManager.Directories.JavaRoot,
+        //Console.WriteLine(Path.Combine(Path.Combine(FilesManager.Directories.JavaRoot,
+        Console.WriteLine(Path.Combine(Path.Combine(FilesManager.Directories.GetJavaRoot(game.ModpackData),
                 game.MinecraftClientData.JavaMajor.ToString()), "bin", !RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "java" : "javaw") + " " + command);
         progressBar("processing", "", "Game started, enjoy :-)");
         process.OutputDataReceived += (_, e) => {
