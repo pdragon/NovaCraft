@@ -52,6 +52,7 @@ public class ModPackControl : UserControl
         string path = AppDomain.CurrentDomain.BaseDirectory; //Directory.GetCurrentDirectory();
         DirectoryInfo diPath = new DirectoryInfo(@path);
         string iconPath = "";
+        if (string.IsNullOrEmpty(ModPack.PackPath)) return;
         string targetIconPath = Path.Combine(ModPack.PackPath, "server-icon.png");
         if (_image != null)
         {

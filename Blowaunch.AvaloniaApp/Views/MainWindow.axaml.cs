@@ -103,7 +103,7 @@ public class MainWindow : Window
     private TextBox _modPackGameArguments;
     private NumericUpDown _modPackRamManual;
     private Slider _modPackRamSlider;
-    private TextBox _modPackId;
+    //private TextBox _modPackId;
     private ComboBox _modPacksCombo;
     private ComboBox _modPackVersionsCombo;
     private TextBox _modPackName;
@@ -116,6 +116,7 @@ public class MainWindow : Window
 
     //private ComboBox _modProxyPanelMcVersion;
     //private ComboBox _modProxyPanelForgeVersion;
+    private string ModpackId;
     public static class LauncherVersion
     {
         private static ushort MajorVersion = 0;
@@ -320,7 +321,7 @@ public class MainWindow : Window
         _modPackRamManual = this.FindControl<NumericUpDown>("ModPackRamManual");
         _modPackJavaArguments = this.FindControl<TextBox>("ModPackJavaArguments");
         _modPackGameArguments = this.FindControl<TextBox>("ModPackGameArguments");
-        _modPackId = this.FindControl<TextBox>("ModPackId");
+        //_modPackId = this.FindControl<TextBox>("ModPackId");
         _modPackRamSlider = this.FindControl<Slider>("ModPackRamSlider");
         _modPacksCombo = this.FindControl<ComboBox>("ModPacks");
         _modPackVersionsCombo = this.FindControl<ComboBox>("ModPackVersions");
@@ -1263,8 +1264,8 @@ public class MainWindow : Window
     /// </summary>
     async public void ModPackSaveChanges(object? sender, RoutedEventArgs e)
     {
-        string id = _modPackId.Text;
-        if(id == "" || id == null)
+        string id = ModpackId;//_modPackId.Text;
+        if (id == "" || id == null)
         {
             id = Guid.NewGuid().ToString();
             Logger.Information("Creating new instance");
@@ -1481,14 +1482,16 @@ public class MainWindow : Window
 
     public async void OpenPathDirectory(object? sender, RoutedEventArgs e)
     {
-        ModPack? modpack = Config.ModPacks.Find(mp => mp.Id == _modPackId.Text) ?? new ModPack();
+        //ModPack? modpack = Config.ModPacks.Find(mp => mp.Id == _modPackId.Text) ?? new ModPack();
+        ModPack? modpack = Config.ModPacks.Find(mp => mp.Id == ModpackId) ?? new ModPack();
         var dialog = new OpenFolderDialog() { Directory = modpack?.PackPath, Title = "Select modpack instance folder" };
         var prevFolder = modpack!.PackPath;
-        _modPackPathInstance.Text = await dialog.ShowAsync(this);
+        string dialogPath = await dialog.ShowAsync(this);
+        if (string.IsNullOrEmpty(dialogPath)) return;
+        _modPackPathInstance.Text = dialogPath;
         if (!prevFolder.Equals(_modPackPathInstance.Text))
         {
             ModProxyVersionInModal.Installed = false;
-
         }
     }
 
@@ -1651,7 +1654,7 @@ public class MainWindow : Window
         LauncherConfig.ModPack modPack = Config.ModPacks.Find(mp => mp.Id == ModPackId) ?? new LauncherConfig.ModPack();
         int index = 1;
         string? id = ModPackId == null ? Guid.NewGuid().ToString() : modPack.Id;
-        _modPackId.Text = id == "New Instance" ? "0" : id;
+        //_modPackId.Text = id == "New Instance" ? "0" : id;
         if (modPack.ModProxy != "")
         {
             //ProxyComboBoxOnChangeEnable = false;

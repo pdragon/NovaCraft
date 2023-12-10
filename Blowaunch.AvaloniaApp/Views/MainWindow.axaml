@@ -593,11 +593,29 @@
 									 Margin="0 0 10 5"
 									 Name="ModPackName">
 							</TextBox>
+							<Button Height="35" Width="35"
+									Opacity="100" Background="Transparent"
+									CornerRadius="5" Click="OpenPathDirectory"
+										Margin="0 0 10 0">
+								<Button.Styles>
+									<Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+										<Setter Property="Background"
+												Value="#50FFFFFF"/>
+										<Setter Property="HorizontalAlignment"
+												Value="Right"/>
+									</Style>
+								</Button.Styles>
+								<PathIcon Data="{StaticResource
+                                FolderRegular}"
+										  Foreground="White"/>
+							</Button>
+							<!--
 							<TextBox Width="240" Watermark="Instance Id"
 									 IsVisible="True"
 								Margin="0 0 10 5"
 								Name="ModPackId">1
 							</TextBox>
+							-->
 						</StackPanel>
 					</Border>
 
