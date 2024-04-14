@@ -1480,6 +1480,11 @@ public class MainWindow : Window
             Verb = "open"
         });
 
+    public async void ShareModPack(object? sender, RoutedEventArgs e)
+    {
+
+    }
+
     public async void OpenPathDirectory(object? sender, RoutedEventArgs e)
     {
         //ModPack? modpack = Config.ModPacks.Find(mp => mp.Id == _modPackId.Text) ?? new ModPack();
@@ -1489,7 +1494,8 @@ public class MainWindow : Window
         string dialogPath = await dialog.ShowAsync(this);
         if (string.IsNullOrEmpty(dialogPath)) return;
         _modPackPathInstance.Text = dialogPath;
-        if (!prevFolder.Equals(_modPackPathInstance.Text))
+        if (!prevFolder.Equals(_modPackPathInstance.Text) && ModProxyVersionInModal != null)
+        //if (!prevFolder.Equals(_modPackPathInstance.Text))
         {
             ModProxyVersionInModal.Installed = false;
         }
