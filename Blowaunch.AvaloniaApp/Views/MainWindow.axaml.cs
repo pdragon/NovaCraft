@@ -1883,6 +1883,14 @@ public class MainWindow : Window
         //    Version version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version!;
         //    Console.WriteLine(version);
         //}
+        var javaDir = Path.Combine(FilesManager.Directories.GetJavaRoot(currentModpack), main.JavaMajor.ToString());
+        if (!Directory.EnumerateFileSystemEntries(javaDir).Any())
+        {
+            await ShowMessage("Java folder is empty, please restart modpak", "Error");
+            Directory.Delete(javaDir, true);
+            return;
+        }
+
         Runner.StartTheGame(
             new LauncherGlobalProperties() { AccountData = account, MinecraftClientData = main, AddonData = data, ModpackData = currentModpack, Online = online },
             ProgressModal

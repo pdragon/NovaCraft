@@ -575,13 +575,20 @@ public static class Runner
         }
         var process = new Process();
         // JAVA_HOME and PATH sets here 
-        string envPath = System.Environment.GetEnvironmentVariable("Path", EnvironmentVariableTarget.User);
         //System.Environment.SetEnvironmentVariable("Path", Path.Combine(Directories.JavaRoot, "8", "bin") + ";" + envPath, EnvironmentVariableTarget.User);
         //System.Environment.SetEnvironmentVariable("JAVA_HOME", Path.Combine(Directories.JavaRoot, "8"), EnvironmentVariableTarget.User);
-        System.Environment.SetEnvironmentVariable("Path", Path.Combine(Directories.GetJavaRoot(game.ModpackData), "8", "bin") + ";" + envPath, EnvironmentVariableTarget.User);
-        System.Environment.SetEnvironmentVariable("JAVA_HOME", Path.Combine(Directories.GetJavaRoot(game.ModpackData), "8"), EnvironmentVariableTarget.User);
+        //TODO: Check paths for exists
+        //var separator = Environment.OSVersion.Platform == PlatformID.Unix ? ":" : ";";
+        //string[] envArr = System.Environment.GetEnvironmentVariable("Path").Split(separator);
+
+        //Library.Common Env = new Library.Common();
+        //Env.SetBlowaunchEnvToPathEnv(Path.Combine(Directories.GetJavaRoot(game.ModpackData), "8", "bin"));
+
+        //System.Environment.SetEnvironmentVariable("Path", Path.Combine(Directories.GetJavaRoot(game.ModpackData), "8", "bin") + ";" + envPath, EnvironmentVariableTarget.User);        
+        //System.Environment.SetEnvironmentVariable("JAVA_HOME", Path.Combine(Directories.GetJavaRoot(game.ModpackData), "8"), EnvironmentVariableTarget.User);
         process.StartInfo = new ProcessStartInfo
         {
+            //EnvironmentVariables["RAYPATH"] = "test",
             WorkingDirectory = FilesManager.Directories.Root,
             //FileName = Path.Combine(Path.Combine(FilesManager.Directories.JavaRoot,
             FileName = Path.Combine(Path.Combine(FilesManager.Directories.GetJavaRoot(game.ModpackData),

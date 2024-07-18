@@ -515,10 +515,14 @@ public static class FilesManager
                     {
                         task.Description = "Renaming";
                     }
-                    Directory.Move(Path.Combine(extract, openjdk.Versions[main
-                        .JavaMajor].Directory), dir);
+                    string downloadedPath = Path.Combine(extract, openjdk.Versions[main.JavaMajor].Directory);
+                    Directory.Move(Path.Combine(extract, downloadedPath), dir);
+                    if (Directory.Exists(downloadedPath))
+                    {
+                        Directory.Delete(downloadedPath);
+                    }
                 }
-                
+
                 else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) 
                 {
                     AnsiConsole.WriteLine("[OpenJDK] Detected Linux!");
