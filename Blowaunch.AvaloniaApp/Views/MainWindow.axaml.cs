@@ -116,7 +116,7 @@ public class MainWindow : Window
 
     //private ComboBox _modProxyPanelMcVersion;
     //private ComboBox _modProxyPanelForgeVersion;
-    private string ModpackId;
+    public static string ModpackId;
     public static class LauncherVersion
     {
         private static ushort MajorVersion = 0;
@@ -915,6 +915,12 @@ public class MainWindow : Window
                         if (mp != null)
                         {
                             System.IO.DirectoryInfo di = new DirectoryInfo(mp.PackPath);
+                            if (!di.Exists)
+                            {
+                                await ShowMessage("modpack directory not exist", "Error", ButtonEnum.Ok, MessageBox.Avalonia.Enums.Icon.Warning);
+                                OnEraseModPack(modPackId!);
+                                return;
+                            }
                             foreach (FileInfo file in di.GetFiles())
                             {
                                 file.Delete();
@@ -1264,7 +1270,8 @@ public class MainWindow : Window
     /// </summary>
     async public void ModPackSaveChanges(object? sender, RoutedEventArgs e)
     {
-        string id = ModpackId;//_modPackId.Text;
+        string id = ModpackId;
+        //string id = _modPackId.Text;
         if (id == "" || id == null)
         {
             id = Guid.NewGuid().ToString();
@@ -1508,17 +1515,6 @@ public class MainWindow : Window
              UseShellExecute = true,
              Verb = "open"
          });
-    /*
-    public void ForgeInstall(object? sender, RoutedEventArgs e)
-    { 
-    
-    }
-    
-    public void ForgeDelete(object? sender, RoutedEventArgs e)
-    {
-
-    }
-    */
 
     /// <summary>
     /// Close Modpack panel
@@ -1679,6 +1675,9 @@ public class MainWindow : Window
         _minecraftDemo.IsChecked = modPack.DemoUser; // Config.DemoUser;
         _wholeDataInFolder.IsChecked = modPack.WholeDataInFolder;
         ModProxyVersionInModal = modPack.ModProxyVersion;
+        //string id = (sender as Button)!.Name ?? "";
+        //var mp = Config.ModPacks.Find(x => x.Id == (id.Split(':')[1] ?? ""));
+        ModpackId = id;
         //_modPackVersionsCombo.Items.F = (LauncherConfig.VersionClass?)modPack.Version;
         //LauncherConfig.VersionClass? a = _modPackVersionsCombo.FirstOrDefault(modPack.Version);
         //_modPackVersionsCombo.SelectedItem = modPack.Version;

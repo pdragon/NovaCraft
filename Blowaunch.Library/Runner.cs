@@ -546,7 +546,7 @@ public static class Runner
                     .Replace("${auth_access_token}", "0")
                     .Replace("${auth_uuid}", $"{game.AccountData.Uuid}")
                     .Replace("${assets_index_name}", game.MinecraftClientData.Assets.Id)
-                    .Replace("${assets_root}", FilesManager.Directories.AssetsRoot)
+                    .Replace("${assets_root}", game.ModpackData.WholeDataInFolder? Path.Combine(game.ModpackData.PackPath, "assets"): FilesManager.Directories.AssetsRoot)
                     .Replace("${game_directory}", game.ModpackData.PackPath) //FilesManager.Directories.Root)
                     .Replace("${version_name}", game.MinecraftClientData.Version)
                     .Replace("${auth_player_name}", game.AccountData.Name)
