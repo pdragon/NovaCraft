@@ -11,11 +11,11 @@ using static Blowaunch.Library.LauncherConfig;
 
 namespace Blowaunch.AvaloniaApp.Views.UserControls;
 
-public class ModPackControl : UserControl
+partial class ModPackControl : UserControl
 {
     private Image? _image;
-    private TextBlock _modPackLabel = new();
-    private Image _mainImage = new();
+    private TextBlock? _modPackLabel = new();
+    private Image? _mainImage = new();
 
     private readonly ModPack ModPack = new();
 
@@ -56,7 +56,7 @@ public class ModPackControl : UserControl
         string targetIconPath = Path.Combine(ModPack.PackPath, "server-icon.png");
         if (_image != null)
         {
-            _modPackLabel.Text = ModPack.Name;
+            _modPackLabel!.Text = ModPack.Name;
             //TODO: download from inet on first start, and load then from .blowaunch folder
             //iconPath = File.Exists(targetIconPath) ? targetIconPath : Path.Combine(path, "server-icon.png");
             //iconPath = File.Exists(targetIconPath)? targetIconPath: Path.Combine(path, "minecraft-small.png");
@@ -89,5 +89,10 @@ public class ModPackControl : UserControl
     {
         //(sender as Button)!.Content = "Test";
     }
+
+    //TODO: info in tooltip
+    //<SomeControl.ToolTip>
+    //<MyUserControl />
+    //</SomeControl.ToolTip>
     
 }

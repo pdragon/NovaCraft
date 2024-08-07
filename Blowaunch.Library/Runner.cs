@@ -40,30 +40,30 @@ public static class Runner
             /// Official Mojang version
             /// </summary>
             OfficialMojang = 0,
-                
+
             /// <summary>
             /// A custom version located in .blowaunch/versions
             /// </summary>
             CustomVersionFromDir = 1,
-                
+
             /// <summary>
             /// Custom version with an addon config file in the
             /// directory with the version and with name "addon.json"
             /// </summary>
             CustomWithAddonConfig = 2,
-                
+
             /// <summary>
             /// Official Mojang version with an addon config file
             /// in the directory with the version and with name "addon.json"
             /// </summary>
             OfficialWithAddonConfig = 3,
-                
+
             /// <summary>
             /// Official Mojang version with an addon config file
             /// that loads Forge Mod Loader, downloaded from GitHub repo
             /// </summary>
             OfficialWithForgeModLoader = 4,
-                
+
             /// <summary>
             /// Official Mojang version with an addon config file
             /// that loads Fabric Mod Loader, downloaded from their API
@@ -96,7 +96,7 @@ public static class Runner
 
         var forgeVersionName = FilesManager.GetFirstForgeVersion(main.Version);
         //TODO: Add forge libraries path to -cp
-        var forgeLibrariesList = FilesManager.GetForgeLibrariesPaths( modpack, forgeVersionName);
+        var forgeLibrariesList = FilesManager.GetForgeLibrariesPaths(modpack, forgeVersionName);
         if (forgeLibrariesList.Count != 0)
         {
             var tmpSourceList = main.Libraries.ToList();
@@ -107,21 +107,25 @@ public static class Runner
         sb.Append(string.IsNullOrEmpty(config.JvmArgs)
             ? $"-Xms{config.RamMax}M -Xmx{config.RamMax}M "
             : $"-Xms{config.RamMax}M -Xmx{config.RamMax}M {config.JvmArgs} ");
-        foreach (var arg in main.Arguments.Java) {
+        foreach (var arg in main.Arguments.Java)
+        {
             var process = true;
-            foreach (var str in arg.Disallow) {
+            foreach (var str in arg.Disallow)
+            {
                 if (process == false) continue;
                 process = !CheckBool(config, str);
             }
 
             if (process == false) continue;
-            foreach (var str in arg.Allow) {
+            foreach (var str in arg.Allow)
+            {
                 if (process == false) continue;
                 process = CheckBool(config, str);
             }
 
             if (process == false) continue;
-            if (arg.ValueList.Length != 0) {
+            if (arg.ValueList.Length != 0)
+            {
                 foreach (var str in arg.ValueList) sb.Append($"{ReplaceJavaArguments(modpack, main, str, config)} ");
                 continue;
             }
@@ -130,25 +134,29 @@ public static class Runner
         }
 
         sb.Append($"{main.MainClass} ");
-        foreach (var arg in main.Arguments.Game) {
+        foreach (var arg in main.Arguments.Game)
+        {
             var process = true;
-            foreach (var str in arg.Disallow) {
+            foreach (var str in arg.Disallow)
+            {
                 if (process == false) break;
                 process = !CheckBool(config, str);
             }
 
             if (process == false) continue;
-            foreach (var str in arg.Allow) {
+            foreach (var str in arg.Allow)
+            {
                 if (process == false) break;
                 process = CheckBool(config, str);
             }
 
             if (process == false) continue;
-            if (arg.ValueList.Length != 0) {
+            if (arg.ValueList.Length != 0)
+            {
                 foreach (var str in arg.ValueList) sb.Append($"{ReplaceGameArguments(config, str, main)} ");
                 continue;
-            } 
-                
+            }
+
             sb.Append($"{ReplaceGameArguments(config, arg.Value, main)} ");
         }
 
@@ -178,13 +186,15 @@ public static class Runner
                 break;
         }
 
-        
 
 
-        for (var index = 0; index < main.Libraries.Length; index++) {
+
+        for (var index = 0; index < main.Libraries.Length; index++)
+        {
             var lib = main.Libraries[index];
             if (lib.Extract) continue;
-            switch (lib.Platform) {
+            switch (lib.Platform)
+            {
                 case "windows":
                     if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                         continue;
@@ -194,26 +204,28 @@ public static class Runner
                         continue;
                     break;
                 case "macos":
-                    if (!RuntimeInformation.IsOSPlatform(OSPlatform.OSX) 
-                        && Environment.OSVersion.Version.Major < 10 || 
+                    if (!RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
+                        && Environment.OSVersion.Version.Major < 10 ||
                         Environment.OSVersion.Version.Minor < 12)
                         continue;
                     break;
                 case "osx":
-                    if (!RuntimeInformation.IsOSPlatform(OSPlatform.OSX) 
-                        && Environment.OSVersion.Version.Major >= 10 || 
+                    if (!RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
+                        && Environment.OSVersion.Version.Major >= 10 ||
                         Environment.OSVersion.Version.Minor >= 12)
                         continue;
                     break;
             }
             var process = true;
-            foreach (var str in lib.Disallow) {
+            foreach (var str in lib.Disallow)
+            {
                 if (process == false) break;
                 process = !CheckBool(config, str);
             }
 
             if (process == false) continue;
-            foreach (var str in lib.Allow) {
+            foreach (var str in lib.Allow)
+            {
                 if (process == false) break;
                 process = CheckBool(config, str);
             }
@@ -263,20 +275,21 @@ public static class Runner
             .Replace("${game_directory}", FilesManager.Directories.Root)
             .Replace("${version_type}", main.Type.ToString().ToLower())
             .Replace("${assets_index_name}", main.Assets.Id).Replace("${version_name}", main.Version)
-           // .Replace("${assets_index_name}", main.Version).Replace("${version_name}", main.Version)
+            // .Replace("${assets_index_name}", main.Version).Replace("${version_name}", main.Version)
 
 
             .Replace("${user_properties}", "{}");
         newstr = newstr.Replace("${user_type}", config.Account.Type.ToString().ToLower());
-        switch (config.Account.Type) {
+        switch (config.Account.Type)
+        {
             case Account.AuthType.Microsoft:
                 newstr = newstr.Replace("${auth_access_token}", config.Account.AccessToken)
-                    .Replace("${auth_xuid}", config.Account.Xuid).Replace("${auth_uuid}", 
+                    .Replace("${auth_xuid}", config.Account.Xuid).Replace("${auth_uuid}",
                         config.Account.Uuid);
                 break;
             case Account.AuthType.Mojang:
                 newstr = newstr.Replace("${auth_access_token}", config.Account.AccessToken)
-                    .Replace("${auth_xuid}", "noauth").Replace("${auth_uuid}", 
+                    .Replace("${auth_xuid}", "noauth").Replace("${auth_uuid}",
                         config.Account.Uuid);
                 break;
             default:
@@ -297,12 +310,14 @@ public static class Runner
     /// <returns></returns>
     private static bool CheckBool(Configuration config, string str)
     {
-        switch (str) {
+        switch (str)
+        {
             case "is_demo_user": return config.DemoUser;
             case "has_custom_resolution": return config.CustomWindowSize;
             default:
                 if (str.StartsWith("os-name:"))
-                    switch (str.Substring(8)) {
+                    switch (str.Substring(8))
+                    {
                         case "windows":
                             return RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
                         case "linux":
@@ -329,10 +344,11 @@ public static class Runner
     /// <param name="addon">Blowaunch Addon JSON</param>
     /// <param name="config">Configuration</param>
     /// <returns>Generated command</returns>
-    public static string GenerateCommand(LauncherConfig.ModPack modpack, BlowaunchMainJson main, BlowaunchAddonJson addon, Configuration config) 
+    public static string GenerateCommand(LauncherConfig.ModPack modpack, BlowaunchMainJson main, BlowaunchAddonJson addon, Configuration config)
     {
         AnsiConsole.WriteLine("[Runner] Blowaunch Addon JSON is used");
-        if (main.Version != addon.BaseVersion) {
+        if (main.Version != addon.BaseVersion)
+        {
             AnsiConsole.MarkupLine($"[red]Incompatible addon and main JSON files![/]");
             AnsiConsole.MarkupLine($"[red]Addon is for {addon.BaseVersion}, not for {main.Version}.[/]");
             Environment.Exit(-1);
@@ -341,14 +357,16 @@ public static class Runner
         newlibs.AddRange(addon.Libraries);
         main.Libraries = newlibs.ToArray();
         main.MainClass = addon.MainClass;
-        if (!addon.Legacy) {
+        if (!addon.Legacy)
+        {
             var gamelist = main.Arguments.Game.ToList();
             gamelist.AddRange(addon.Arguments.Game);
             main.Arguments.Game = gamelist.ToArray();
             var javalist = main.Arguments.Java.ToList();
             javalist.AddRange(addon.Arguments.Java);
             main.Arguments.Java = javalist.ToArray();
-        } else main.Arguments.Game = addon.Arguments.Game;
+        }
+        else main.Arguments.Game = addon.Arguments.Game;
 
         return GenerateCommand(modpack, main, config);
     }
@@ -388,7 +406,7 @@ public static class Runner
         }
 
         //foreach (var library in game.MinecraftClientData.Libraries)
-        for (var i=0; i< game.MinecraftClientData.Libraries.Length; i++)
+        for (var i = 0; i < game.MinecraftClientData.Libraries.Length; i++)
         {
             var library = game.MinecraftClientData.Libraries[i];
             if (game.AddonData != null)
@@ -411,6 +429,10 @@ public static class Runner
                 });
                 if (!File.Exists(file2))
                 {
+                    if (game.ModpackData.ForceOffline)
+                    {
+                        return;
+                    }
                     progressBar("Loading additional libraries", ((i / 100) * game.MinecraftClientData.Libraries.Length).ToString(), library.Name);
                     FilesManager.DownloadLibrary(library, game.ModpackData, game.Online);
                 }
@@ -422,58 +444,14 @@ public static class Runner
         //string file = Path.Combine(FilesManager.Directories.VersionsRoot, main.Version, $"{main.Version}.jar");
         string file = Path.Combine(game.ModpackData.PackPath, game.MinecraftClientData.Version, $"{game.MinecraftClientData.Version}.jar");
         var args = new StringBuilder();
+
         string mainClass = game.MinecraftClientData.MainClass;
-        
-        switch (game.ModpackData.ModProxy)
+        classpath = AddonPostInstall(game, classpath, progressBar);
+        if (game.ModpackData.ModProxy == "Forge")
         {
-            case "Forge":
-                if (game.AddonData != null)
-                {
-                    mainClass = game.AddonData.MainClass;
-                    progressBar("Downloading forge libraries", "", "Please wait while installing");
-                    //foreach (var library in game.AddonData.Libraries)
-                    for (int i = 0; i < game.AddonData.Libraries.Length; i++)
-                    {
-                        var library = game.AddonData.Libraries[i];
-                        var file2 = FilesManager.GetLibraryPath(game.ModpackData, new BlowaunchMainJson.JsonLibrary
-                        {
-                            Path = library.Path
-                        });
-                        var hash = HashHelper.Hash(file2);
-
-                        if ((game.ModpackData.ModProxyVersion == null || !game.ModpackData.ModProxyVersion.Installed) || hash != library.ShaHash)
-                        {
-                            var percent = (int)((float)((int)i + 1) / game.AddonData.Libraries.Length * 100);
-                            progressBar(library.Name, (i + 1) + " in " + game.AddonData.Libraries.Length + "(" + percent + " %)", "Downloading forge libraries");
-                            FilesManager.DownloadLibrary(library, game.ModpackData, game.Online);
-                        }
-                        classpath.Append($"{file2}{separator}");
-                    }
-                    
-                    //if (ForgeThingy.IsProcessorsExists(main.Version) && !ForgeThingy.ForgeIsInstalled())
-                    if (!game.MinecraftClientData.Legacy && !game.ModpackData.ModProxyVersion.Installed)
-                    {
-                        progressBar("Please, be patient, it may spent some time", "", "Processing forge libraries");
-                        ForgeThingy.RunProcessors(game.ModpackData, game.MinecraftClientData, game.Online);
-                    }
-                    progressBar("", "", "");
-                    //TODO Add check for dir and file exist
-                    //string addonFile = Path.Combine(FilesManager.Directories.Root, "forge", $"{addonMain.FullVersion}.jar");
-                    if (game.MinecraftClientData.Legacy)
-                    {
-                        string addonFile = Path.Combine(game.ModpackData.PackPath, "forge", $"{game.AddonData.FullVersion}.jar");
-                        //string addonFile = Path.Combine(modpack.PackPath, "forge", $"{modpack.ModProxyVersion.Name}.jar");
-                        classpath.Append($"{addonFile}{separator}");
-                    }
-                }
-                break;
-            default:
-
-                break;
+            mainClass = game.AddonData.MainClass;
         }
-        /*
-       
-  */
+
         if (game.ModpackData.CustomWindowSize)
         {
             args.Append($"-width {game.ModpackData.WindowSize.X} ");
@@ -498,20 +476,20 @@ public static class Runner
             args2.Append($"{javaArgsReplaced} ");
         }
 
-        if(game.AddonData != null && game.AddonData.Arguments != null && game.AddonData.Arguments.Java != null)
-        foreach (var arg in game.AddonData.Arguments.Java)
-        {
-            var javaArgsReplaced = arg.Value.Replace("${version_name}", game.ModpackData.Version.Id)
-                    //.Replace("${library_directory}", Path.Combine(Directories.Root, "libraries"))
-                    .Replace("${library_directory}", Path.Combine(CurentModPack.PackPath, "libraries"))
-                    .Replace("${classpath_separator}", separator);
-            args2.Append($"{javaArgsReplaced} ");
-        }
+        if (game.AddonData != null && game.AddonData.Arguments != null && game.AddonData.Arguments.Java != null)
+            foreach (var arg in game.AddonData.Arguments.Java)
+            {
+                var javaArgsReplaced = arg.Value.Replace("${version_name}", game.ModpackData.Version.Id)
+                        //.Replace("${library_directory}", Path.Combine(Directories.Root, "libraries"))
+                        .Replace("${library_directory}", Path.Combine(CurentModPack.PackPath, "libraries"))
+                        .Replace("${classpath_separator}", separator);
+                args2.Append($"{javaArgsReplaced} ");
+            }
 
         var addonGameArgs = new StringBuilder();
         if (game.AddonData.Arguments != null && game.ModpackData.ModProxy == "Forge")
         {
-            
+
             foreach (var arg in game.AddonData.Arguments.Game)
             {
                 var replaced = arg.Value.Replace("${user_type}", "legacy")
@@ -525,7 +503,7 @@ public static class Runner
                     .Replace("${version_name}", game.MinecraftClientData.Version)
                     .Replace("${auth_player_name}", game.AccountData.Name)
                     .Replace("${version_type}", "Blowaunch")//"Blowaunch")
-                                                           // greater than 1.12.2 vesions
+                                                            // greater than 1.12.2 vesions
                     .Replace("${clientid}", "\"\"")
                     .Replace("${auth_xuid}", "\"\"")
                     .Replace("${user_properties}", "{}")
@@ -551,7 +529,7 @@ public static class Runner
                     .Replace("${version_name}", game.MinecraftClientData.Version)
                     .Replace("${auth_player_name}", game.AccountData.Name)
                     .Replace("${version_type}", "modified")//"Blowaunch")
-                    // greater than 1.12.2 vesions
+                                                           // greater than 1.12.2 vesions
                     .Replace("${clientid}", "\"\"")
                     .Replace("${auth_xuid}", "\"\"")
                     //.Replace("--demo", "")
@@ -565,7 +543,7 @@ public static class Runner
                 args.Append($"{replaced} ");
             }
         }
-            args.Remove(args.Length - 1, 1);
+        args.Remove(args.Length - 1, 1);
 
         var command = $"{args2} -cp {file}{separator}{classpath} {mainClass} {args} {addonGameArgs}";
 
@@ -603,7 +581,7 @@ public static class Runner
         //string std = process.StandardOutput.ReadToEnd();
         //string startFileContent = Path.Combine(Path.Combine(FilesManager.Directories.JavaRoot, game.MinecraftClientData.JavaMajor.ToString()), "bin", !RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "java" : "javaw") + " " + command;
         string startFileContent = Path.Combine(Path.Combine(FilesManager.Directories.GetJavaRoot(game.ModpackData), game.MinecraftClientData.JavaMajor.ToString()), "bin", !RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "java" : "javaw") + " " + command;
-        string startFilePath = Path.Combine(game.ModpackData.PackPath, game.ModpackData.Version.Id + "_" + game.ModpackData.ModProxy + "." + (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "cmd":"sh"));
+        string startFilePath = Path.Combine(game.ModpackData.PackPath, game.ModpackData.Version.Id + "_" + game.ModpackData.ModProxy + "." + (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "cmd" : "sh"));
         if (!File.Exists(startFilePath))
         {
             File.WriteAllText(startFilePath, startFileContent);
@@ -613,11 +591,13 @@ public static class Runner
         Console.WriteLine(Path.Combine(Path.Combine(FilesManager.Directories.GetJavaRoot(game.ModpackData),
                 game.MinecraftClientData.JavaMajor.ToString()), "bin", !RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "java" : "javaw") + " " + command);
         progressBar("processing", "", "Game started, enjoy :-)");
-        process.OutputDataReceived += (_, e) => {
+        process.OutputDataReceived += (_, e) =>
+        {
             if (e.Data == null) return;
             AnsiConsole.WriteLine(e.Data);
         };
-        process.ErrorDataReceived += (_, e) => {
+        process.ErrorDataReceived += (_, e) =>
+        {
             if (e.Data == null) return;
             AnsiConsole.WriteLine(e.Data);
         };
@@ -626,5 +606,67 @@ public static class Runner
         progressBar("", "", "");
         // Secure errror on start
         // https://github.com/OpenFeign/feign/issues/935#issuecomment-521236281
+    }
+
+    private static StringBuilder AddonPostInstall(LauncherGlobalProperties game, StringBuilder classpath, Action<string, string, string> progressBar)
+    {
+        string mainClass = game.MinecraftClientData.MainClass;
+        var separator = Environment.OSVersion.Platform == PlatformID.Unix ? ":" : ";";
+        switch (game.ModpackData.ModProxy)
+        {
+            case "Forge":
+                if (game.AddonData != null)
+                {
+                    mainClass = game.AddonData.MainClass;
+                    if(!game.ModpackData.ForceOffline)
+                    {
+                        progressBar("Downloading forge libraries", "", "Please wait while installing");
+                        //foreach (var library in game.AddonData.Libraries)
+                        for (int i = 0; i < game.AddonData.Libraries.Length; i++)
+                        {
+                            var library = game.AddonData.Libraries[i];
+                            var file2 = FilesManager.GetLibraryPath(game.ModpackData, new BlowaunchMainJson.JsonLibrary
+                            {
+                                Path = library.Path
+                            });
+                            var hash = HashHelper.Hash(file2);
+
+                            if ((game.ModpackData.ModProxyVersion == null || !game.ModpackData.ModProxyVersion.Installed) || hash != library.ShaHash)
+                            {
+                                var percent = (int)((float)((int)i + 1) / game.AddonData.Libraries.Length * 100);
+                                progressBar(library.Name, (i + 1) + " in " + game.AddonData.Libraries.Length + "(" + percent + " %)", "Downloading forge libraries");
+                                FilesManager.DownloadLibrary(library, game.ModpackData, game.Online);
+                            }
+                            classpath.Append($"{file2}{separator}");
+                        }
+
+                        //if (ForgeThingy.IsProcessorsExists(main.Version) && !ForgeThingy.ForgeIsInstalled())
+                        if (!game.MinecraftClientData.Legacy && !game.ModpackData.ModProxyVersion.Installed)
+                        {
+                            progressBar("Please, be patient, it may spent some time", "", "Processing forge libraries");
+                            ForgeThingy.RunProcessors(game.ModpackData, game.MinecraftClientData, game.Online);
+                        }
+                    }
+
+                    progressBar("", "", "");
+                    //TODO Add check for dir and file exist
+                    //string addonFile = Path.Combine(FilesManager.Directories.Root, "forge", $"{addonMain.FullVersion}.jar");
+                    if (game.MinecraftClientData.Legacy)
+                    {
+                        string addonFile = Path.Combine(game.ModpackData.PackPath, "forge", $"{game.AddonData.FullVersion}.jar");
+                        //string addonFile = Path.Combine(modpack.PackPath, "forge", $"{modpack.ModProxyVersion.Name}.jar");
+                        classpath.Append($"{addonFile}{separator}");
+                        //return new AddonPostInstallReturn { AddonFilePath = addonFile, Classpath = classpath };
+                        
+                    }
+                    
+                }
+                break;
+            default:
+
+                break;
+        }
+        return classpath;
+        //return new AddonPostInstallReturn { Classpath = classpath };
     }
 }

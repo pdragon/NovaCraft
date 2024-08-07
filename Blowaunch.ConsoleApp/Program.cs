@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Net;
+using System.Net.Http;
 using System.Reflection;
 using Blowaunch.Library;
 using Blowaunch.Library.Authentication;
@@ -13,15 +14,19 @@ namespace Blowaunch.ConsoleApp
 {
     public static class Program
     {
-        private static bool CheckForInternet(int timeoutMs = 5000)
+        //private static bool CheckForInternet(int timeoutMs = 5000)
+        private static bool CheckForInternet(int timeoutSec = 5)
         {
             try {
                 //var request = (HttpWebRequest)WebRequest.Create("https://google.com");
-                var request = (HttpWebRequest)WebRequest.Create("https://google.com");
                 //var request = WebRequest.Create("https://google.com");
-                request.KeepAlive = false;
-                request.Timeout = timeoutMs;
-                using var response = (HttpWebResponse)request.GetResponse();
+                //request.KeepAlive = false;
+                //request.Timeout = timeoutMs;
+                //using var response = (HttpWebResponse)request.GetResponse();
+                using var httpClient = new HttpClient();
+                var request = new HttpRequestMessage(HttpMethod.Get, "https://google.com");
+                httpClient.Timeout = TimeSpan.FromSeconds(timeoutSec);
+                var response = httpClient.Send(request);
                 return true;
             } catch { return false; }
         }

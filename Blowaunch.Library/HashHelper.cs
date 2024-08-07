@@ -20,7 +20,9 @@ public static class HashHelper
         if (File.Exists(file))
         {
             using var stream = new FileStream(file, FileMode.Open);
-            var hash = new SHA1Managed().ComputeHash(stream);
+            //var hash = new SHA1Managed().ComputeHash(stream);
+            var alg = SHA1.Create();
+            var hash = alg.ComputeHash(stream);
             return string.Concat(hash.Select(b => b.ToString("x2")));
         }
         return "";

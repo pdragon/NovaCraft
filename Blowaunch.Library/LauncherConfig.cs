@@ -73,7 +73,7 @@ public class LauncherConfig
     [JsonProperty("showAlpha")] public bool ShowAlpha;                                                                         // [+]
     [JsonProperty("showBeta")] public bool ShowBeta;                                                                           // [+]
     //[JsonProperty("isDemo")] public bool DemoUser;                                                                             // [ ]
-    [JsonProperty("modPacks")] public List<ModPack> ModPacks = new();
+    [JsonProperty("modPacks")] public List<ModPack> ModPacks = new List<ModPack>();
     [JsonProperty("selectedModPackId")] public string SelectedModPackId = "";
     [JsonProperty("mainSettings")] public Settings MainSettings = new();
     //[JsonProperty("forgeInstalledVersions")] public List<string> ForgeInstalledVersions;

@@ -4,7 +4,7 @@ using Avalonia.Markup.Xaml;
 
 namespace Blowaunch.AvaloniaApp.Views.UserControls;
 
-public class NewPackControl : UserControl
+partial class NewPackControl : UserControl
 {
     public NewPackControl()
     {

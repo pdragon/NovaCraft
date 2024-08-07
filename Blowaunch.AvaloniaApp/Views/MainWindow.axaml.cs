@@ -17,9 +17,12 @@ using Avalonia.Threading;
 using Blowaunch.Library;
 using Blowaunch.Library.Authentication;
 using Hardware.Info;
-using MessageBox.Avalonia;
-using MessageBox.Avalonia.DTO;
-using MessageBox.Avalonia.Enums;
+//using MessageBox.Avalonia;
+//using MessageBox.Avalonia.DTO;
+//using MessageBox.Avalonia.Enums;
+using MsBox.Avalonia;
+using MsBox.Avalonia.Dto;
+using MsBox.Avalonia.Enums;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
@@ -38,13 +41,19 @@ using static Blowaunch.Library.ForgeThingy;
 using Blowaunch.ConsoleApp;
 using Blowaunch.Library.UsableClasses;
 using System.Runtime.InteropServices;
+using Avalonia;
+using Blowaunch.Library.UsableClasses.ShareModPack;
 //using System.Timers;
+using Blowaunch.Library.ShareModPack;
+using Avalonia.Styling;
+using static Blowaunch.Library.UsableClasses.ShareModPack.ExportFileParams;
 
 namespace Blowaunch.AvaloniaApp.Views;
+
 #pragma warning disable CS8618
 #pragma warning disable CS0618
 #pragma warning disable CS1998
-public class MainWindow : Window
+partial class MainWindow : Window
 {
     //[DllImport("libc.so.6")]
     //private static extern int getpid();
@@ -57,74 +66,79 @@ public class MainWindow : Window
 
     #region UI Elements
     // All fields used
-    private Panel _authPanel;
-    private Panel _modProxyPanel;    
-    private Panel _loadingPanel;
-    private Panel _progressPanel;
-    private ComboBox _versionsCombo;
-    private TextBlock _accountName;
-    private TextBlock _accountType;
-    private ComboBox _accountsCombo;
-    private TextBox _usernameMojang;
-    private TextBox _passwordMojang;
-    private TextBox _usernameCracked;
-    private TextBlock _progressInfo;
-    private TextBlock _progressFiles;
-    private ProgressBar _progressBar;
-    private Button _mojangLoginButton;
-    private Button _microsoftLoginButton;
+    private Panel? _sharePanel;
+    private Panel? _authPanel;
+    private Panel? _modProxyPanel;    
+    private Panel? _loadingPanel;
+    private Panel? _progressPanel;
+    private ComboBox? _versionsCombo;
+    private TextBlock? _accountName;
+    private TextBlock? _accountType;
+    private ComboBox? _accountsCombo;
+    private TextBox? _usernameMojang;
+    private TextBox? _passwordMojang;
+    private TextBox? _usernameCracked;
+    private TextBlock? _progressInfo;
+    private TextBlock? _progressFiles;
+    private ProgressBar? _progressBar;
+    private Button? _mojangLoginButton;
+    private Button? _microsoftLoginButton;
 
-    private TextBlock _loadingTextBlock;
-    private Panel _modPackPanel;
-    private WrapPanel _modPacksPanel;
+    private TextBlock? _loadingTextBlock;
+    private Panel? _modPackPanel;
+    private WrapPanel? _modPacksPanel;
 
     // Settings
-    //private ToggleSwitch _customWindowSize;
-    private NumericUpDown _windowWidth;
-    private NumericUpDown _windowHeight;
-    private TextBox _javaArguments;
-    private TextBox _gameArguments;
-    private NumericUpDown _ramManual;
-    private Slider _ramSlider;
-    private ToggleSwitch _showSnaphots;
-    private ToggleSwitch _showAlpha;
-    private ToggleSwitch _showBeta;
-    private ToggleSwitch _forceOffline;
-    private ToggleSwitch _minecraftDemo;
-    private ToggleSwitch _wholeDataInFolder;
-    private ToggleSwitch _settingsForgeLast;
-    private Button _saveChanges;
-    private Button _revertChanges;
+    //private ToggleSwitch? _customWindowSize;
+    private NumericUpDown? _windowWidth;
+    private NumericUpDown? _windowHeight;
+    private TextBox? _javaArguments;
+    private TextBox? _gameArguments;
+    private NumericUpDown? _ramManual;
+    private Slider? _ramSlider;
+    private ToggleSwitch? _showSnaphots;
+    private ToggleSwitch? _showAlpha;
+    private ToggleSwitch? _showBeta;
+    private ToggleSwitch? _forceOffline;
+    private ToggleSwitch? _minecraftDemo;
+    private ToggleSwitch? _wholeDataInFolder;
+    private ToggleSwitch? _settingsForgeLast;
+    private Button? _saveChanges;
+    private Button? _revertChanges;
 
-    private ToggleSwitch _modPackCustomWindowSize;
-    private NumericUpDown _modPackWindowWidth;
-    private NumericUpDown _modPackWindowHeight;
-    private TextBox _modPackJavaArguments;
-    private TextBox _modPackGameArguments;
-    private NumericUpDown _modPackRamManual;
-    private Slider _modPackRamSlider;
-    //private TextBox _modPackId;
-    private ComboBox _modPacksCombo;
-    private ComboBox _modPackVersionsCombo;
-    private TextBox _modPackName;
-    private ComboBox _modPackModProxyCombo;
-    private ComboBox _modPackModProxyComboVersions;
-    private TextBox _modPackPathInstance;
-    private TextBlock _launcherVersionTextBox;
+    private ToggleSwitch? _modPackCustomWindowSize;
+    private NumericUpDown? _modPackWindowWidth;
+    private NumericUpDown? _modPackWindowHeight;
+    private TextBox? _modPackJavaArguments;
+    private TextBox? _modPackGameArguments;
+    private NumericUpDown? _modPackRamManual;
+    private Slider? _modPackRamSlider;
+    //private TextBox? _modPackId;
+    private ComboBox? _modPacksCombo;
+    private ComboBox? _modPackVersionsCombo;
+    private TextBox? _modPackName;
+    private ComboBox? _modPackModProxyCombo;
+    private ComboBox? _modPackModProxyComboVersions;
+    private TextBox? _modPackPathInstance;
+    private TextBlock? _launcherVersionTextBox;
 
-    private ModPackControl _modPackControl;
+    private ModPackControl? _modPackControl;
+    private UploadModpack? _uploadModpack;
 
     //private ComboBox _modProxyPanelMcVersion;
     //private ComboBox _modProxyPanelForgeVersion;
+    private ContextMenu? _shareModPackMenu;
     public static string ModpackId;
     public static class LauncherVersion
     {
         private static ushort MajorVersion = 0;
-        private static ushort MinorVersion = 0;
-        private static ushort BuildVersion = 3;
+        private static ushort MinorVersion = 1;
+        private static ushort BuildVersion = 5;
         public static string Value { get { return $"{MajorVersion}.{MinorVersion}.{BuildVersion}"; } set { } }
     }
     //private string LauncherVersion = "0.0.0.1";
+
+    //private string ModpackInfoPath = "";
 
     #endregion
     #region Other stuff
@@ -188,7 +202,7 @@ public class MainWindow : Window
             IntPtr moduleHandle = dlopen("libgtk-3.so.0", RTLD_NOW);
             if (moduleHandle.ToInt64() == 0)
             {
-                ShowMessage("Please install libgtk-3-common package in your distro to continue", "Error", ButtonEnum.Ok, MessageBox.Avalonia.Enums.Icon.Error).GetAwaiter();
+                ShowMessage("Please install libgtk-3-common package in your distro to continue", "Error", ButtonEnum.Ok, MsBox.Avalonia.Enums.Icon.Error).GetAwaiter();
                 Logger.Error("libgtk-3-common not found, please install libgtk-3-common package");
                 //new ApplicationException("Please install libgtk-3-common package in your distro to continue");
                 System.Environment.Exit(2);
@@ -279,6 +293,7 @@ public class MainWindow : Window
     /// </summary>
     private void InitializeFields()
     {
+        _sharePanel = this.FindControl<Panel>("SharePanel");
         _loadingPanel = this.FindControl<Panel>("Loading");
         _authPanel = this.FindControl<Panel>("Authentication");
         _modProxyPanel = this.FindControl<Panel>("ModProxyPanel");
@@ -334,6 +349,8 @@ public class MainWindow : Window
         _modPacksPanel = this.FindControl<WrapPanel>("ModPacksPanel");
         _launcherVersionTextBox = this.FindControl<TextBlock>("VersionTextBox");
 
+        _shareModPackMenu = this.FindControl<ContextMenu>("ShareModPackMenu");
+
         //_modProxyPanelMcVersion = this.FindControl<ComboBox>("ModProxyPanelMcVersion");
         //_modProxyPanelForgeVersion = this.FindControl<ComboBox>("ModProxyPanelForgeVersion");
 
@@ -350,17 +367,29 @@ public class MainWindow : Window
             _ramSlider.Value = e.NewValue;
         };
         */
-        _modPackRamManual.ValueChanged += (_, e) => {
-            // ReSharper disable once CompareOfFloatsByEqualityOperator
-            if (_modPackRamSlider.Value == _modPackRamManual.Value)
-                return;
-            if (e.NewValue > _modPackRamSlider.Maximum)
-                _modPackRamManual.Value = _modPackRamSlider.Maximum;
-            else if (e.NewValue < 0)
-                _modPackRamManual.Value = 0;
+        if (_modPackRamManual != null)
+        {
+            _modPackRamManual.ValueChanged += (_, e) =>
+            {
+                // ReSharper disable once CompareOfFloatsByEqualityOperator
+                double modPackRamvalue = (double)(_modPackRamManual.Value == null ? 0 : _modPackRamManual.Value);
+                if (_modPackRamSlider != null)
+                {
+                    if (_modPackRamSlider.Value == modPackRamvalue)
+                        return;
 
-            _modPackRamSlider.Value = e.NewValue;
-        };
+                    if (e.NewValue > (decimal?)(_modPackRamSlider.Maximum))
+                        _modPackRamManual.Value = (decimal?)_modPackRamSlider.Maximum;
+                    else if (e.NewValue < 0)
+                        _modPackRamManual.Value = 0;
+
+                    if (e != null)
+                    {
+                        _modPackRamSlider.Value = (double)(e.NewValue == null ? 0 : e.NewValue);
+                    }
+                }
+            };
+        }
         /*
         _windowWidth.ValueChanged += (_, e) => {
             if (e.NewValue < 0)
@@ -372,14 +401,22 @@ public class MainWindow : Window
                 _windowHeight.Value = 0;
         };
         */
-        _modPackRamSlider.PropertyChanged += (_, _) => {
-            if (_modPackRamSlider.Value % 1 != 0)
-                _modPackRamSlider.Value = Math.Floor(_modPackRamSlider.Value);
-            // ReSharper disable once CompareOfFloatsByEqualityOperator
-            if (_modPackRamSlider.Value == _modPackRamManual.Value)
-                return;
-            _modPackRamManual.Value = _modPackRamSlider.Value;
-        };
+        if (_modPackRamSlider != null)
+        {
+            _modPackRamSlider.PropertyChanged += (_, _) =>
+            {
+                if (_modPackRamSlider.Value % 1 != 0)
+                    _modPackRamSlider.Value = Math.Floor(_modPackRamSlider.Value);
+                // ReSharper disable once CompareOfFloatsByEqualityOperator
+                if(_modPackRamManual == null)
+                {
+                    return;
+                }
+                if (_modPackRamSlider.Value == (double)(_modPackRamManual.Value == null?0:_modPackRamManual.Value))
+                    return;
+                _modPackRamManual.Value = (decimal?)_modPackRamSlider.Value;
+            };
+        }
         /*
         _modPacksCombo.SelectionChanged += (_, e) => {
             var modPack = (LauncherConfig.ModPack?)_modPacksCombo.SelectedItem;
@@ -388,17 +425,16 @@ public class MainWindow : Window
             SaveConfig();
         };
         */
+        if (_launcherVersionTextBox != null)
+        {
+            _launcherVersionTextBox.Text = "Version: " + LauncherVersion.Value;
+        }
 
-        _launcherVersionTextBox.Text = "Version: " + LauncherVersion.Value;
-
-        //Process process = new Process();
-        //process.StartInfo.FileName = "cmd.exe";
-        //process.StartInfo.UseShellExecute = true;
-        //process.StartInfo.Arguments = "/start notepad.exe";
-        //process.Start();
-
-        //int pid = getpid();
-        //Console.WriteLine(pid);        
+        _uploadModpack = new UploadModpack();
+        if (_sharePanel != null)
+        {
+            _sharePanel.Children.Add(_uploadModpack);
+        }
     }
     #endregion
     #region LoadVersions()
@@ -513,16 +549,16 @@ public class MainWindow : Window
             Logger.Warning("Internet unavailable!");
             await Dispatcher.UIThread.InvokeAsync(() => {
                 var msBoxStandardWindow = MessageBoxManager
-                    .GetMessageBoxStandardWindow(new MessageBoxStandardParams
+                    .GetMessageBoxStandard(new MessageBoxStandardParams
                     {
-                        Icon = MessageBox.Avalonia.Enums.Icon.Warning,
+                        Icon = MsBox.Avalonia.Enums.Icon.Warning,
                         ButtonDefinitions = ButtonEnum.Ok,
                         ContentMessage = "Offline mode enabled - " +
                                          "integrity checks would be " +
                                          "skipped.",
                         ContentTitle = "No internet connection!"
                     });
-                msBoxStandardWindow.Show();
+                msBoxStandardWindow.ShowAsync();
             });
         }
         /*
@@ -773,7 +809,7 @@ public class MainWindow : Window
                                      "Settings would be reset " +
                                      "when you close and open " +
                                      "Blowaunch again.";
-            ShowMessage(ContentMessage, "An error occured!", ButtonEnum.Ok, MessageBox.Avalonia.Enums.Icon.Error).GetAwaiter();
+            ShowMessage(ContentMessage, "An error occured!", ButtonEnum.Ok, MsBox.Avalonia.Enums.Icon.Error).GetAwaiter();
         }
     }
     #endregion
@@ -824,28 +860,45 @@ public class MainWindow : Window
     private void ReloadAccounts()
     {
         Logger.Information("Loading accounts...");
-        _accountsCombo.Items = Config.Accounts.ToList();
+        //_accountsCombo.Items = Config.Accounts.ToList();
+        if (_accountsCombo != null)
+        {
+            _accountsCombo.ItemsSource = Config.Accounts.ToList();
+        }
         var account = Config.Accounts.Where(x => 
                 x.Id == Config.SelectedAccountId)
             .ToList();
-        if (account.Count == 0) {
-            _accountName.Text = "[No Account]";
-            _accountType.Text = "No authentication";
-            return;
-        }
-        
-        _accountsCombo.SelectedItem = account;
-        _accountName.Text = account[0].Name;
-        switch (account[0].Type) {
-            case Account.AuthType.Microsoft:
-                _accountType.Text = "Microsoft Account";
-                break;
-            case Account.AuthType.Mojang:
-                _accountType.Text = "Mojang Account";
-                break;
-            case Account.AuthType.None:
+        if (_accountName != null && _accountType != null)
+        {
+            if (account.Count == 0)
+            {
+                _accountName.Text = "[No Account]";
                 _accountType.Text = "No authentication";
-                break;
+                return;
+            }
+        }
+        if (_accountsCombo != null)
+        {
+            _accountsCombo.SelectedItem = account;
+        }
+        if (_accountName != null)
+        {
+            _accountName.Text = account[0].Name;
+        }
+        if (_accountType != null)
+        {
+            switch (account[0].Type)
+            {
+                case Account.AuthType.Microsoft:
+                    _accountType.Text = "Microsoft Account";
+                    break;
+                case Account.AuthType.Mojang:
+                    _accountType.Text = "Mojang Account";
+                    break;
+                case Account.AuthType.None:
+                    _accountType.Text = "No authentication";
+                    break;
+            }
         }
     }
 
@@ -863,27 +916,40 @@ public class MainWindow : Window
                 x.Id == Config.SelectedModPackId)
             .FirstOrDefault();
         //_modPacksCombo.SelectedItem = modpack;
+        if(_modPacksPanel == null)
+        {
+            Logger.Error("ModPacksPanel not init");
+            return;
+        }
         _modPacksPanel.Children.Clear();
         NewPackControl _addModpackItem = new NewPackControl();
         _modPacksPanel.Children.Add(_addModpackItem);
-        Button AddModPackBtn = _addModpackItem.Find<Button>("AddModPackBtn");
-        if (AddModPackBtn != null)
+        if (_addModpackItem != null)
         {
-            AddModPackBtn.Click += OnAddModPack!;
+            Button? AddModPackBtn = _addModpackItem.Find<Button>("AddModPackBtn");
+            if (AddModPackBtn != null)
+            {
+                AddModPackBtn.Click += OnAddModPack!;
+            }
         }
         for (int i = 0; i < Config.ModPacks.Count; i++)
         //foreach (var modPack in Config.ModPacks)
         {
-            Button eraseBtn;
-            Button changeBtn;
-            Image modPackImage;
+            Button? eraseBtn;
+            Button? changeBtn;
+            Image? modPackImage;
             // Так делать нельзя, надо переделать так чтобы не создавались новые объекты окна при создании контрола.
-            ModPackControl modpackItem = new ModPackControl(Config.ModPacks.ToArray()[i]);
+            ModPackControl? modpackItem = new ModPackControl(Config.ModPacks.ToArray()[i]);
 
             eraseBtn = modpackItem.Find<Button>("ModPackEraseBtn");
             changeBtn = modpackItem.Find<Button>("ModPackChangeBtn");
-            Button playBtn = modpackItem.Find<Button>("ModPackPlayBtn");
+            Button? playBtn = modpackItem.Find<Button>("ModPackPlayBtn");
             modPackImage = modpackItem.Find<Image>("ModPackImage");
+            if(eraseBtn == null || changeBtn == null || playBtn == null)
+            {
+                Logger.Error("Can't create modpack panel: modpack buttons is not inits");
+                return;
+            }
             eraseBtn.Name = "ModPackEraseBtn:" + Config.ModPacks.ToArray()[i].Id;
             changeBtn.Name = "ModPackChangeBtn:" + Config.ModPacks.ToArray()[i].Id;
             playBtn.Name = "ModPackPlayBtn:" + Config.ModPacks.ToArray()[i].Id;
@@ -901,14 +967,14 @@ public class MainWindow : Window
     }
     async public void OnEraseModPack(object sender, RoutedEventArgs e)
     {
-        var result = await ShowMessage("Erase also folder with modpack?", "Erasing modPack", ButtonEnum.YesNoAbort, MessageBox.Avalonia.Enums.Icon.Question);
+        var result = await ShowMessage("Erase also folder with modpack?", "Erasing modPack", ButtonEnum.YesNoAbort, MsBox.Avalonia.Enums.Icon.Question);
         var br1 = result;
         string id = (sender as Button)!.Name ?? "";
         string modPackId = string.IsNullOrEmpty(id.Split(':')[1]) ? "0" : id.Split(':')[1];
         switch (br1)
         {
             case ButtonResult.Yes:
-                if(await ShowMessage("All file in modpack folder will be lost,\n this operation can't undo", "You are sure?", ButtonEnum.YesNo, MessageBox.Avalonia.Enums.Icon.Question) == ButtonResult.Yes) {
+                if(await ShowMessage("All file in modpack folder will be lost,\n this operation can't undo", "You are sure?", ButtonEnum.YesNo, MsBox.Avalonia.Enums.Icon.Question) == ButtonResult.Yes) {
                     if (modPackId != null)
                     {
                         LauncherConfig.ModPack mp = modPackId == "0" ? new ModPack() : Config.ModPacks.Where(m => m.Id == modPackId).FirstOrDefault()!;
@@ -917,7 +983,7 @@ public class MainWindow : Window
                             System.IO.DirectoryInfo di = new DirectoryInfo(mp.PackPath);
                             if (!di.Exists)
                             {
-                                await ShowMessage("modpack directory not exist", "Error", ButtonEnum.Ok, MessageBox.Avalonia.Enums.Icon.Warning);
+                                await ShowMessage("modpack directory not exist", "Error", ButtonEnum.Ok, MsBox.Avalonia.Enums.Icon.Warning);
                                 OnEraseModPack(modPackId!);
                                 return;
                             }
@@ -971,17 +1037,17 @@ public class MainWindow : Window
 
     public async void OnPlayModPack(object sender, RoutedEventArgs e)
     {
-        if (_progressPanel.IsVisible)
+        if (_progressPanel != null && _progressPanel.IsVisible)
         {
             var msBoxStandardWindow = MessageBoxManager
-                .GetMessageBoxStandardWindow(new MessageBoxStandardParams
+                .GetMessageBoxStandard(new MessageBoxStandardParams
                 {
-                    Icon = MessageBox.Avalonia.Enums.Icon.Error,
+                    Icon = MsBox.Avalonia.Enums.Icon.Error,
                     ButtonDefinitions = ButtonEnum.Ok,
                     ContentMessage = "An operation is active at the time!",
                     ContentTitle = "Error"
                 });
-            await msBoxStandardWindow.Show();
+            await msBoxStandardWindow.ShowAsync();
             return;
         }
         bool online = true;
@@ -1026,12 +1092,17 @@ public class MainWindow : Window
     /// </summary>
     public void DeleteAccount(object? sender, RoutedEventArgs e)
     {
-        var item = _accountsCombo.SelectedItem as Account;
-        if (Config.SelectedAccountId == item!.Id)
-            Config.SelectedAccountId = "";
-        _accountsCombo.SelectedIndex = 0;
-        Config.Accounts.Remove(item);
-        SaveConfig(); ReloadAccounts();
+        if (_accountsCombo != null)
+        {
+            var item = _accountsCombo.SelectedItem as Account;
+            if (Config.SelectedAccountId == item!.Id)
+                Config.SelectedAccountId = "";
+            _accountsCombo.SelectedIndex = 0;
+            Config.Accounts.Remove(item);
+            SaveConfig(); ReloadAccounts();
+            return;
+        }
+        Logger.Error("Can't erase account becouse _accountsCombo is absent");
     }
 
     /// <summary>
@@ -1039,21 +1110,29 @@ public class MainWindow : Window
     /// </summary>
     public void SelectAccount(object? sender, RoutedEventArgs e)
     {
-        if (_accountsCombo.SelectedItem is not Account item) {
-            var msBoxStandardWindow = MessageBoxManager
-                .GetMessageBoxStandardWindow(new MessageBoxStandardParams{
-                    Icon = MessageBox.Avalonia.Enums.Icon.Error,
-                    ButtonDefinitions = ButtonEnum.Ok,
-                    ContentMessage = "Select an account first!",
-                    ContentTitle = "Error"
-                });
-            msBoxStandardWindow.Show();
-            return;
+        if (_accountsCombo != null)
+        {
+            if (_accountsCombo.SelectedItem is not Account item)
+            {
+                var msBoxStandardWindow = MessageBoxManager
+                    .GetMessageBoxStandard(new MessageBoxStandardParams
+                    {
+                        Icon = MsBox.Avalonia.Enums.Icon.Error,
+                        ButtonDefinitions = ButtonEnum.Ok,
+                        ContentMessage = "Select an account first!",
+                        ContentTitle = "Error"
+                    });
+                msBoxStandardWindow.ShowAsync();
+                return;
+            }
+            Config.SelectedAccountId = item.Id;
+            //Config.Account.Name = item.Name;
+            SaveConfig(); ReloadAccounts();
+            if (_authPanel != null)
+            {
+                _authPanel.IsVisible = false;
+            }
         }
-        Config.SelectedAccountId = item.Id;
-        //Config.Account.Name = item.Name;
-        SaveConfig(); ReloadAccounts();
-        _authPanel.IsVisible = false;
     }
     
     /// <summary>
@@ -1061,104 +1140,112 @@ public class MainWindow : Window
     /// </summary>
     public void CrackedLogin(object? sender, RoutedEventArgs e)
     {
-        if(_usernameCracked.Text == null || _usernameCracked.Text.Length <= 0)
+        if (_usernameCracked != null && _usernameCracked != null)
         {
-            ShowMessage("Empty nickname is not allowed", "Error", ButtonEnum.Ok, MessageBox.Avalonia.Enums.Icon.Error).GetAwaiter();
-            return;
-        }
-        Logger.Information("Adding cracked account...");
-        Config.Accounts.Add(new Account {
-           Type = Account.AuthType.None,
-           Name = _usernameCracked.Text,
-           Id = Guid.NewGuid().ToString(),
-           Uuid =  MainDownloader.GetUUID(_usernameCracked.Text)
-        });
-
-        if (_usernameCracked.Text == null || _usernameCracked.Text.Length <= 0)
-        {
-            ShowMessage("Empty nickname is not allowed", "Error", ButtonEnum.Ok, MessageBox.Avalonia.Enums.Icon.Error).GetAwaiter();
-            return;
-        }
-
-        Logger.Information("Successfully logged in!");
-        SaveConfig(); ReloadAccounts();
-        
-        var msBoxStandardWindow = MessageBoxManager
-            .GetMessageBoxStandardWindow(new MessageBoxStandardParams{
-                Icon = MessageBox.Avalonia.Enums.Icon.Success,
-                ButtonDefinitions = ButtonEnum.Ok,
-                ContentMessage = "Successfully created a Cracked account!",
-                ContentTitle = "Success"
+            if (_usernameCracked.Text == null || _usernameCracked.Text.Length <= 0)
+            {
+                ShowMessage("Empty nickname is not allowed", "Error", ButtonEnum.Ok, MsBox.Avalonia.Enums.Icon.Error).GetAwaiter();
+                return;
+            }
+            Logger.Information("Adding cracked account...");
+            Config.Accounts.Add(new Account
+            {
+                Type = Account.AuthType.None,
+                Name = _usernameCracked.Text,
+                Id = Guid.NewGuid().ToString(),
+                Uuid = MainDownloader.GetUUID(_usernameCracked.Text)
             });
-        msBoxStandardWindow.Show();
+
+            if (_usernameCracked.Text == null || _usernameCracked.Text.Length <= 0)
+            {
+                ShowMessage("Empty nickname is not allowed", "Error", ButtonEnum.Ok, MsBox.Avalonia.Enums.Icon.Error).GetAwaiter();
+                return;
+            }
+
+            Logger.Information("Successfully logged in!");
+            SaveConfig(); ReloadAccounts();
+
+            var msBoxStandardWindow = MessageBoxManager
+                .GetMessageBoxStandard(new MessageBoxStandardParams
+                {
+                    Icon = MsBox.Avalonia.Enums.Icon.Success,
+                    ButtonDefinitions = ButtonEnum.Ok,
+                    ContentMessage = "Successfully created a Cracked account!",
+                    ContentTitle = "Success"
+                });
+            msBoxStandardWindow.ShowAsync();
+        }
     }
-    
+
     /// <summary>
     /// Login into Microsoft account
     /// </summary>
     public void MicrosoftLogin(object? sender, RoutedEventArgs e)
     {
-        Logger.Information("Starting Microsoft OAuth2 listener...");
-        try {
-            Library.Authentication.Microsoft.OpenLoginPage();
-            Library.Authentication.Microsoft.StartListener(
-                async acc => await Dispatcher.UIThread
-                    .InvokeAsync(() => {
-                        _microsoftLoginButton.IsVisible = true;
-                        _progressPanel.IsVisible = false;
-                        _progressInfo.Text = "";
-                        acc.Id = Guid.NewGuid().ToString();
-                        Config.Accounts.Add(acc);
-        
-                        Logger.Information("Successfully logged in!");
-                        SaveConfig(); ReloadAccounts();
-        
-                        var msBoxStandardWindow1 = MessageBoxManager
-                            .GetMessageBoxStandardWindow(new MessageBoxStandardParams{
-                                Icon = MessageBox.Avalonia.Enums.Icon.Success,
-                                ButtonDefinitions = ButtonEnum.Ok,
-                                ContentMessage = "Successfully logged into your Minecraft account!",
-                                ContentTitle = "Success"
-                            });
-                        msBoxStandardWindow1.Show();
-                    }), async ex => await Dispatcher.UIThread
-                    .InvokeAsync(() => {
-                        _microsoftLoginButton.IsVisible = true;
-                        _progressPanel.IsVisible = false;
-                        _progressInfo.Text = "";
-                        var msBoxStandardWindow = MessageBoxManager
-                            .GetMessageBoxStandardWindow(new MessageBoxStandardParams{
-                                Icon = MessageBox.Avalonia.Enums.Icon.Error,
-                                ButtonDefinitions = ButtonEnum.Ok,
-                                ContentMessage = ex.Message,
-                            ContentTitle = ex.GetType().Name
-                        });
-                        msBoxStandardWindow.Show();
-                }), async (str, c) => await Dispatcher.UIThread
-                    .InvokeAsync(() => {
-                        if (c == -1)
-                            _progressBar.IsIndeterminate = true;
-                        else {
-                            _progressFiles.Text = $"Step {c + 1} out of 5";
-                            _progressBar.IsIndeterminate = false;
-                            _progressBar.Value = c;
-                        }
-                        _progressInfo.Text = str;
-                    }));
-            _microsoftLoginButton.IsVisible = false;
-            _progressFiles.Text = "Step 1 out of 5";
-            _progressPanel.IsVisible = true;
-            _progressBar.Maximum = 4;
-        } catch (Exception ex) {
-            Logger.Error("An error occured: {0}", ex);
-            var msBoxStandardWindow = MessageBoxManager
-                .GetMessageBoxStandardWindow(new MessageBoxStandardParams{
-                    Icon = MessageBox.Avalonia.Enums.Icon.Error,
-                    ButtonDefinitions = ButtonEnum.Ok,
-                    ContentMessage = ex.Message,
-                    ContentTitle = ex.GetType().Name
-                });
-            msBoxStandardWindow.Show();
+        if (_microsoftLoginButton != null && _progressPanel != null && _progressInfo != null && _progressFiles != null && _progressBar != null)
+        {
+            Logger.Information("Starting Microsoft OAuth2 listener...");
+            try {
+                Library.Authentication.Microsoft.OpenLoginPage();
+                    Library.Authentication.Microsoft.StartListener(
+                        async acc => await Dispatcher.UIThread
+                            .InvokeAsync(() => {
+                                _microsoftLoginButton.IsVisible = true;
+                                _progressPanel.IsVisible = false;
+                                _progressInfo.Text = "";
+                                acc.Id = Guid.NewGuid().ToString();
+                                Config.Accounts.Add(acc);
+
+                                Logger.Information("Successfully logged in!");
+                                SaveConfig(); ReloadAccounts();
+
+                                var msBoxStandardWindow1 = MessageBoxManager
+                                    .GetMessageBoxStandard(new MessageBoxStandardParams {
+                                        Icon = MsBox.Avalonia.Enums.Icon.Success,
+                                        ButtonDefinitions = ButtonEnum.Ok,
+                                        ContentMessage = "Successfully logged into your Minecraft account!",
+                                        ContentTitle = "Success"
+                                    });
+                                msBoxStandardWindow1.ShowAsync();
+                            }), async ex => await Dispatcher.UIThread
+                            .InvokeAsync(() => {
+                                _microsoftLoginButton.IsVisible = true;
+                                _progressPanel.IsVisible = false;
+                                _progressInfo.Text = "";
+                                var msBoxStandardWindow = MessageBoxManager
+                                    .GetMessageBoxStandard(new MessageBoxStandardParams {
+                                        Icon = MsBox.Avalonia.Enums.Icon.Error,
+                                        ButtonDefinitions = ButtonEnum.Ok,
+                                        ContentMessage = ex.Message,
+                                        ContentTitle = ex.GetType().Name
+                                    });
+                                msBoxStandardWindow.ShowAsync();
+                            }), async (str, c) => await Dispatcher.UIThread
+                            .InvokeAsync(() => {
+                                if (c == -1)
+                                    _progressBar.IsIndeterminate = true;
+                                else {
+                                    _progressFiles.Text = $"Step {c + 1} out of 5";
+                                    _progressBar.IsIndeterminate = false;
+                                    _progressBar.Value = c;
+                                }
+                                _progressInfo.Text = str;
+                            }));
+                    _microsoftLoginButton.IsVisible = false;
+                    _progressFiles.Text = "Step 1 out of 5";
+                    _progressPanel.IsVisible = true;
+                    _progressBar.Maximum = 4;
+                } catch (Exception ex) {
+                Logger.Error("An error occured: {0}", ex);
+                var msBoxStandardWindow = MessageBoxManager
+                    .GetMessageBoxStandard(new MessageBoxStandardParams {
+                        Icon = MsBox.Avalonia.Enums.Icon.Error,
+                        ButtonDefinitions = ButtonEnum.Ok,
+                        ContentMessage = ex.Message,
+                        ContentTitle = ex.GetType().Name
+                    });
+                msBoxStandardWindow.ShowAsync();
+            }
         }
     }
 
@@ -1167,53 +1254,73 @@ public class MainWindow : Window
     /// </summary>
     public void MojangLogin(object? sender, RoutedEventArgs e)
     {
-        _mojangLoginButton.IsVisible = false;
-        _progressBar.IsIndeterminate = true;
-        _progressInfo.Text = "Logging in...";
-        _progressFiles.Text = "Step 1 out of 1";
-        _progressPanel.IsVisible = true;
-        new Thread(async () => {
-            try {
-                Logger.Information("Adding Mojang account...");
-                var account = Mojang.Login(_usernameMojang.Text,
-                    _passwordMojang.Text);
-                account.Id = Guid.NewGuid().ToString();
-                Config.Accounts.Add(account);
-            
-                Logger.Information("Successfully logged in!");
-                await Dispatcher.UIThread.InvokeAsync(() => {
-                    SaveConfig(); ReloadAccounts();
-                    _progressBar.IsIndeterminate = false;
-                    _mojangLoginButton.IsVisible = true;
-                    _progressPanel.IsVisible = false;
-                    _progressInfo.Text = "";
-                    var msBoxStandardWindow1 = MessageBoxManager
-                        .GetMessageBoxStandardWindow(new MessageBoxStandardParams{
-                            Icon = MessageBox.Avalonia.Enums.Icon.Success,
-                            ButtonDefinitions = ButtonEnum.Ok,
-                            ContentMessage = "Successfully logged into your Minecraft account!",
-                            ContentTitle = "Success"
-                        });
-                    msBoxStandardWindow1.Show();
-                });
-            } catch (Exception ex) {
-                Logger.Error("An error occured: {0}", ex);
-                await Dispatcher.UIThread.InvokeAsync(() => {
-                    _progressBar.IsIndeterminate = false;
-                    _mojangLoginButton.IsVisible = true;
-                    _progressPanel.IsVisible = false;
-                    _progressInfo.Text = "";
-                    var msBoxStandardWindow = MessageBoxManager
-                        .GetMessageBoxStandardWindow(new MessageBoxStandardParams {
-                            Icon = MessageBox.Avalonia.Enums.Icon.Error,
-                            ButtonDefinitions = ButtonEnum.Ok,
-                            ContentMessage = ex.Message,
-                            ContentTitle = ex.GetType().Name
-                        });
-                    msBoxStandardWindow.Show();
-                });
+        if (_usernameMojang != null && _passwordMojang != null)
+        {
+            if (_mojangLoginButton != null && _progressBar != null && _progressInfo != null && _progressFiles != null && _progressPanel != null)
+            {
+                _mojangLoginButton.IsVisible = false;
+                _progressBar.IsIndeterminate = true;
+                _progressInfo.Text = "Logging in...";
+                _progressFiles.Text = "Step 1 out of 1";
+                _progressPanel.IsVisible = true;
             }
-        }).Start();
+            new Thread(async () =>
+            {
+                try
+                {
+                    Logger.Information("Adding Mojang account...");
+                    var account = Mojang.Login(_usernameMojang.Text,
+                        _passwordMojang.Text);
+                    account.Id = Guid.NewGuid().ToString();
+                    Config.Accounts.Add(account);
+
+                    Logger.Information("Successfully logged in!");
+                    await Dispatcher.UIThread.InvokeAsync(() =>
+                    {
+                        SaveConfig(); ReloadAccounts();
+                        if (_mojangLoginButton != null && _progressBar != null && _progressInfo != null && _progressFiles != null && _progressPanel != null)
+                        {
+                            _progressBar.IsIndeterminate = false;
+                            _mojangLoginButton.IsVisible = true;
+                            _progressPanel.IsVisible = false;
+                            _progressInfo.Text = "";
+                        }
+                        var msBoxStandardWindow1 = MessageBoxManager
+                            .GetMessageBoxStandard(new MessageBoxStandardParams
+                            {
+                                Icon = MsBox.Avalonia.Enums.Icon.Success,
+                                ButtonDefinitions = ButtonEnum.Ok,
+                                ContentMessage = "Successfully logged into your Minecraft account!",
+                                ContentTitle = "Success"
+                            });
+                        msBoxStandardWindow1.ShowAsync();
+                    });
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error("An error occured: {0}", ex);
+                    await Dispatcher.UIThread.InvokeAsync(() =>
+                    {
+                        if (_mojangLoginButton != null && _progressBar != null && _progressInfo != null && _progressFiles != null && _progressPanel != null)
+                        {
+                            _progressBar.IsIndeterminate = false;
+                            _mojangLoginButton.IsVisible = true;
+                            _progressPanel.IsVisible = false;
+                            _progressInfo.Text = "";
+                        }
+                        var msBoxStandardWindow = MessageBoxManager
+                            .GetMessageBoxStandard(new MessageBoxStandardParams
+                            {
+                                Icon = MsBox.Avalonia.Enums.Icon.Error,
+                                ButtonDefinitions = ButtonEnum.Ok,
+                                ContentMessage = ex.Message,
+                                ContentTitle = ex.GetType().Name
+                            });
+                        msBoxStandardWindow.ShowAsync();
+                    });
+                }
+            }).Start();
+        }
     }
     #endregion
     #region Settings
@@ -1232,19 +1339,32 @@ public class MainWindow : Window
         //    x => (long)x.Capacity) / 1000000;
         //_ramManual.Value = int.Parse(Config.RamMax);
         //_ramSlider.Value = int.Parse(Config.RamMax);
-        _showSnaphots.IsChecked = Config.ShowSnapshots;
-        _showAlpha.IsChecked = Config.ShowAlpha;
-        _showBeta.IsChecked = Config.ShowBeta;
+        if (_showSnaphots != null)
+        {
+            _showSnaphots.IsChecked = Config.ShowSnapshots;
+        }
+        if (_showAlpha != null)
+        {
+            _showAlpha.IsChecked = Config.ShowAlpha;
+        }
+        if (_showBeta != null)
+        {
+            _showBeta.IsChecked = Config.ShowBeta;
+        }
         //_forceOffline.IsChecked = Config.ForceOffline;
         //_minecraftDemo.IsChecked = Config.DemoUser;
 
         //_modPackRamSlider.Maximum = _info.MemoryList.Sum( x => (long)x.Capacity) / 1000000;
-        _modPackRamSlider.Maximum = GetMaxMemory();
+        if (_modPackRamSlider != null)
+        {
+            _modPackRamSlider.Maximum = GetMaxMemory();
+        }
         //_modPackRamManual.Value = int.Parse(Config.RamMax);
         //_modPackRamSlider.Value = int.Parse(Config.RamMax);
-
-        _settingsForgeLast.IsChecked = Config.MainSettings.DownloadLastVersionForge;
-
+        if (_settingsForgeLast != null)
+        {
+            _settingsForgeLast.IsChecked = Config.MainSettings.DownloadLastVersionForge;
+        }
         //if (Config.ForceOffline)
         //    OfflineMode = true;
     }
@@ -1252,23 +1372,28 @@ public class MainWindow : Window
     /// <summary>
     /// Reloads settings
     /// </summary>
-    public void RevertChanges(object? sender, RoutedEventArgs e)
+    public void RevertChangesHandler(object? sender, RoutedEventArgs e)
         => LoadSettings();
 
     /// <summary>
     /// Save settings
     /// </summary>
-    public void SaveChanges(object? sender, RoutedEventArgs e)
+    public void SaveChangesHandler(object? sender, RoutedEventArgs e)
     {
-        Logger.Information("Saving settings...");
-        Config.MainSettings.DownloadLastVersionForge = _settingsForgeLast.IsChecked ?? false;
-        SaveConfig();
+        if (_settingsForgeLast != null)
+        {
+            Logger.Information("Saving settings...");
+            Config.MainSettings.DownloadLastVersionForge = _settingsForgeLast.IsChecked ?? false;
+            SaveConfig();
+            return;
+        }
+        Logger.Error("_settingsForgeLast is empty"); 
     }
 
     /// <summary>
     /// Save instance
     /// </summary>
-    async public void ModPackSaveChanges(object? sender, RoutedEventArgs e)
+    async public void ModPackSaveChangesHandler(object? sender, RoutedEventArgs e)
     {
         string id = ModpackId;
         //string id = _modPackId.Text;
@@ -1279,42 +1404,73 @@ public class MainWindow : Window
         }
 
         LauncherConfig.ModPack modpackConfig = new LauncherConfig.ModPack();
-        if (_modPackVersionsCombo.SelectedItem is LauncherConfig.VersionClass)
+        if (Config != null && Config.ModPacks != null && Config.ModPacks.Count() > 0)
         {
-            LauncherConfig.VersionClass version = (LauncherConfig.VersionClass)_modPackVersionsCombo.SelectedItem;
-            modpackConfig.ModProxyVersion = ModProxyVersionInModal;
-            if (!version.Name.Equals(modpackConfig.Version.Name))
+            modpackConfig = Config.ModPacks.Where(m => m.Id == id).FirstOrDefault(new LauncherConfig.ModPack());
+        }
+
+        //if(modpackConfig == null)
+        //{
+        //    Logger.Warning("Modpack in config on save is enmpty");
+        //    modpackConfig = new LauncherConfig.ModPack();
+        //}
+        if (_modPackVersionsCombo != null)
+        {
+            if (_modPackVersionsCombo.SelectedItem is LauncherConfig.VersionClass)
             {
-                if(modpackConfig.ModProxyVersion == null)
+                LauncherConfig.VersionClass version = (LauncherConfig.VersionClass)_modPackVersionsCombo.SelectedItem;
+                if (modpackConfig != null)
                 {
-                    modpackConfig.ModProxyVersion = new Versions();
+                    modpackConfig.ModProxyVersion = ModProxyVersionInModal;
+                    //if (!version.Name.Equals(modpackConfig.Version.Name))
+                    if (!version.Name.Equals(modpackConfig.Version.Name))
+                    {
+                        if (modpackConfig.ModProxyVersion == null)
+                        {
+                            modpackConfig.ModProxyVersion = new Versions();
+                        }
+                        modpackConfig.ModProxyVersion.Installed = false;
+                    }
+                    modpackConfig.Version = (LauncherConfig.VersionClass)_modPackVersionsCombo.SelectedItem;
                 }
-                modpackConfig.ModProxyVersion.Installed = false;
             }
-            modpackConfig.Version = (LauncherConfig.VersionClass)_modPackVersionsCombo.SelectedItem;
         }
 
         Logger.Information("Saving instance settings...");
-        modpackConfig.CustomWindowSize = _modPackCustomWindowSize.IsChecked!.Value;
-        modpackConfig.WindowSize = new Vector2(
-            (int)_modPackWindowWidth.Value,
-            (int)_modPackWindowHeight.Value);
-        modpackConfig.JvmArgs = _modPackJavaArguments.Text;
-        modpackConfig.GameArgs = _modPackGameArguments.Text;
-        modpackConfig.RamMax = _modPackRamManual.Value.ToString(CultureInfo.InvariantCulture);
+        if(modpackConfig == null)
+        {
+            modpackConfig = new LauncherConfig.ModPack();
+        }
+        if (_modPackCustomWindowSize != null)
+        {
+            modpackConfig.CustomWindowSize = _modPackCustomWindowSize.IsChecked!.Value;
+        }
+        if (_modPackWindowWidth != null)
+        {
+            modpackConfig.WindowSize = new Vector2(
+                (int)_modPackWindowWidth!.Value!,
+                (int)_modPackWindowHeight!.Value!);
+        }
         
+
+        modpackConfig.JvmArgs = _modPackJavaArguments!.Text;
+        modpackConfig.GameArgs = _modPackGameArguments!.Text;
+        //modpackConfig.RamMax = _modPackRamManual.Value.ToString(CultureInfo.InvariantCulture);
+        modpackConfig.RamMax = _modPackRamManual!.Value.ToString();
+
         modpackConfig.Id = id;
-        modpackConfig.Name = _modPackName.Text;
-        modpackConfig.RamMax = _modPackRamSlider.Value.ToString(CultureInfo.InvariantCulture);
-        modpackConfig.PackPath = _modPackPathInstance.Text;
-        modpackConfig.ForceOffline = _forceOffline.IsChecked!.Value;
-        modpackConfig.DemoUser =  _minecraftDemo.IsChecked!.Value;
-        modpackConfig.WholeDataInFolder = _wholeDataInFolder.IsChecked!.Value;
+        modpackConfig.Name = _modPackName!.Text;
+        modpackConfig.RamMax = _modPackRamSlider!.Value.ToString(CultureInfo.InvariantCulture);
+        modpackConfig.PackPath = _modPackPathInstance!.Text;
+        modpackConfig.ForceOffline = _forceOffline!.IsChecked!.Value;
+        modpackConfig.DemoUser =  _minecraftDemo!.IsChecked!.Value;
+        modpackConfig.WholeDataInFolder = _wholeDataInFolder!.IsChecked!.Value;
 
         //var modEngine = _modPackModProxyCombo.Items.(_modPackModProxyCombo.SelectedIndex);
-        var cb = (ComboBoxItem?)_modPackModProxyCombo.SelectedItem;
+        var cb = (ComboBoxItem?)_modPackModProxyCombo!.SelectedItem;
+
         if(cb != null)
-            modpackConfig.ModProxy = ((TextBlock)(cb).Content).Text.ToString();
+            modpackConfig.ModProxy = ((TextBlock)(cb).Content!).Text!.ToString();
         if (modpackConfig.ModProxy.Equals("Forge"))
         {
             ProgressModal("Please wait", modpackConfig.Version.Id, "Checking minecraft forge version exist");
@@ -1349,21 +1505,25 @@ public class MainWindow : Window
         SaveConfig();
         ReloadModPacks();
 
-        _loadingPanel.IsVisible = true;
-        _progressPanel.IsVisible = true;
-        _progressBar.IsIndeterminate = true;
+        if (_loadingPanel != null && _progressPanel != null && _progressBar != null)
+        {
+            _loadingPanel.IsVisible = true;
+            _progressPanel.IsVisible = true;
+            _progressBar.IsIndeterminate = true;
+        }
 
         new Thread(async () => {
             await Dispatcher.UIThread.InvokeAsync(() => {
-                _progressInfo.Text = "Loading versions...";
-                _progressFiles.Text = "Step 1 out of 1";
+                _progressInfo!.Text = "Loading versions...";
+                _progressFiles!.Text = "Step 1 out of 1";
             });
             await LoadVersions();
             await Dispatcher.UIThread.InvokeAsync(() => {
-                _loadingPanel.IsVisible = false;
-                _progressPanel.IsVisible = false;
-                _progressBar.IsIndeterminate = false;
-                _modPackPanel.IsVisible = false;
+                _loadingPanel!.IsVisible = false;
+                _progressPanel!.IsVisible = false;
+                _progressBar!.IsIndeterminate = false;
+                _modPackPanel!.IsVisible = false;
+                _sharePanel!.IsVisible = false;
             });
         }).Start();
     }
@@ -1450,16 +1610,16 @@ public class MainWindow : Window
     /// Close authentication panel
     /// </summary>
     public void CloseAuthPanel(object? sender, RoutedEventArgs e)
-        => _authPanel.IsVisible = false;
+        => _authPanel!.IsVisible = false;
 
     public void CloseModProxyPanel(object? sender, RoutedEventArgs e)
-        => _modProxyPanel.IsVisible = false;
+        => _modProxyPanel!.IsVisible = false;
     
     /// <summary>
     /// Open authentication panel
     /// </summary>
     public void OpenAuthPanel(object? sender, RoutedEventArgs e)
-        => _authPanel.IsVisible = true;
+        => _authPanel!.IsVisible = true;
 
     /*
     /// <summary>
@@ -1489,7 +1649,45 @@ public class MainWindow : Window
 
     public async void ShareModPack(object? sender, RoutedEventArgs e)
     {
+        ModPack? modpack = Config.ModPacks.Find(mp => mp.Id == ModpackId);
+        // This code bottom need transfer to library project in future 
+        if (modpack != null)
+        {
+            _uploadModpack!._shareBorder!.IsVisible = true;
+            _modPackPanel!.IsVisible = false;
+            _sharePanel!.IsVisible = true;
+            //TODO: Selector types of share file: ftp, ssh, http, torrent, option, download source and so on.
+            // Save this info to sharefile 
+            var shareFile =  new ExportFileParams();
+            if (!Directory.Exists(modpack.PackPath))
+            {
+                await ShowMessage("Instance path not found","Error");
+                return;
+            }
+            shareFile.Account = new ExportFileParams.ShareAccount();
+            shareFile.InstanceUUID = modpack.Id;
+            // Temporary hardcoded created Account data
+            shareFile.Account.Server = "files.mpa8.ru";
+            shareFile.Account.Password = "32";
+            shareFile.Account.Login = "d";
+            shareFile.Account.NeedAuth = true;
+            shareFile.Account.UploadThrough = ExportFileParams.ShareType.Ssh;
+            shareFile.Type = ExportFileParams.ShareType.Http;
+            // Url must be destination to modpack file, but for now we'll do it this way (test purposes)
+            shareFile.Url = $"{shareFile.Account.Server}/temp/share.json";
 
+            string filePath = Path.Combine(modpack.PackPath, $"share.json");
+
+            File.WriteAllText(filePath, JsonConvert.SerializeObject(shareFile));
+            return;
+            //var ftp = new FTP();
+            //ftp.UploadFile(filePath, shareFile.Account.Server,  (int i) => { Console.WriteLine(i); }, new NetworkCredential() {
+            //    UserName = shareFile.Account.Login,
+            //    Password = shareFile.Account.Password
+            //});
+            
+            //GZip.Compress(new FileInfo() { modpack.PackPath });
+        }
     }
 
     public async void OpenPathDirectory(object? sender, RoutedEventArgs e)
@@ -1498,10 +1696,10 @@ public class MainWindow : Window
         ModPack? modpack = Config.ModPacks.Find(mp => mp.Id == ModpackId) ?? new ModPack();
         var dialog = new OpenFolderDialog() { Directory = modpack?.PackPath, Title = "Select modpack instance folder" };
         var prevFolder = modpack!.PackPath;
-        string dialogPath = await dialog.ShowAsync(this);
+        string? dialogPath = await dialog.ShowAsync(this);
         if (string.IsNullOrEmpty(dialogPath)) return;
-        _modPackPathInstance.Text = dialogPath;
-        if (!prevFolder.Equals(_modPackPathInstance.Text) && ModProxyVersionInModal != null)
+        _modPackPathInstance!.Text = dialogPath;
+        if (!prevFolder.Equals(_modPackPathInstance!.Text) && ModProxyVersionInModal != null)
         //if (!prevFolder.Equals(_modPackPathInstance.Text))
         {
             ModProxyVersionInModal.Installed = false;
@@ -1520,7 +1718,7 @@ public class MainWindow : Window
     /// Close Modpack panel
     /// </summary>
     public void CloseModPackPanel(object? sender, RoutedEventArgs e)
-        => _modPackPanel.IsVisible = false;
+        => _modPackPanel!.IsVisible = false;
 
     /*
     /// <summary>
@@ -1650,13 +1848,19 @@ public class MainWindow : Window
     }
     */
     public void OpenModpackPanel(string ModPackId)
-    {
+    {  
+        //_shareModPackMenu.ContextRequested += ModpackContextMenuHandler;
+
         //if (ModPackId != null && ModPackId != "")
         //{
         LauncherConfig.ModPack modPack = Config.ModPacks.Find(mp => mp.Id == ModPackId) ?? new LauncherConfig.ModPack();
         int index = 1;
         string? id = ModPackId == null ? Guid.NewGuid().ToString() : modPack.Id;
         //_modPackId.Text = id == "New Instance" ? "0" : id;
+        if (modPack != null)
+        {
+            ModpackAddShareIstances(modPack);
+        }
         if (modPack.ModProxy != "")
         {
             //ProxyComboBoxOnChangeEnable = false;
@@ -1665,16 +1869,17 @@ public class MainWindow : Window
             //ShowModPackVersions(modPack, modPack.ModProxy);
             if (proxyIndex != -1)
             {
-                _modPackModProxyCombo.SelectedIndex = proxyIndex;
+                _modPackModProxyCombo!.SelectedIndex = proxyIndex;
             }
         }
-        _modPackName.Text = modPack.Name;
-        _modPackRamSlider.Value = Convert.ToDouble(modPack.RamMax);
-        _modPackPathInstance.Text = modPack.PackPath;
-        _forceOffline.IsChecked = modPack.ForceOffline;
-        _minecraftDemo.IsChecked = modPack.DemoUser; // Config.DemoUser;
-        _wholeDataInFolder.IsChecked = modPack.WholeDataInFolder;
+        _modPackName!.Text = modPack.Name;
+        _modPackRamSlider!.Value = Convert.ToDouble(modPack.RamMax);
+        _modPackPathInstance!.Text = modPack.PackPath;
+        _forceOffline!.IsChecked = modPack.ForceOffline;
+        _minecraftDemo!.IsChecked = modPack.DemoUser; // Config.DemoUser;
+        _wholeDataInFolder!.IsChecked = modPack.WholeDataInFolder;
         ModProxyVersionInModal = modPack.ModProxyVersion;
+
         //string id = (sender as Button)!.Name ?? "";
         //var mp = Config.ModPacks.Find(x => x.Id == (id.Split(':')[1] ?? ""));
         ModpackId = id;
@@ -1683,28 +1888,38 @@ public class MainWindow : Window
         //_modPackVersionsCombo.SelectedItem = modPack.Version;
         //_modPackModProxyCombo.SelectedItem = modPack.ModProxy;
 
-        _modPackPanel.IsVisible = true;
+        _modPackPanel!.IsVisible = true;
         
-            var versionsClass = GetVersions();
-            if (versionsClass != null)
-            {
-                //if (id != "")
-                //{
-                    index = versionsClass.Versions.FindIndex(
-                        x => x.Id == modPack.Version.Id
-                             && x.Name == modPack.Version.Name);
-                //}
-                
-                Dispatcher.UIThread.InvokeAsync(() => {
-                    _modPackVersionsCombo.Items = versionsClass.Versions;
-                    _modPackVersionsCombo.SelectedIndex = index;
-                    //_modPackVersionsCombo.SelectedItem = modPack.Version;
-                    //if (_selectionChanged) return;
+        var versionsClass = GetVersions();
+        if (versionsClass != null)
+        {
+            //if (id != "")
+            //{
+                index = versionsClass.Versions.FindIndex(
+                    x => x.Id == modPack.Version.Id
+                            && x.Name == modPack.Version.Name);
+            //}
 
-                });
-            }
+            Dispatcher.UIThread.InvokeAsync(() => {
+            _modPackVersionsCombo!.Items.Clear();
+            _modPackVersionsCombo!.ItemsSource = new List<VersionClass>();
+            ((List<VersionClass>) _modPackVersionsCombo!.ItemsSource!).Clear();
+            _modPackVersionsCombo!.ItemsSource = versionsClass.Versions;
+            _modPackVersionsCombo!.SelectedIndex = index;
+                //_modPackVersionsCombo.SelectedItem = modPack.Version;
+                //if (_selectionChanged) return;
+
+            });
+        }
             
         //}
+    }
+
+    public async void ImportModPackInfo(object? sender, RoutedEventArgs e)
+    {
+        ModPack? modpack = Config.ModPacks.Find(mp => mp.Id == ModpackId);
+        
+
     }
 
     #endregion
@@ -1735,17 +1950,17 @@ public class MainWindow : Window
             ProgressModalDisable();
         }).Start();
         */
-        if (_progressPanel.IsVisible)
+        if (_progressPanel!.IsVisible)
         {
             var msBoxStandardWindow = MessageBoxManager
-                .GetMessageBoxStandardWindow(new MessageBoxStandardParams
+                .GetMessageBoxStandard(new MessageBoxStandardParams
                 {
-                    Icon = MessageBox.Avalonia.Enums.Icon.Error,
+                    Icon = MsBox.Avalonia.Enums.Icon.Error,
                     ButtonDefinitions = ButtonEnum.Ok,
                     ContentMessage = "An operation is active at the time!",
                     ContentTitle = "Error"
                 });
-            await msBoxStandardWindow.Show();
+            await msBoxStandardWindow.ShowAsync();
             return;
         }
         bool online = true;
@@ -1774,115 +1989,141 @@ public class MainWindow : Window
         ProgressModal("Starting", "please wait");
         int percent = 0;
         //var currentModpack = (LauncherConfig.ModPack?)_modPacksCombo.SelectedItem;
+        BlowaunchMainJson main = new();
+        if (currentModpack != null)
+        {
+            main = (MojangFetcher.GetMain(currentModpack.Version.Id));
+        }
+        Account? account = Config.Accounts.Find(x => x.Id == Config.SelectedAccountId);
+        BlowaunchAddonJson data = new BlowaunchAddonJson();
         if (currentModpack == null)
         {
             await ShowMessage("Please select modPack", "Error");
             return;
         }
-        BlowaunchMainJson main = (MojangFetcher.GetMain(currentModpack.Version.Id));
-        ProgressModal("Loading client", "please wait");
-        FilesManager.DownloadClient(currentModpack, main, online);
-        AnsiConsole.MarkupLine($"[grey] checking and downdloadeing needed libraries " + $"[/]");
-        int itemsDownloaded = 0;
-        
-        foreach (BlowaunchMainJson.JsonLibrary library in main.Libraries)
+        if (!currentModpack.ForceOffline)
         {
-            AnsiConsole.MarkupLine($"[grey] library {library.Name} " + $"[/]");
-            itemsDownloaded++;
-            percent = (int)((float)itemsDownloaded / main.Libraries.Length * 100);
-            //ProgressModal("Loading libraries...", percent + " %", (short)percent);
-            ProgressModal(library.Name, percent + " %", (short)percent, "Loading libraries...");
-            FilesManager.DownloadLibrary(library, currentModpack, online);
-        }
-        //Assets
-        var MojangJson = FilesManager.LoadMojangAssets(currentModpack, true, main);
-        BlowaunchAssetsJson assetsJson = BlowaunchAssetsJson.MojangToBlowaunch(MojangJson);
+            ProgressModal("Loading client", "please wait");
+            FilesManager.DownloadClient(currentModpack, main, online);
+            AnsiConsole.MarkupLine($"[grey] checking and downdloadeing needed libraries " + $"[/]");
+            int itemsDownloaded = 0;
 
-        for (int i = 0; i < assetsJson.Assets.Length; i++)
-        {
-            FilesManager.DownloadAsset(assetsJson.Assets[i], currentModpack, online);
-            percent = (int)((float)((int)i + 1) / assetsJson.Assets.Length * 100);
-            //ProgressModal("Loading assets...", (i + 1)  + " in " + assetsJson.Assets.Length + "(" + percent + " %)", (short)percent);
-            ProgressModal(assetsJson.Assets[i].Name, (i + 1) + " in " + assetsJson.Assets.Length + "(" + percent + " %)", (short)percent, "Loading assets...");
-        }
-        AnsiConsole.MarkupLine($"[yellow] downoading complete " + $"[/]");
-        ProgressModal("", "", "Loading Java");
-        JavaDownloadError javaDownloadResult = FilesManager.JavaDownload(main, null, currentModpack, online);
-        switch (javaDownloadResult)
-        {
-            case JavaDownloadError.OSIsNotSupported:
-                await ShowMessage("Your OS is not supported!", "Error");
-                return;
-            case JavaDownloadError.UnableToFindOpenJDK:
-                await ShowMessage("Please report it to us on the GitHub issues page.", "Unable to find OpenJDK version");
-                return;
-            default: break;
-        }
+            foreach (BlowaunchMainJson.JsonLibrary library in main.Libraries)
+            {
+                AnsiConsole.MarkupLine($"[grey] library {library.Name} " + $"[/]");
+                itemsDownloaded++;
+                percent = (int)((float)itemsDownloaded / main.Libraries.Length * 100);
+                //ProgressModal("Loading libraries...", percent + " %", (short)percent);
+                ProgressModal(library.Name, percent + " %", (short)percent, "Loading libraries...");
+                FilesManager.DownloadLibrary(library, currentModpack, online);
+            }
+            //Assets
+            var MojangJson = FilesManager.LoadMojangAssets(currentModpack, true, main);
+            BlowaunchAssetsJson assetsJson = BlowaunchAssetsJson.MojangToBlowaunch(MojangJson);
 
-        Account? account = Config.Accounts.Find(x => x.Id == Config.SelectedAccountId);
-        if (account == null)
+            for (int i = 0; i < assetsJson.Assets.Length; i++)
+            {
+                FilesManager.DownloadAsset(assetsJson.Assets[i], currentModpack, online);
+                percent = (int)((float)((int)i + 1) / assetsJson.Assets.Length * 100);
+                //ProgressModal("Loading assets...", (i + 1)  + " in " + assetsJson.Assets.Length + "(" + percent + " %)", (short)percent);
+                ProgressModal(assetsJson.Assets[i].Name, (i + 1) + " in " + assetsJson.Assets.Length + "(" + percent + " %)", (short)percent, "Loading assets...");
+            }
+            AnsiConsole.MarkupLine($"[yellow] downoading complete " + $"[/]");
+            ProgressModal("", "", "Loading Java");
+            JavaDownloadError javaDownloadResult = FilesManager.JavaDownload(main, null, currentModpack, online);
+            switch (javaDownloadResult)
+            {
+                case JavaDownloadError.OSIsNotSupported:
+                    await ShowMessage("Your OS is not supported!", "Error");
+                    return;
+                case JavaDownloadError.UnableToFindOpenJDK:
+                    await ShowMessage("Please report it to us on the GitHub issues page.", "Unable to find OpenJDK version");
+                    return;
+                default: break;
+            }
+
+            
+            if (account == null)
+            {
+                await ShowMessage("You need signup first", "Error");
+                return;
+            }
+
+            
+            ProgressModalDisable();
+            switch (currentModpack.ModProxy)
+            {
+                case "Forge":
+                    if (currentModpack.ForceOffline && (currentModpack.ModProxyVersion == null || !currentModpack.ModProxyVersion.Installed))
+                    {
+                        await ShowMessage("Offline mode and forge not installed, can't continue", "Error", ButtonEnum.Ok, MsBox.Avalonia.Enums.Icon.Error);
+                        return;
+                    }
+                    ProgressModal("Getting Forge", "please wait");
+                    if (currentModpack.ModProxyVersion == null || !currentModpack.ModProxyVersion.Installed || currentModpack.ModProxyVersion.Url == null)
+                    {
+                        currentModpack.ModProxyVersion = new Versions();
+                        currentModpack.ModProxyVersion.Url = ForgeThingy.GetLink(currentModpack.Version.Id, Config.MainSettings.DownloadLastVersionForge).GetAwaiter().GetResult();
+                        currentModpack.ModProxyVersion.mainVersion = currentModpack.Version.Id;
+                    }
+                    LauncherConfig.SaveModPackToConfig(Config, currentModpack);
+                    data = ForgeThingy.GetAddonJson(currentModpack, main, online);
+
+                    LauncherConfig.SaveConfig(Config);
+
+                    if (data == null && !main.Legacy)
+                    {
+                        await ShowMessage("Can't download forge in offline mode", "Critical error");
+                        return;
+                    }
+                    ProgressModal("Loading Forge", "please wait");
+                    if (Config.SelectedAccountId == null && Config.Accounts.Select(x => x.Id == Config.SelectedAccountId) != null)
+                    {
+                        //TODO: messageBox 
+                        return;
+                    }
+
+
+                    if (ForgeThingy.IsProcessorsExists(currentModpack, main.Version))
+                    {
+                        ProgressModal("starting processors", "", null);
+                    }
+                    //else
+                    //{
+                    ProgressModal("Game started, enjoy ;-)", "", null);
+                    //ForgeThingy.Run(main, data, acount, currentModpack.RamMax, currentModpack.CustomWindowSize, currentModpack.WindowSize.X, currentModpack.WindowSize.Y, online, currentModpack.PackPath);
+
+                    //}
+                    ProgressModal("Game started", "enjoy!");
+                    ProgressModalDisable();
+                    break;
+                    //FilesManager.DownloadForge(currentModpack.Version.Id, online);   
+            }
+
+            //var assembly = System.Reflection.Assembly.GetExecutingAssembly();
+            //if (assembly != null && assembly.GetName().Version != null)
+            //{
+            //    Version version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version!;
+            //    Console.WriteLine(version);
+            //}
+        }
+        else
         {
-            await ShowMessage("You need signup first", "Error");
+            if (currentModpack.ModProxy == "Forge" && currentModpack.ForceOffline && currentModpack.ModProxyVersion.Installed)
+            {
+                data = ForgeThingy.GetAddonJson(currentModpack, main, online);
+            }
+            else
+            {
+                await ShowMessage("Forge not installed, but selected", "Error");
+            }
+        }
+        var javaDir = Path.Combine(FilesManager.Directories.GetJavaRoot(currentModpack), main.JavaMajor.ToString());
+        if (!Directory.Exists(javaDir))
+        {
+            await ShowMessage("Can't find game folder", "Error");
             return;
         }
-
-        BlowaunchAddonJson data = new BlowaunchAddonJson();
-        ProgressModalDisable();
-        switch (currentModpack.ModProxy)
-        {
-            case "Forge":
-                if(currentModpack.ForceOffline && (currentModpack.ModProxyVersion == null || !currentModpack.ModProxyVersion.Installed))
-                {
-                    await ShowMessage("Offline mode and forge not installed, can't continue", "Error", ButtonEnum.Ok, MessageBox.Avalonia.Enums.Icon.Error);
-                    return;
-                }
-                ProgressModal("Getting Forge", "please wait");
-                if (currentModpack.ModProxyVersion == null || !currentModpack.ModProxyVersion.Installed || currentModpack.ModProxyVersion.Url == null)
-                {
-                    currentModpack.ModProxyVersion = new Versions();
-                    currentModpack.ModProxyVersion.Url = ForgeThingy.GetLink(currentModpack.Version.Id, Config.MainSettings.DownloadLastVersionForge).GetAwaiter().GetResult();
-                    currentModpack.ModProxyVersion.mainVersion = currentModpack.Version.Id;
-                }
-                LauncherConfig.SaveModPackToConfig(Config, currentModpack);
-                data = ForgeThingy.GetAddonJson(currentModpack, main, online);
-
-                LauncherConfig.SaveConfig(Config);
-
-                if (data == null && !main.Legacy)
-                {
-                    await ShowMessage("Can't download forge in offline mode", "critical error");
-                    return;
-                }
-                ProgressModal("Loading Forge", "please wait");
-                if (Config.SelectedAccountId == null && Config.Accounts.Select(x => x.Id == Config.SelectedAccountId) != null)
-                {
-                    //TODO: messageBox 
-                    return;
-                }
-                
-                
-                if (ForgeThingy.IsProcessorsExists(currentModpack, main.Version))
-                {
-                    ProgressModal("starting processors", "", null);
-                }
-                //else
-                //{
-                    ProgressModal("Game started, enjoy ;-)", "", null);
-                //ForgeThingy.Run(main, data, acount, currentModpack.RamMax, currentModpack.CustomWindowSize, currentModpack.WindowSize.X, currentModpack.WindowSize.Y, online, currentModpack.PackPath);
-                
-                //}
-                ProgressModal("Game started", "enjoy!");
-                ProgressModalDisable();
-                break;
-                //FilesManager.DownloadForge(currentModpack.Version.Id, online);   
-        }
-        //var assembly = System.Reflection.Assembly.GetExecutingAssembly();
-        //if (assembly != null && assembly.GetName().Version != null)
-        //{
-        //    Version version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version!;
-        //    Console.WriteLine(version);
-        //}
-        var javaDir = Path.Combine(FilesManager.Directories.GetJavaRoot(currentModpack), main.JavaMajor.ToString());
         if (!Directory.EnumerateFileSystemEntries(javaDir).Any())
         {
             await ShowMessage("Java folder is empty, please restart modpak", "Error");
@@ -1907,6 +2148,59 @@ public class MainWindow : Window
             }
         }
     }
+
+    private void ModpackContextMenuHandler(object? sender, RoutedEventArgs e)
+    {
+
+    }
+
+    private void ModpackShareContextMenuHandler(object? sender, RoutedEventArgs e)
+    {
+        
+        MenuItem? item = (MenuItem?)e.Source;
+        if (item != null && item.Tag != null)
+        {
+            var ShareInfo = (ModPackShareInfoTransfer)item.Tag;
+            string acc = ShareInfo!.ShareModPackAccount.Guid;
+            //TODO: load share config
+            string directory = ShareInfo.Modpack.PackPath;
+
+            Console.WriteLine(e.ToString());
+
+        }
+    }
+
+    private void ModpackAddShareIstances(LauncherConfig.ModPack modpack)
+    {
+        if (_shareModPackMenu != null)
+        {
+            _shareModPackMenu.ContextMenu = new ContextMenu() { };
+            
+            //menuItem.Click =
+            var config = ExportFileParams.LoadConfig();
+            if (config != null && config.Count() > 0)
+            {
+                List<MenuItem?> menuItems = new List<MenuItem?>();
+                //TODO: add test for empty modpath, if modpack is empty add Warn as MenuItem wo Click handler
+                foreach (var connection in config)
+                {
+                    MenuItem? menuItem = new MenuItem();
+                    menuItem.Header = connection.Name;
+                    //menuItem.Tag = connection;
+                    menuItem.Tag = new ModPackShareInfoTransfer()
+                    {
+                        ShareModPackAccount = connection,
+                        Modpack = modpack
+                    };
+                    menuItem.Click += ModpackShareContextMenuHandler;
+                    menuItems.Add(menuItem);
+                }
+                _shareModPackMenu.ItemsSource = new List<MenuItem?>();
+                _shareModPackMenu.ItemsSource = menuItems;
+            }
+        }
+    }
+
     /*
     private async Task RunMinecraftProgress(bool online)
     {
@@ -1960,9 +2254,9 @@ public class MainWindow : Window
     {
         Dispatcher.UIThread.InvokeAsync(() =>
         {
-            _progressBar.Maximum = 100;
-            _loadingPanel.IsVisible = true;
-            _progressPanel.IsVisible = true;
+            _progressBar!.Maximum = 100;
+            _loadingPanel!.IsVisible = true;
+            _progressPanel!.IsVisible = true;
             _progressBar.IsIndeterminate = false;
             _progressBar.Value = value;
             _progressInfo!.Text = progressInfo;
@@ -1990,9 +2284,9 @@ public class MainWindow : Window
 
         Dispatcher.UIThread.InvokeAsync(() =>
         {
-            _loadingPanel.IsVisible = true;
-            _progressPanel.IsVisible = true;
-            _progressBar.IsIndeterminate = true;
+            _loadingPanel!.IsVisible = true;
+            _progressPanel!.IsVisible = true;
+            _progressBar!.IsIndeterminate = true;
             _progressInfo!.Text = progressInfo;
             _progressFiles!.Text = progressFiles;
             if (loadingTextBlock != null)
@@ -2009,17 +2303,18 @@ public class MainWindow : Window
     private void ProgressModalDisable()
     {
         Dispatcher.UIThread.InvokeAsync(() => {
-            _loadingPanel.IsVisible = false;
-            _progressPanel.IsVisible = false;
-            _progressBar.IsIndeterminate = false;
+            _loadingPanel!.IsVisible = false;
+            _progressPanel!.IsVisible = false;
+            _progressBar!.IsIndeterminate = false;
         });
     }
 
     async private Task<ButtonResult?> ShowMessage(
         string message, 
         string title, 
-        ButtonEnum button = ButtonEnum.Ok, 
-        Icon icon = MessageBox.Avalonia.Enums.Icon.Error,
+        ButtonEnum button = ButtonEnum.Ok,
+        //Icon icon = MessageBox.Avalonia.Enums.Icon.Error,
+        Icon icon = MsBox.Avalonia.Enums.Icon.Error,
          string progressInfoText = ""
     )
     {
@@ -2031,11 +2326,11 @@ public class MainWindow : Window
         ButtonResult result = new ButtonResult();
         await Dispatcher.UIThread.InvokeAsync(async () =>
         {
-            _progressBar.IsIndeterminate = false;
-            _progressPanel.IsVisible = false;
-            _progressInfo.Text = "";
+            _progressBar!.IsIndeterminate = false;
+            _progressPanel!.IsVisible = false;
+            _progressInfo!.Text = "";
             var msBoxStandardWindow = MessageBoxManager
-                .GetMessageBoxStandardWindow(new MessageBoxStandardParams
+                .GetMessageBoxStandard(new MessageBoxStandardParams
                 {
                     Icon = icon,
                     ButtonDefinitions = button,
@@ -2046,7 +2341,7 @@ public class MainWindow : Window
                     EscDefaultButton = button == ButtonEnum.YesNoAbort || button == ButtonEnum.OkAbort  ? ClickEnum.Abort : ClickEnum.Default,
                     
                 });
-            result = await msBoxStandardWindow.Show();
+            result = await msBoxStandardWindow.ShowAsync();
         });
         MessageBoxIsShown = false;
         return result;
