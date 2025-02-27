@@ -47,6 +47,8 @@ using Blowaunch.Library.UsableClasses.ShareModPack;
 using Blowaunch.Library.ShareModPack;
 using Avalonia.Styling;
 using static Blowaunch.Library.UsableClasses.ShareModPack.ExportFileParams;
+using Renci.SshNet.Common;
+using Avalonia.Platform.Storage;
 
 namespace Blowaunch.AvaloniaApp.Views;
 
@@ -124,6 +126,8 @@ partial class MainWindow : Window
 
     private ModPackControl? _modPackControl;
     private UploadModpack? _uploadModpack;
+    private Border? _shareBorder;
+    private TextBlock? _shareTypeText;
 
     //private ComboBox _modProxyPanelMcVersion;
     //private ComboBox _modProxyPanelForgeVersion;
@@ -133,7 +137,7 @@ partial class MainWindow : Window
     {
         private static ushort MajorVersion = 0;
         private static ushort MinorVersion = 1;
-        private static ushort BuildVersion = 5;
+        private static ushort BuildVersion = 6;
         public static string Value { get { return $"{MajorVersion}.{MinorVersion}.{BuildVersion}"; } set { } }
     }
     //private string LauncherVersion = "0.0.0.1";
@@ -350,6 +354,7 @@ partial class MainWindow : Window
         _launcherVersionTextBox = this.FindControl<TextBlock>("VersionTextBox");
 
         _shareModPackMenu = this.FindControl<ContextMenu>("ShareModPackMenu");
+        _shareTypeText = this.FindControl<TextBlock>("ShareTypeText");
 
         //_modProxyPanelMcVersion = this.FindControl<ComboBox>("ModProxyPanelMcVersion");
         //_modProxyPanelForgeVersion = this.FindControl<ComboBox>("ModProxyPanelForgeVersion");
@@ -434,6 +439,16 @@ partial class MainWindow : Window
         if (_sharePanel != null)
         {
             _sharePanel.Children.Add(_uploadModpack);
+        }
+        
+        switch (_uploadModpack.GetShareAccountConfig())
+        {
+            case 0:
+                _shareTypeText!.Text = "no types";
+                break;
+            default:
+                _shareTypeText!.Text = $"types amount: {_uploadModpack.GetShareAccountConfig()}";
+                break;
         }
     }
     #endregion
@@ -1448,8 +1463,9 @@ partial class MainWindow : Window
         if (_modPackWindowWidth != null)
         {
             modpackConfig.WindowSize = new Vector2(
-                (int)_modPackWindowWidth!.Value!,
-                (int)_modPackWindowHeight!.Value!);
+                (int?)_modPackWindowWidth!.Value == null ? 800 : (int)_modPackWindowWidth!.Value,
+                (int?)_modPackWindowHeight!.Value == null ? 600 : (int)_modPackWindowHeight!.Value
+                );
         }
         
 
@@ -1527,6 +1543,32 @@ partial class MainWindow : Window
             });
         }).Start();
     }
+
+    public void OpenSharePanel(object? sender, RoutedEventArgs e)
+    {
+        _uploadModpack = new UploadModpack();
+        if (_sharePanel != null)
+        {
+            _sharePanel.Children.Add(_uploadModpack);
+            _sharePanel.IsVisible = true;
+        }
+        //if (_shareBorder == null && _sharePanel != null) {
+        //    _shareBorder = _sharePanel.FindControl<Border>("ShareBorder");
+        //}
+        int shareTypeAmount = _uploadModpack.ShareOpen();
+        switch (shareTypeAmount)
+        {
+            case 0:
+                _shareTypeText!.Text =  "no types";
+                break;
+            default:
+                _shareTypeText!.Text = $"types amount: {shareTypeAmount}";
+                break;
+        }
+        
+        //_shareTypeText.Text =  ;
+    }
+        
 
     private void SaveModPackToConfig(ModPack? modpackConfig)
     {
@@ -1671,21 +1713,21 @@ partial class MainWindow : Window
             shareFile.Account.Password = "32";
             shareFile.Account.Login = "d";
             shareFile.Account.NeedAuth = true;
-            shareFile.Account.UploadThrough = ExportFileParams.ShareType.Ssh;
+            shareFile.Account.UploadThrough = ExportFileParams.ShareType.Ssh;//ExportFileParams.ShareType.Ssh;
             shareFile.Type = ExportFileParams.ShareType.Http;
             // Url must be destination to modpack file, but for now we'll do it this way (test purposes)
             shareFile.Url = $"{shareFile.Account.Server}/temp/share.json";
 
             string filePath = Path.Combine(modpack.PackPath, $"share.json");
-
             File.WriteAllText(filePath, JsonConvert.SerializeObject(shareFile));
-            return;
+            var Ssh = new Ssh(shareFile.Account.Server, 21, shareFile.Account.Login, shareFile.Account.Password);
+            //return;
             //var ftp = new FTP();
             //ftp.UploadFile(filePath, shareFile.Account.Server,  (int i) => { Console.WriteLine(i); }, new NetworkCredential() {
             //    UserName = shareFile.Account.Login,
             //    Password = shareFile.Account.Password
             //});
-            
+
             //GZip.Compress(new FileInfo() { modpack.PackPath });
         }
     }
@@ -1694,13 +1736,24 @@ partial class MainWindow : Window
     {
         //ModPack? modpack = Config.ModPacks.Find(mp => mp.Id == _modPackId.Text) ?? new ModPack();
         ModPack? modpack = Config.ModPacks.Find(mp => mp.Id == ModpackId) ?? new ModPack();
-        var dialog = new OpenFolderDialog() { Directory = modpack?.PackPath, Title = "Select modpack instance folder" };
         var prevFolder = modpack!.PackPath;
-        string? dialogPath = await dialog.ShowAsync(this);
+        IStorageFolder? path = StorageProvider.TryGetFolderFromPathAsync(string.IsNullOrEmpty(modpack?.PackPath) ? Directory.GetCurrentDirectory() : modpack?.PackPath!).Result;
+        IReadOnlyList<IStorageFolder> directory = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions()
+        {
+            SuggestedStartLocation = path,
+            Title = "Select modpack instance folder",
+            AllowMultiple = false,
+            //You can add either custom or from the built-in file types. See "Defining custom file types" on how to create a custom one.
+            //FileTypeFilter = new[] { FilePickerFileTypes.TextPlain }
+        });
+        string? dialogPath = "c:/";
+        if (directory != null && directory.FirstOrDefault() != null)
+        {
+            dialogPath = directory.FirstOrDefault()!.Path.AbsolutePath;
+        }
         if (string.IsNullOrEmpty(dialogPath)) return;
         _modPackPathInstance!.Text = dialogPath;
         if (!prevFolder.Equals(_modPackPathInstance!.Text) && ModProxyVersionInModal != null)
-        //if (!prevFolder.Equals(_modPackPathInstance.Text))
         {
             ModProxyVersionInModal.Installed = false;
         }
@@ -1860,56 +1913,58 @@ partial class MainWindow : Window
         if (modPack != null)
         {
             ModpackAddShareIstances(modPack);
-        }
-        if (modPack.ModProxy != "")
-        {
-            //ProxyComboBoxOnChangeEnable = false;
-
-            var proxyIndex = ProxyDict.FirstOrDefault(x => x.Value == modPack.ModProxy).Key;
-            //ShowModPackVersions(modPack, modPack.ModProxy);
-            if (proxyIndex != -1)
+            if (modPack.ModProxy != "")
             {
-                _modPackModProxyCombo!.SelectedIndex = proxyIndex;
+                //ProxyComboBoxOnChangeEnable = false;
+
+                var proxyIndex = ProxyDict.FirstOrDefault(x => x.Value == modPack.ModProxy).Key;
+                //ShowModPackVersions(modPack, modPack.ModProxy);
+                if (proxyIndex != -1)
+                {
+                    _modPackModProxyCombo!.SelectedIndex = proxyIndex;
+                }
             }
-        }
-        _modPackName!.Text = modPack.Name;
-        _modPackRamSlider!.Value = Convert.ToDouble(modPack.RamMax);
-        _modPackPathInstance!.Text = modPack.PackPath;
-        _forceOffline!.IsChecked = modPack.ForceOffline;
-        _minecraftDemo!.IsChecked = modPack.DemoUser; // Config.DemoUser;
-        _wholeDataInFolder!.IsChecked = modPack.WholeDataInFolder;
-        ModProxyVersionInModal = modPack.ModProxyVersion;
 
-        //string id = (sender as Button)!.Name ?? "";
-        //var mp = Config.ModPacks.Find(x => x.Id == (id.Split(':')[1] ?? ""));
-        ModpackId = id;
-        //_modPackVersionsCombo.Items.F = (LauncherConfig.VersionClass?)modPack.Version;
-        //LauncherConfig.VersionClass? a = _modPackVersionsCombo.FirstOrDefault(modPack.Version);
-        //_modPackVersionsCombo.SelectedItem = modPack.Version;
-        //_modPackModProxyCombo.SelectedItem = modPack.ModProxy;
+            _modPackName!.Text = modPack.Name;
+            _modPackRamSlider!.Value = Convert.ToDouble(modPack.RamMax);
+            _modPackPathInstance!.Text = modPack.PackPath;
+            _forceOffline!.IsChecked = modPack.ForceOffline;
+            _minecraftDemo!.IsChecked = modPack.DemoUser; // Config.DemoUser;
+            _wholeDataInFolder!.IsChecked = modPack.WholeDataInFolder;
+            ModProxyVersionInModal = modPack.ModProxyVersion;
 
-        _modPackPanel!.IsVisible = true;
-        
-        var versionsClass = GetVersions();
-        if (versionsClass != null)
-        {
-            //if (id != "")
-            //{
+            //string id = (sender as Button)!.Name ?? "";
+            //var mp = Config.ModPacks.Find(x => x.Id == (id.Split(':')[1] ?? ""));
+            ModpackId = id;
+            //_modPackVersionsCombo.Items.F = (LauncherConfig.VersionClass?)modPack.Version;
+            //LauncherConfig.VersionClass? a = _modPackVersionsCombo.FirstOrDefault(modPack.Version);
+            //_modPackVersionsCombo.SelectedItem = modPack.Version;
+            //_modPackModProxyCombo.SelectedItem = modPack.ModProxy;
+
+            _modPackPanel!.IsVisible = true;
+
+            var versionsClass = GetVersions();
+            if (versionsClass != null)
+            {
+                //if (id != "")
+                //{
                 index = versionsClass.Versions.FindIndex(
                     x => x.Id == modPack.Version.Id
                             && x.Name == modPack.Version.Name);
-            //}
+                //}
 
-            Dispatcher.UIThread.InvokeAsync(() => {
-            _modPackVersionsCombo!.Items.Clear();
-            _modPackVersionsCombo!.ItemsSource = new List<VersionClass>();
-            ((List<VersionClass>) _modPackVersionsCombo!.ItemsSource!).Clear();
-            _modPackVersionsCombo!.ItemsSource = versionsClass.Versions;
-            _modPackVersionsCombo!.SelectedIndex = index;
-                //_modPackVersionsCombo.SelectedItem = modPack.Version;
-                //if (_selectionChanged) return;
+                Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    _modPackVersionsCombo!.Items.Clear();
+                    _modPackVersionsCombo!.ItemsSource = new List<VersionClass>();
+                    ((List<VersionClass>)_modPackVersionsCombo!.ItemsSource!).Clear();
+                    _modPackVersionsCombo!.ItemsSource = versionsClass.Versions;
+                    _modPackVersionsCombo!.SelectedIndex = index;
+                    //_modPackVersionsCombo.SelectedItem = modPack.Version;
+                    //if (_selectionChanged) return;
 
-            });
+                });
+            }
         }
             
         //}
@@ -1918,8 +1973,6 @@ partial class MainWindow : Window
     public async void ImportModPackInfo(object? sender, RoutedEventArgs e)
     {
         ModPack? modpack = Config.ModPacks.Find(mp => mp.Id == ModpackId);
-        
-
     }
 
     #endregion
@@ -2164,9 +2217,8 @@ partial class MainWindow : Window
             string acc = ShareInfo!.ShareModPackAccount.Guid;
             //TODO: load share config
             string directory = ShareInfo.Modpack.PackPath;
-
             Console.WriteLine(e.ToString());
-
+            ShareModPack(sender, e);
         }
     }
 
@@ -2178,10 +2230,20 @@ partial class MainWindow : Window
             
             //menuItem.Click =
             var config = ExportFileParams.LoadConfig();
+            if (config == null || config.Count == 0)
+            {
+                List<MenuItem?> menuItems = new List<MenuItem?>();
+                menuItems.Clear();
+                MenuItem? menuItem = new MenuItem();
+                menuItem.Header = "Please create connection";
+                menuItems.Add(menuItem);
+                _shareModPackMenu.ItemsSource = new List<MenuItem?>();
+                _shareModPackMenu.ItemsSource = menuItems;
+                return;
+            }
             if (config != null && config.Count() > 0)
             {
                 List<MenuItem?> menuItems = new List<MenuItem?>();
-                //TODO: add test for empty modpath, if modpack is empty add Warn as MenuItem wo Click handler
                 foreach (var connection in config)
                 {
                     MenuItem? menuItem = new MenuItem();

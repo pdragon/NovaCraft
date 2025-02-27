@@ -60,44 +60,35 @@
                             </Button>
                         </Panel>
                     </Border>
-					
-					<!--
-                    <TextBlock Text="Minecraft version:" 
-                               HorizontalAlignment="Center"
-                               Margin="0 30 0 10"/>
-                    <ComboBox HorizontalAlignment="Center"
-                              Width="200" SelectedIndex="0"
-                              VirtualizationMode="Simple"
-                              Name="Versions">
-                        <ComboBox.ItemTemplate>
-                            <DataTemplate>
-                                <TextBlock Text="{Binding 
-                                Name}" />
-                            </DataTemplate>
-                        </ComboBox.ItemTemplate>
-                        <ComboBoxItem>
-                            <TextBlock Text="Loading..."/>
-                        </ComboBoxItem>
-                    </ComboBox>
-                    <TextBlock Text="Modding:"
-                               HorizontalAlignment="Center"
-                               Margin="0 20 0 10"/>
-                    <ComboBox HorizontalAlignment="Center"
-                              Width="200" SelectedIndex="0">
-                        <ComboBoxItem Name="Vanilla">
-                            <TextBlock Text="None"
-                                       HorizontalAlignment="Left"/>
-                        </ComboBoxItem>
-                        <ComboBoxItem Name="Forge">
-                            <TextBlock Text="Forge"
-                                       HorizontalAlignment="Left"/>
-                        </ComboBoxItem>
-                        <ComboBoxItem Name="Fabric">
-                            <TextBlock Text="Fabric"
-                                       HorizontalAlignment="Left"/>
-                        </ComboBoxItem>
-                    </ComboBox>
-                    -->
+
+					<!--SharePanel-->
+					<Border Background="Black"
+                            Opacity="50"
+                            CornerRadius="5"
+                            Margin="20 0 20 10">
+						<Panel>
+							<StackPanel Height="62">
+								<TextBlock Text="[No Types]" FontWeight="Bold"
+                                           HorizontalAlignment="Left"
+                                           Margin="20 10 20 0"
+                                           Name="ShareTypeLabel"/>
+								<TextBlock Text="No types"
+                                           HorizontalAlignment="Left"
+                                           Margin="20 5 20 0"
+                                           Name="ShareTypeText"/>
+							</StackPanel>
+							<Button HorizontalAlignment="Right"
+                                    Height="62" Width="80"
+                                    Background="#808080"
+                                    Opacity="20" Click="OpenSharePanel"
+                                    CornerRadius="0 5 5 0">
+								<PathIcon Data="{StaticResource
+                                SettingsRegular}"
+                                          Opacity="10"/>
+							</Button>
+						</Panel>
+					</Border>
+
 					<StackPanel HorizontalAlignment="Center" 
                                 Orientation="Horizontal"
                                 Margin="0 15 0 0">
