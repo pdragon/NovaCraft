@@ -1,0 +1,182 @@
+{
+  "selectedAccountId": "071ee4e7-b2a6-4abc-9bd3-e8f72d600f78",
+  "accounts": [
+    {
+      "validUntil": "0001-01-01T00:00:00",
+      "refreshToken": "",
+      "type": "None",
+      "accessToken": "",
+      "clientToken": "",
+      "xuid": "",
+      "uuid": "722a9e3fdb16417aa136c1d8beb6b023",
+      "id": "7b177919-119d-43f6-9acf-d73da1b671cd",
+      "name": "antibot"
+    },
+    {
+      "validUntil": "0001-01-01T00:00:00",
+      "refreshToken": "",
+      "type": "None",
+      "accessToken": "",
+      "clientToken": "",
+      "xuid": "",
+      "uuid": "efbc7134ef1036e48a9248b527e2a6f9",
+      "id": "071ee4e7-b2a6-4abc-9bd3-e8f72d600f78",
+      "name": "PeaceDuke"
+    }
+  ],
+  "showSnapshots": false,
+  "showAlpha": false,
+  "showBeta": false,
+  "modPacks": [
+    {
+      "version": {
+        "name": "Release 1.7.10",
+        "id": "1.7.10"
+      },
+      "jvmArgs": null,
+      "maxRam": "2048",
+      "windowSize": {
+        "X": 0.0,
+        "Y": 0.0
+      },
+      "gameArgs": null,
+      "packPath": "D:\\tmp\\instances\\1.7.10",
+      "ModProxy": "Forge",
+      "LastStartTime": 49647196,
+      "ModProxyVersion": {
+        "ComboboxItemId": null,
+        "Name": null,
+        "Url": "https://maven.minecraftforge.net/net/minecraftforge/forge/1.7.10-10.13.4.1614-1.7.10/forge-1.7.10-10.13.4.1614-1.7.10-installer.jar",
+        "mainVersion": "1.7.10",
+        "Installed": true
+      },
+      "forceOffline": false,
+      "isDemo": false,
+      "wholeDataInFolder": false,
+      "id": "9158df38-9424-4f94-8697-03bc83f587b7",
+      "name": "test 1.7.10",
+      "customResolution": false
+    },
+    {
+      "version": {
+        "name": "Release 1.20.2",
+        "id": "1.20.2"
+      },
+      "jvmArgs": null,
+      "maxRam": "2048",
+      "windowSize": {
+        "X": 0.0,
+        "Y": 0.0
+      },
+      "gameArgs": null,
+      "packPath": "D:\\tmp\\instances\\1.20.2",
+      "ModProxy": "None",
+      "LastStartTime": 0,
+      "ModProxyVersion": {
+        "ComboboxItemId": null,
+        "Name": null,
+        "Url": null,
+        "mainVersion": null,
+        "Installed": false
+      },
+      "forceOffline": false,
+      "isDemo": false,
+      "wholeDataInFolder": false,
+      "id": "8563854a-dcec-42c7-9460-fc5178d7d083",
+      "name": "еуые-1.20.2",
+      "customResolution": false
+    },
+    {
+      "version": {
+        "name": "Release 1.18",
+        "id": "1.18"
+      },
+      "jvmArgs": null,
+      "maxRam": "2048",
+      "windowSize": {
+        "X": 0.0,
+        "Y": 0.0
+      },
+      "gameArgs": null,
+      "packPath": "D:\\tmp\\instances\\test",
+      "ModProxy": "Forge",
+      "LastStartTime": 49820306,
+      "ModProxyVersion": {
+        "ComboboxItemId": null,
+        "Name": null,
+        "Url": "https://maven.minecraftforge.net/net/minecraftforge/forge/1.18-38.0.17/forge-1.18-38.0.17-installer.jar",
+        "mainVersion": "1.18",
+        "Installed": true
+      },
+      "forceOffline": false,
+      "isDemo": false,
+      "wholeDataInFolder": true,
+      "id": "941adf9e-01be-4a10-88d4-2a7455d7e201",
+      "name": "18",
+      "customResolution": false
+    },
+    {
+      "version": {
+        "name": "Release 1.12.2",
+        "id": "1.12.2"
+      },
+      "jvmArgs": null,
+      "maxRam": "12494",
+      "windowSize": {
+        "X": 800.0,
+        "Y": 600.0
+      },
+      "gameArgs": null,
+      "packPath": "F:\\Games\\minecraft\\instances\\ethernal.new",
+      "ModProxy": "Forge",
+      "LastStartTime": 67341208,
+      "ModProxyVersion": {
+        "ComboboxItemId": null,
+        "Name": null,
+        "Url": "https://maven.minecraftforge.net/net/minecraftforge/forge/1.12.2-14.23.5.2860/forge-1.12.2-14.23.5.2860-installer.jar",
+        "mainVersion": "1.12.2",
+        "Installed": true
+      },
+      "forceOffline": false,
+      "isDemo": false,
+      "wholeDataInFolder": true,
+      "id": "1b3f5328-7231-4646-8bd0-ddc730f42985",
+      "name": "MCE full",
+      "customResolution": false
+    },
+    {
+      "version": {
+        "name": "Release 1.12.2",
+        "id": "1.12.2"
+      },
+      "jvmArgs": null,
+      "maxRam": "12650",
+      "windowSize": {
+        "X": 800.0,
+        "Y": 600.0
+      },
+      "gameArgs": null,
+      "packPath": "F:/Games/minecraft/instances/ethernal.new/",
+      "ModProxy": "Forge",
+      "LastStartTime": 67594279,
+      "ModProxyVersion": {
+        "ComboboxItemId": null,
+        "Name": null,
+        "Url": "https://maven.minecraftforge.net/net/minecraftforge/forge/1.12.2-14.23.5.2860/forge-1.12.2-14.23.5.2860-installer.jar",
+        "mainVersion": "1.12.2",
+        "Installed": false
+      },
+      "forceOffline": false,
+      "isDemo": false,
+      "wholeDataInFolder": false,
+      "id": "0651c15b-4992-46fd-b49c-dc88b44ef33e",
+      "name": "temp mce to remove",
+      "customResolution": false
+    }
+  ],
+  "selectedModPackId": "",
+  "mainSettings": {
+    "downloadLastVersionForge": true,
+    "autoupdate": false
+  }
+}
