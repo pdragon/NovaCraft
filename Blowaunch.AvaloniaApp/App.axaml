@@ -19,7 +19,8 @@
 
     <Application.Styles>
 		<StyleInclude Source="avares://AvaloniaProgressRing/Styles/ProgressRing.xaml"/>
-        <FluentTheme />	
+		<!--<FluentTheme />-->	
+		<ClassicTheme />
 	</Application.Styles>
 	
 	<Application.Resources>

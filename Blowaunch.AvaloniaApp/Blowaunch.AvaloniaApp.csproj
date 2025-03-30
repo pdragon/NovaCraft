@@ -38,6 +38,8 @@
         <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
         <PackageReference Include="Avalonia.ReactiveUI" Version="11.2.3" />
         <PackageReference Include="Avalonia.Themes.Fluent" Version="11.2.3" />
+        <PackageReference Include="Classic.Avalonia.Theme" Version="11.2.0.7" />
+        <PackageReference Include="Classic.CommonControls.Avalonia" Version="11.2.0.7" />
         <PackageReference Include="Deadpikle.AvaloniaProgressRing" Version="0.10.8" />
         <PackageReference Include="Hardware.Info" Version="10.0.0" />
         <PackageReference Include="MessageBox.Avalonia" Version="3.1.6" />
@@ -55,7 +57,7 @@
     </ItemGroup>
 
 	<Target Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU' or '$(Configuration)|$(Platform)' == 'Release|AnyCPU'" Name="CopyFiles" BeforeTargets="PrepareForBuild">
-		<Message Text="Coping config file to output dir"  Importance="normal" /><!--<Exec Command="xcopy /y $(ProjectDir)..\config.json $(ProjectDir)config.json" />-->
+		<Message Text="Coping config file to output dir" Importance="normal" /><!--<Exec Command="xcopy /y $(ProjectDir)..\config.json $(ProjectDir)config.json" />-->
 		<Copy SourceFiles="$(ProjectDir)..\config.json" DestinationFiles="$(OutDir)config.json" />
 	</Target>
 </Project>
