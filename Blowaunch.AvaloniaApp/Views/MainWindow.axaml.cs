@@ -380,8 +380,8 @@ partial class MainWindow : Window
                 double modPackRamvalue = (double)(_modPackRamManual.Value == null ? 0 : _modPackRamManual.Value);
                 if (_modPackRamSlider != null)
                 {
-                    if (_modPackRamSlider.Value == modPackRamvalue)
-                        return;
+                    //if (_modPackRamSlider.Value == modPackRamvalue)
+                    //    return;
 
                     if (e.NewValue > (decimal?)(_modPackRamSlider.Maximum))
                         _modPackRamManual.Value = (decimal?)_modPackRamSlider.Maximum;

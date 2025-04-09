@@ -14,7 +14,7 @@
     
     <Window.Background>
         <ImageBrush Source="/Assets/background.png"
-                    Opacity="100"/>
+                    />
     </Window.Background>
 
     
@@ -34,8 +34,8 @@
 								   ToolTip.Tip="open-source soon"
 								   />
                     </Panel>
-                    <Border Background="Black"
-                            Opacity="50"
+                    <Border 
+                           
                             CornerRadius="5"
                             Margin="20 0 20 10">
                         <Panel>
@@ -52,18 +52,16 @@
                             <Button HorizontalAlignment="Right"
                                     Height="62" Width="80"
                                     Background="#808080"
-                                    Opacity="20" Click="OpenAuthPanel"
+                                    Click="OpenAuthPanel"
                                     CornerRadius="0 5 5 0">
                                 <PathIcon Data="{StaticResource
-                                SettingsRegular}"
-                                          Opacity="10"/>
+                                SettingsRegular}"/>
                             </Button>
                         </Panel>
                     </Border>
 
 					<!--SharePanel-->
-					<Border Background="Black"
-                            Opacity="50"
+					<Border 
                             CornerRadius="5"
                             Margin="20 0 20 10">
 						<Panel>
@@ -80,11 +78,10 @@
 							<Button HorizontalAlignment="Right"
                                     Height="62" Width="80"
                                     Background="#808080"
-                                    Opacity="20" Click="OpenSharePanel"
+                                    Click="OpenSharePanel"
                                     CornerRadius="0 5 5 0">
 								<PathIcon Data="{StaticResource
-                                SettingsRegular}"
-                                          Opacity="10"/>
+                                SettingsRegular}"/>
 							</Button>
 						</Panel>
 					</Border>
@@ -94,7 +91,6 @@
                                 Margin="0 15 0 0">
                         <Button Height="35" Width="135"
                                 Background="#1fa803"
-                                Opacity="20"
                                 CornerRadius="5"
 								Click="RunMinecraft">
                             <Button.Styles>
@@ -118,7 +114,6 @@
 							</StackPanel>
                         </Button>
                         <Button Height="35" Width="35"
-                                Opacity="100" Background="Transparent"
                                 CornerRadius="5" Click="OpenDirectory"
                                 Margin="10 0 0 0">
                             <Button.Styles>
@@ -143,8 +138,7 @@
             </SplitView.Pane>
             
             <SplitView.PaneBackground>
-                <SolidColorBrush Opacity="50"
-                                 Color="Black"/>
+                <SolidColorBrush/>
             </SplitView.PaneBackground>
 			
 
@@ -166,17 +160,15 @@
                         </TabItem.Header>
                             <!-- Type forge version to download -->
                         <StackPanel Orientation="Vertical">
-							<Border Background="Black"
+							<Border 
                                     BorderBrush="White"
 								    Width="495"
-                                    Opacity="1"
                                     BorderThickness="2"
                                     CornerRadius="3"
                                     Padding="10"
                                     Margin="0 10 0 0"
                                     HorizontalAlignment="Left">
-                                <StackPanel Orientation="Horizontal"
-                                            Opacity="10">
+                                <StackPanel Orientation="Horizontal">
 									
 								<TextBlock HorizontalAlignment="Center"
 									   FontSize="18">
@@ -198,14 +190,12 @@
 								Background="Black"
                                     BorderBrush="White"
 								    Width="495"
-                                    Opacity="1"
                                     BorderThickness="2"
                                     CornerRadius="3"
                                     Padding="10"
                                     Margin="0 10 0 0"
                                     HorizontalAlignment="Left">
-                                <StackPanel Orientation="Horizontal"
-                                            Opacity="10">
+                                <StackPanel Orientation="Horizontal">
 									
 								<TextBlock HorizontalAlignment="Center"
 									   FontSize="18" Foreground="Red">
@@ -220,19 +210,16 @@
 								</StackPanel>
 							</Border>
 
-                            <Border Background="Black"
+                            <Border 
                                     BorderBrush="White"
-                                    Opacity="50"
                                     BorderThickness="2"
                                     CornerRadius="3"
                                     Padding="10"
                                     Margin="0 10 0 0"
                                     HorizontalAlignment="Left">
-                                <StackPanel Orientation="Horizontal"
-                                            Opacity="10">
+                                <StackPanel Orientation="Horizontal">
                                     <Button Height="35" Width="110"
                                             Background="#1fa803"
-                                            Opacity="20"
                                             CornerRadius="5"
                                             HorizontalAlignment="Center"
                                             Margin="0 0 10 0"
@@ -252,7 +239,6 @@
                                     </Button>
                                     <Button Height="35" Width="125"
                                             Background="#ebcd38"
-                                            Opacity="20" 
                                             CornerRadius="5"
                                             HorizontalAlignment="Center"
                                             Margin="0 0 10 0"
@@ -270,7 +256,6 @@
                                     </Button>
                                     <Button Height="35" Width="120"
                                             Background="#eb4034"
-                                            Opacity="20"
                                             CornerRadius="5"
                                             HorizontalAlignment="Center"
                                             Click="ResetSettings">
@@ -295,8 +280,7 @@
                                 Modpacks
                             </TextBlock>
                         </TabItem.Header>
-						<Border Background="Black"
-                            Opacity="50"
+						<Border 
                             CornerRadius="5"
                             Margin="20 0 20 10">
 							<!--
@@ -364,7 +348,7 @@
 									</Button>
 								</StackPanel>
 							   -->
-							   <ScrollViewer VerticalAlignment="Top" VerticalScrollBarVisibility="Auto">
+							   <ScrollViewer  VerticalAlignment="Top" VerticalScrollBarVisibility="Auto">
 							       <WrapPanel Margin="25,0,0,0" Name="ModPacksPanel" ItemHeight="160">
 								   <!--
 									   <uc:ModPackControl Margin="10" x:Name="ModPackControl1"/>
@@ -385,26 +369,65 @@
             </Grid>
         </SplitView>
 
-		<Panel Name="SharePanel" Width="800"
+		<Panel Name="SharePanel" Width="800" 
             IsVisible="False">
 		</Panel>
 		
 		<!-- Modpack overlay -->
 		<Panel Name="ModPackAdd"
-               IsVisible="False">
-			<Rectangle HorizontalAlignment="Stretch"
-                       VerticalAlignment="Stretch"
-                       Fill="Black" Opacity="30"/>
+               IsVisible="False"
+        Background="{DynamicResource DiagonalBrush}">
 
 			<StackPanel Orientation="Vertical">
+				<Border Background="#000080" Height="24">
+					<DockPanel Margin="2,0">
+						<TextBlock Text="ModPack Edit"
+								   Foreground="White"
+								   FontWeight="Bold"
+								   VerticalAlignment="Center"
+								   Margin="4,0"
+								   FontSize="12"
+								   Padding="4"
+								   />
+
+						<Button Width="20"
+                            Height="20"
+                            Margin="4,2,2,2"
+                            Background="#C0C0C0"
+                            BorderBrush="#808080"
+                            BorderThickness="2"
+                            FontWeight="Bold"
+                            FontSize="18"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Center"
+                            Foreground="#800000"
+                            HorizontalContentAlignment="Center"
+                            VerticalContentAlignment="Center"
+								Click="CloseModPackPanel">
+							<Button.Effect>
+								<DropShadowDirectionEffect Direction="270"
+                                               ShadowDepth="6"
+                                               Color="Black"
+                                               Opacity="0.4"
+                                               BlurRadius="5"/>
+							</Button.Effect>
+							
+							<PathIcon Data="{StaticResource Close}"
+							  Width="11"
+                              Height="11"/>
+						</Button>
+					</DockPanel>
+				</Border>
 				<StackPanel Orientation="Horizontal">
-					<Border Background="Black"
-							BorderBrush="White"
-							Opacity="50"
-							BorderThickness="2"
-							CornerRadius="3"
-							Padding="5"
-							Margin="5 5 5 5">
+					
+					<!-- Window size -->
+					<Border 
+						CornerRadius="3"
+						Padding="5"
+						Height="150"
+						BorderBrush="Gray"
+						BorderThickness="2"
+						Margin="5 5 5 5">
 						<StackPanel Orientation="Vertical"
 									Width="200">
 							<TextBlock HorizontalAlignment="Center"
@@ -437,24 +460,26 @@
 							</StackPanel>
 						</StackPanel>
 					</Border>
-					<Border Background="Black"
-							BorderBrush="White"
-							Opacity="50"
+					<!-- Runner Settings -->
+					<Border 
 							BorderThickness="2"
+							BorderBrush="Gray"
 							CornerRadius="3"
 							Padding="5"
-							Margin="10 5 10 5">
+							Height="150"
+							Width="300"
+							Margin="10 10 10 15">
 						<StackPanel Orientation="Vertical"
 									Width="240">
 							<TextBlock HorizontalAlignment="Center"
 									   FontSize="18" Margin="0 0 0 5">
 								Runner Settings
 							</TextBlock>
-							<TextBox Width="240" Watermark="Java Arguments"
+							<TextBox Width="280" Watermark="Java Arguments"
 									 Margin="0 0 10 5"
 									 Name="ModPackJavaArguments">
 							</TextBox>
-							<TextBox Width="240" Watermark="Game Arguments"
+							<TextBox Width="280" Watermark="Game Arguments"
 									 Margin="0 0 10 10"
 									 Name="ModPackGameArguments">
 							</TextBox>
@@ -470,17 +495,20 @@
 										 Name="ModPackRamManual">
 								</NumericUpDown>
 							</StackPanel>
-							<Slider Margin="0 -15 0 -15"
+							<Slider 
+								Width="280"
+								Margin="0 10 0 -15"
+									TickFrequency="10"
 									Name="ModPackRamSlider"/>
 						</StackPanel>
 					</Border>
-					<Border Background="Black"
-							BorderBrush="White"
-							Opacity="50"
+					<Border 
+							Height="150"
 							BorderThickness="2"
+							BorderBrush="Gray"
 							CornerRadius="3"
 							Padding="0"
-							Margin="5 5 5 5">
+							Margin="5 0 5 5">
 						<StackPanel Orientation="Vertical"
 									Width="220">
 							<TextBlock Text="Minecraft version:"
@@ -549,9 +577,8 @@
 					
 				</StackPanel>
 				<StackPanel Orientation="Horizontal">
-					<Border Background="Black"
+					<Border 
 					    BorderBrush="White"
-					    Opacity="50"
 					    BorderThickness="2"
 					    CornerRadius="3"
 					    Margin="15 5 15 5"
@@ -571,7 +598,6 @@
 									 Name="ModPackPathInstance">
 								</TextBox>
 								<Button Height="35" Width="35"
-									Opacity="100" Background="Transparent"
 									CornerRadius="5" Click="OpenPathDirectory"
 										Margin="0 0 10 0">
 									<Button.Styles>
@@ -595,7 +621,7 @@
 							</TextBox>
 							<StackPanel Orientation="Horizontal">
 							    <Button Height="35" Width="35"
-									    Opacity="100" Background="Transparent"
+									    Opacity="100"
 									    CornerRadius="5" Click="ShareModPack"
 										    Margin="0 0 10 0"
 									    ToolTip.Tip="Share modpack with another user (please click RMB)"
@@ -618,7 +644,6 @@
 								</Button>
 								<Button Height="35" Width="35"
 									ToolTip.Tip="Under construction"
-									Opacity="100" Background="Transparent"
 									CornerRadius="5" Click="ImportModPackInfo"
 										Margin="0 0 10 0">
 									<Button.Styles>
@@ -645,9 +670,9 @@
 					</Border>
 
 
-					<Border Background="Black"
+					<Border 
                             BorderBrush="White"
-                            Opacity="50"
+                            Opacity="200"
                             BorderThickness="2"
                             CornerRadius="3"
                             Padding="10"
@@ -672,9 +697,9 @@
 							</ToggleSwitch>
 						</StackPanel>
 					</Border>
-					<Border Background="Black"
+					<Border 
                             BorderBrush="White"
-                            Opacity="50"
+                            Opacity="100"
                             BorderThickness="2"
                             CornerRadius="3"
                             Padding="10"
@@ -707,92 +732,94 @@
 		
 			<StackPanel Orientation="Vertical">
 				<StackPanel Orientation="Horizontal">
-			<Border Background="Black"
-                                    BorderBrush="White"
-                                    Opacity="50"
-                                    BorderThickness="2"
-                                    CornerRadius="3"
-                                    Padding="10"
-                                    Margin="200 380 0 0"
-                                    HorizontalAlignment="Left">
-				<StackPanel Orientation="Horizontal"
-							Opacity="10">
-					<Button Height="35" Width="110"
-							Background="#1fa803"
-							Opacity="20"
-							CornerRadius="5"
-							HorizontalAlignment="Center"
-							Margin="0 0 10 0"
-							Name="ModPackSaveChanges"
-							Click="ModPackSaveChangesHandler">
-						<Button.Styles>
-							<Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-								<Setter Property="Background"
-										Value="#22cb00"/>
-							</Style>
-						</Button.Styles>
-						<TextBlock Text="Save changes"
-								   HorizontalAlignment="Center"
-								   VerticalAlignment="Center"/>
-					</Button>
-					<Button Height="35" Width="125"
-							Background="#ebcd38"
-							Opacity="20"
-							CornerRadius="5"
-							HorizontalAlignment="Center"
-							Margin="0 0 10 0"
-							Name="RevertChanges0"
-							Click="RevertChangesHandler">
-						<Button.Styles>
-							<Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-								<Setter Property="Background"
-										Value="#ab952b"/>
-							</Style>
-						</Button.Styles>
-						<TextBlock Text="Revert changes"
-								   HorizontalAlignment="Center"
-								   VerticalAlignment="Center"/>
-					</Button>
-					<Button Height="35" Width="120"
-							Background="#eb4034"
-							Opacity="20"
-							CornerRadius="5"
-							HorizontalAlignment="Center"
-							Click="ResetSettings">
-						<Button.Styles>
-							<Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-								<Setter Property="Background"
-										Value="#ad2d24"/>
-							</Style>
-						</Button.Styles>
-						<TextBlock Text="Back to default"
-								   HorizontalAlignment="Center"
-								   VerticalAlignment="Center"/>
-					</Button>
-				</StackPanel>
-			</Border>
+			        <Border Background="AliceBlue"
+                                            BorderBrush="White"
+                                            Opacity="100"
+                                            BorderThickness="2"
+                                            CornerRadius="3"
+                                            Padding="10"
+                                            Margin="200 380 0 0"
+                                            HorizontalAlignment="Left">
+				        <StackPanel Orientation="Horizontal"
+							        Background="AliceBlue"
+							        Opacity="170">
+					        <Button Height="35" Width="110"
+							        Background="#1fa803"
+							        Opacity="400"
+							        CornerRadius="5"
+							        HorizontalAlignment="Center"
+							        Margin="0 0 10 0"
+							        Name="ModPackSaveChanges"
+							        Click="ModPackSaveChangesHandler">
+						        <Button.Styles>
+							        <Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+								        <Setter Property="Background"
+										        Value="#22cb00"/>
+							        </Style>
+						        </Button.Styles>
+						        <TextBlock Text="Save changes"
+								           HorizontalAlignment="Center"
+								           VerticalAlignment="Center"/>
+					        </Button>
+					        <Button Height="35" Width="125"
+							        Background="#ebcd38"
+							        Opacity="120"
+							        CornerRadius="5"
+							        HorizontalAlignment="Center"
+							        Margin="0 0 10 0"
+							        Name="RevertChanges0"
+							        Click="RevertChangesHandler">
+						        <Button.Styles>
+							        <Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+								        <Setter Property="Background"
+										        Value="#ab952b"/>
+							        </Style>
+						        </Button.Styles>
+						        <TextBlock Text="Revert changes"
+								           HorizontalAlignment="Center"
+								           VerticalAlignment="Center"/>
+					        </Button>
+					        <Button Height="35" Width="120"
+							        Background="#eb4034"
+							        Opacity="120"
+							        CornerRadius="5"
+							        HorizontalAlignment="Center"
+							        Click="ResetSettings">
+						        <Button.Styles>
+							        <Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+								        <Setter Property="Background"
+										        Value="#ad2d24"/>
+							        </Style>
+						        </Button.Styles>
+						        <TextBlock Text="Back to default"
+								           HorizontalAlignment="Center"
+								           VerticalAlignment="Center"/>
+					        </Button>
+				        </StackPanel>
+			        </Border>
 				</StackPanel>
 			</StackPanel>
-			
-					<Button HorizontalAlignment="Right"
-                    VerticalAlignment="Top"
-                    Width="35" Height="35"
-                    Background="#00FF0000"
-                    Click="CloseModPackPanel">
-				<Button.Styles>
-					<Style Selector="Button:pointerover /template/ ContentPresenter">
-						<Setter Property="Background"
-                                Value="#50FF0000"/>
-					</Style>
-				</Button.Styles>
-				<PathIcon Data="{StaticResource Close}"
-                          Opacity="100"/>
+			<!--
+			<Button HorizontalAlignment="Right"
+                VerticalAlignment="Top"
+                Width="35" Height="35"
+                Background="#00FF0000"
+                Click="CloseModPackPanel">
+			<Button.Styles>
+				<Style Selector="Button:pointerover /template/ ContentPresenter">
+					<Setter Property="Background"
+                            Value="#50FF0000"/>
+				</Style>
+			    </Button.Styles>
+			    <PathIcon Data="{StaticResource Close}"
+                        Opacity="110"/>
 			</Button>
+			-->
 		</Panel>
 		<Panel Name="UploadModpackPanel" IsVisible="False">
 			<Rectangle HorizontalAlignment="Stretch"
                        VerticalAlignment="Stretch"
-                       Fill="Black" Opacity="30"/>
+                        />
 		    <uc:UploadModpack Height="450" Width="800"/>
 		</Panel>
         
@@ -801,7 +828,7 @@
                IsVisible="False">
             <Rectangle HorizontalAlignment="Stretch"
                        VerticalAlignment="Stretch"
-                       Fill="Black" Opacity="30"/>
+                        Opacity="255"/>
             <TabControl>
                 <TabItem>
                     <TabItem.Header>
@@ -831,7 +858,7 @@
                                     HorizontalAlignment="Center">
                             <Button Height="35" Width="100"
                                     Background="#1fa803"
-                                    Opacity="20"
+                                    Opacity="120"
                                     CornerRadius="5"
                                     HorizontalAlignment="Center"
                                     Margin="0 10 10 0"
@@ -850,7 +877,7 @@
                             </Button>
                             <Button Height="35" Width="70"
                                     Background="#e63f29"
-                                    Opacity="20"
+                                    Opacity="120"
                                     CornerRadius="5"
                                     HorizontalAlignment="Center"
                                     Margin="0 10 0 0"
@@ -886,7 +913,7 @@
                                  Name="UsernameCracked"/>
                         <Button Height="35" Width="125"
                                 Background="#1fa803"
-                                Opacity="20"
+                                Opacity="120"
                                 CornerRadius="5"
                                 HorizontalAlignment="Center"
                                 Margin="0 10 0 0"
@@ -935,7 +962,7 @@
                                     HorizontalAlignment="Center">
                             <Button Height="35" Width="125"
                                     Background="#1fa803"
-                                    Opacity="20"
+                                    Opacity="120"
                                     CornerRadius="5"
                                     HorizontalAlignment="Center"
                                     Margin="0 10 0 0"
@@ -983,7 +1010,7 @@
                                  PasswordChar="*"/>
                         <Button Height="35" Width="125"
                                 Background="#1fa803"
-                                Opacity="20"
+                                Opacity="120"
                                 CornerRadius="5"
                                 HorizontalAlignment="Center"
                                 Margin="0 10 0 0"
@@ -1033,7 +1060,7 @@
                Name="Loading">
             <Rectangle HorizontalAlignment="Stretch"
                        VerticalAlignment="Stretch"
-                       Fill="Black" Opacity="30"/>
+                        Opacity="255"/>
             <StackPanel HorizontalAlignment="Center"
                 VerticalAlignment="Center">
                 <TextBlock FontSize="24"

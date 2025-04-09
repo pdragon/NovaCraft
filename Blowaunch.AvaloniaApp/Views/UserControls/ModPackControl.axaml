@@ -45,7 +45,7 @@
 					HorizontalAlignment="Center"
 								   FontSize="8"
 						   Background="Wheat"
-								Foreground="Black"
+								
 								   TextWrapping="WrapWithOverflow"
 								   VerticalAlignment="Top" 
 						   Name="ModPackLabel">

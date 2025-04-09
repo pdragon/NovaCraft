@@ -60,4 +60,5 @@
 		<Message Text="Coping config file to output dir" Importance="normal" /><!--<Exec Command="xcopy /y $(ProjectDir)..\config.json $(ProjectDir)config.json" />-->
 		<Copy SourceFiles="$(ProjectDir)..\config.json" DestinationFiles="$(OutDir)config.json" />
 	</Target>
+	<Import Project="local.properties" Condition="Exists('local.properties')" />
 </Project>
