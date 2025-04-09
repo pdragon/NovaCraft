@@ -164,7 +164,7 @@
         "Name": null,
         "Url": "https://maven.minecraftforge.net/net/minecraftforge/forge/1.12.2-14.23.5.2860/forge-1.12.2-14.23.5.2860-installer.jar",
         "mainVersion": "1.12.2",
-        "Installed": false
+        "Installed": true
       },
       "forceOffline": false,
       "isDemo": false,
