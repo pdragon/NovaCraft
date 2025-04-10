@@ -1,0 +1,102 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+	<Design.PreviewWith>
+		<StackPanel Orientation="Horizontal">
+		<Border Padding="20">
+			<!-- Add Controls for Previewer Here -->
+			<Button  Classes="close-button">
+				<PathIcon Data="{StaticResource Close}"
+				  Width="11"
+				  Height="11"/>
+			</Button>
+			
+		</Border>
+		<Border>
+			<ToggleSwitch OnContent="Show Snaphots"
+                                            OffContent="Show Snaphots"
+										  Classes="StdTextOnly"
+                                            Name="ShowSnapshots"/>
+			</Border>
+			</StackPanel>
+	</Design.PreviewWith>
+
+	<!-- Add Styles Here -->
+
+
+	<Style Selector="Button.close-button">
+		<Setter Property="Background" Value="#C0C0C0"/>
+		<Setter Property="BorderBrush" Value="#808080"/>
+		<Setter Property="Margin" Value="4,2,2,2" />
+		<Setter Property="BorderThickness" Value="2"/>
+		<Setter Property="Width" Value="20"/>
+		<Setter Property="Height" Value="20"/>
+		<Setter Property="HorizontalAlignment" Value="Right"/>
+		<Setter Property="VerticalAlignment" Value="Center"/>
+		<Setter Property="FontSize" Value="18"/>
+		<Setter Property="FontWeight" Value="Bold"/>
+		<Setter Property="Foreground" Value="#800000"/>
+		<Setter Property="VerticalContentAlignment" Value="Center"/>
+		<Setter Property="HorizontalContentAlignment" Value="Center"/>
+		
+		<Setter Property="Effect">
+			
+			<Setter.Value>
+				<DropShadowDirectionEffect Color="Black" 
+										   Direction="0,0,2,2" 
+										   ShadowDepth="10"
+										   Opacity="0.7"
+                                           BlurRadius="5"/>
+			</Setter.Value>
+			
+		</Setter>
+		
+	</Style>
+
+	<Style Selector="ToggleSwitch.StdTextOnly:checked">
+		<Setter Property="Margin" Value="4,2,2,2" />
+		<Setter Property="Padding" Value="4,2,2,2" />
+		<Setter Property="BorderThickness" Value="1"/>
+		<Setter Property="MinWidth" Value="24"/>
+		<Setter Property="Height" Value="26"/>
+		<Setter Property="HorizontalAlignment" Value="Center"/>
+		<Setter Property="VerticalAlignment" Value="Center"/>
+		<Setter Property="FontSize" Value="16"/>
+		<Setter Property="VerticalContentAlignment" Value="Center"/>
+		<Setter Property="HorizontalContentAlignment" Value="Center"/>
+		<Setter Property="Effect">
+			<Setter.Value>
+				<DropShadowDirectionEffect
+										   Direction="0,0,20,20"
+										   ShadowDepth="0"
+										   Opacity="1"
+                                           BlurRadius="3"
+										   />
+			</Setter.Value>
+
+		</Setter>
+	</Style>
+	
+	<Style Selector="ToggleSwitch.StdTextOnly">
+		<Setter Property="Margin" Value="4,2,2,2" />
+		<Setter Property="Padding" Value="4,2,2,2" />
+		<Setter Property="BorderThickness" Value="1"/>
+		<Setter Property="MinWidth" Value="24"/>
+		<Setter Property="Height" Value="26"/>
+		<!--<Setter Property="HorizontalAlignment" Value="Center"/>-->
+		<Setter Property="VerticalAlignment" Value="Center"/>
+		<Setter Property="FontSize" Value="16"/>
+		<Setter Property="VerticalContentAlignment" Value="Center"/>
+		<Setter Property="HorizontalContentAlignment" Value="Center"/>
+		<Setter Property="Effect">
+			<Setter.Value>
+				<DropShadowDirectionEffect Color="Black"
+										   Direction="0,0,2,2"
+										   ShadowDepth="10"
+										   Opacity="0.7"
+                                           BlurRadius="5"/>
+			</Setter.Value>
+
+		</Setter>
+
+	</Style>
+</Styles>
