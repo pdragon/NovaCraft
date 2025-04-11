@@ -128,6 +128,11 @@ public partial class UploadModpack : UserControl
         }
     }
 
+    public void SynthingSave(object sender, RoutedEventArgs e)
+    {
+
+    }
+
     public void FtpSave(object sender, RoutedEventArgs e)
     {
         //if (!string.IsNullOrEmpty(ShareAccountConfig.Select(n => n.Name).Where(n => n == _profileName!.Text).FirstOrDefault()))

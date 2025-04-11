@@ -6,7 +6,7 @@
              x:Class="Blowaunch.AvaloniaApp.Views.UserControls.UploadModpack">
    
 	<Border 
-						BorderBrush="White"
+						BorderBrush="Gray"
 						BorderThickness="2"
 						CornerRadius="3"
 						Padding="5"
@@ -18,10 +18,28 @@
 		   Fill="Black" Opacity="0"></Rectangle>
 		   -->
 			<StackPanel VerticalAlignment="Top" Orientation="Vertical">
+				<Border Background="#000080" Height="24">
+					<DockPanel Margin="0,0">
+						<TextBlock Text="ModPack Edit"
+								   Foreground="White"
+								   FontWeight="Bold"
+								   VerticalAlignment="Center"
+								   Margin="4,0"
+								   FontSize="12"
+								   Padding="4"
+								   />
+
+						<Button  Classes="close-button"
+						 Click="ShareClose">
+					<PathIcon Data="{StaticResource Close}"
+					  Width="11"
+					  Height="11"/>
+				</Button>
+						</DockPanel>
+					</Border>
+				<!--
 				<Button HorizontalAlignment="Right"
 				VerticalAlignment="Top"
-				Width="35" Height="35"
-				Background="#00FF0000"
 				Click="ShareClose">
 					<Button.Styles>
 						<Style Selector="Button:pointerover /template/ ContentPresenter">
@@ -32,16 +50,18 @@
 					<PathIcon Data="{StaticResource Close}"
 							  Opacity="100"/>
 				</Button>
+				-->
 				<StackPanel Orientation="Horizontal"
 							VerticalAlignment="Center"
 							HorizontalAlignment="Center"
-							Opacity="10">
+							Margin="0 10 0 0">
 
 					<TextBlock Text="Connections"
 					FontSize="24" FontWeight="Bold"
 					HorizontalAlignment="Left"/>
 					<ComboBox HorizontalAlignment="Left"
 							  MaxDropDownHeight="350"
+							  Margin="10 0 0 0"
 							  Width="200" Name="AccountsCombo"
 							  
 							  SelectedIndex="0">
@@ -71,7 +91,6 @@
 					</Button>
 					<Button Height="35" Width="70"
 							Background="#e63f29"
-							Opacity="20"
 							CornerRadius="5"
 							HorizontalAlignment="Center"
 							Margin="0 0 0 0"
@@ -90,6 +109,47 @@
 
 				</StackPanel>
 				<TabControl>
+					
+					<TabItem>
+						<TabItem.Header>
+							<TextBlock Text="Synthing"/>
+						</TabItem.Header>
+						<StackPanel VerticalAlignment="Center">
+							<TextBlock Text="Connection through synthing"
+									   FontSize="24" FontWeight="Bold"
+									   HorizontalAlignment="Center"/>
+							<TextBlock Text="This type of connection is p2p"
+									   FontSize="16"
+									   HorizontalAlignment="Center"/>
+							<TextBlock Text="you will need receive and enter deviceId of client device"
+									   FontSize="16" Margin="0 0 0 25"
+									   HorizontalAlignment="Center"/>
+							<TextBox Width="300" Watermark="Connection name"
+									 Name="ConnectionName"/>
+							<Button Height="35" Width="125"
+									CornerRadius="5"
+									HorizontalAlignment="Center"
+									Margin="0 10 0 0"
+									ClickMode="Press"
+									Click="SynthingSave">
+								<Button.Styles>
+									<Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+								</Style>
+									<Style Selector="Button:pressed /template/ ContentPresenter#PART_ContentPresenter">
+									</Style>
+								</Button.Styles>
+								<StackPanel Orientation="Horizontal">
+									<PathIcon Data="{StaticResource
+                                AddRegular}"
+											  Foreground="White"/>
+									<TextBlock Text="Add connection"
+											   HorizontalAlignment="Center"
+											   VerticalAlignment="Center"
+											   Margin="5 0 0 0"/>
+								</StackPanel>
+							</Button>
+						</StackPanel>
+					</TabItem>
 					<TabItem>
 						<TabItem.Header>
 							<TextBlock Text="FTP"/>
@@ -102,7 +162,7 @@
 									   FontSize="12" FontWeight="Light"
 									   HorizontalAlignment="Left"/>
 							</StackPanel>
-							
+
 							<StackPanel Orientation="Horizontal"
 										VerticalAlignment="Top"
 										HorizontalAlignment="Center">
@@ -112,7 +172,7 @@
 								<TextBox Width="300" Watermark="Profile name"
 									 Name="ProfileName"/>
 							</StackPanel>
-							
+
 							<StackPanel Orientation="Horizontal"
 										VerticalAlignment="Top"
 										HorizontalAlignment="Center">
@@ -203,53 +263,6 @@
 											   />
 								</Button>
 							</StackPanel>
-							
-
-
-						</StackPanel>
-
-					</TabItem>
-					<TabItem>
-						<TabItem.Header>
-							<TextBlock Text="Http"/>
-						</TabItem.Header>
-						<StackPanel VerticalAlignment="Center">
-							<TextBlock Text="No authentication"
-									   FontSize="24" FontWeight="Bold"
-									   HorizontalAlignment="Center"/>
-							<TextBlock Text="This type of authentication won't allow you"
-									   FontSize="16"
-									   HorizontalAlignment="Center"/>
-							<TextBlock Text="to play on online-mode servers"
-									   FontSize="16" Margin="0 0 0 25"
-									   HorizontalAlignment="Center"/>
-							<TextBox Width="300" Watermark="Username"
-									 Name="UsernameCracked"/>
-							<Button Height="35" Width="125"
-									Background="#1fa803"
-									CornerRadius="5"
-									HorizontalAlignment="Center"
-									Margin="0 10 0 0">
-								<Button.Styles>
-									<Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-										<Setter Property="Background"
-												Value="#22cb00"/>
-									</Style>
-									<Style Selector="Button:pressed /template/ ContentPresenter#PART_ContentPresenter">
-										<Setter Property="Background"
-												Value="#27d803"/>
-									</Style>
-								</Button.Styles>
-								<StackPanel Orientation="Horizontal">
-									<PathIcon Data="{StaticResource
-                                AddRegular}"
-											  Foreground="White"/>
-									<TextBlock Text="Add account"
-											   HorizontalAlignment="Center"
-											   VerticalAlignment="Center"
-											   Margin="5 0 0 0"/>
-								</StackPanel>
-							</Button>
 						</StackPanel>
 					</TabItem>
 					<TabItem>

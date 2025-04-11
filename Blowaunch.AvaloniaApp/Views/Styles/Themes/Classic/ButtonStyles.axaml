@@ -13,9 +13,17 @@
 		</Border>
 		<Border>
 			<ToggleSwitch OnContent="Show Snaphots"
-                                            OffContent="Show Snaphots"
-										  Classes="StdTextOnly"
-                                            Name="ShowSnapshots"/>
+                OffContent="Show Snaphots"
+				Classes="StdTextOnly"
+                Name="ShowSnapshots"/>
+			
+			</Border>
+			<Border>
+				<Button  Classes="add-button">
+					<PathIcon Data="{StaticResource Close}"
+					  Width="11"
+					  Height="11"/>
+				</Button>
 			</Border>
 			</StackPanel>
 	</Design.PreviewWith>
@@ -98,5 +106,24 @@
 
 		</Setter>
 
+	</Style>
+
+
+	<Style Selector="Button.add-button">
+		<Setter Property="ContentTemplate">
+			<Setter.Value>
+				<DataTemplate>
+					<StackPanel Orientation="Horizontal"
+								HorizontalAlignment="Center"
+								VerticalAlignment="Center">
+						<PathIcon Data="{StaticResource save_icon}"
+								  Width="16"
+								  Height="16"
+								  Margin="0,0,5,0"/>
+						<TextBlock Text="Save" VerticalAlignment="Center"/>
+					</StackPanel>
+				</DataTemplate>
+			</Setter.Value>
+		</Setter>
 	</Style>
 </Styles>
