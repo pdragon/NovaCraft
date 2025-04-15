@@ -39,7 +39,7 @@
                             CornerRadius="5"
                             Margin="20 0 20 10">
                         <Panel>
-                            <StackPanel Height="62">
+                            <StackPanel Background="AliceBlue" Height="62">
                                 <TextBlock Text="[No Account]" FontWeight="Bold"
                                            HorizontalAlignment="Left"
                                            Margin="20 10 20 0"
@@ -50,8 +50,8 @@
                                            Name="AccountType"/>
                             </StackPanel>
                             <Button HorizontalAlignment="Right"
-                                    Height="62" Width="80"
-                                    Background="#808080"
+                                    Height="32" Width="40"
+									Margin="0 0 10 0"
                                     Click="OpenAuthPanel"
                                     CornerRadius="0 5 5 0">
                                 <PathIcon Data="{StaticResource
@@ -65,7 +65,7 @@
                             CornerRadius="5"
                             Margin="20 0 20 10">
 						<Panel>
-							<StackPanel Height="62">
+							<StackPanel  Background="AliceBlue" Height="62">
 								<TextBlock Text="[No Types]" FontWeight="Bold"
                                            HorizontalAlignment="Left"
                                            Margin="20 10 20 0"
@@ -76,10 +76,10 @@
                                            Name="ShareTypeText"/>
 							</StackPanel>
 							<Button HorizontalAlignment="Right"
-                                    Height="62" Width="80"
-                                    Background="#808080"
+                                    Height="32" Width="40"
+                                    Margin="0 0 10 0"
                                     Click="OpenSharePanel"
-                                    CornerRadius="0 5 5 0">
+                                    CornerRadius="10 5 5 10">
 								<PathIcon Data="{StaticResource
                                 SettingsRegular}"/>
 							</Button>
@@ -90,23 +90,12 @@
                                 Orientation="Horizontal"
                                 Margin="0 15 0 0">
                         <Button Height="35" Width="135"
-                                Background="#1fa803"
                                 CornerRadius="5"
 								Click="RunMinecraft">
-                            <Button.Styles>
-                                <Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-                                    <Setter Property="Background" 
-                                            Value="#22cb00"/>
-                                </Style>
-                                <Style Selector="Button:pressed /template/ ContentPresenter#PART_ContentPresenter">
-                                    <Setter Property="Background" 
-                                            Value="#27d803"/>
-                                </Style>
-                            </Button.Styles>
                             <StackPanel Orientation="Horizontal">
                                 <PathIcon Data="{StaticResource
                                 PlayRegular}"
-                                          Foreground="White"/>
+                                          Foreground="Black"/>
                                 <TextBlock Text="Run the game"
                                            HorizontalAlignment="Center"
                                            VerticalAlignment="Center"
@@ -821,10 +810,43 @@
         <!-- Authentication overlay -->
         <Panel Name="Authentication" 
                IsVisible="False">
-            <Rectangle HorizontalAlignment="Stretch"
+			<Rectangle HorizontalAlignment="Stretch"
+					   Fill="#80000000"
                        VerticalAlignment="Stretch"
-                        Opacity="255"/>
-            <TabControl>
+                        />
+			<Grid>
+				<!-- Строка для заголовка -->
+				<Grid.RowDefinitions>
+					<RowDefinition Height="Auto"/>
+					<!-- Для панели с кнопкой -->
+					<RowDefinition Height="*"/>
+					<!-- Для TabControl -->
+				</Grid.RowDefinitions>
+
+            
+			<Border Background="#000080" Height="24" Grid.Row="0">
+				<DockPanel Margin="2,0">
+					<TextBlock Text="ModPack Edit"
+							   Foreground="White"
+							   FontWeight="Bold"
+							   VerticalAlignment="Center"
+							   Margin="4,0"
+							   FontSize="12"
+							   Padding="4"
+					   />
+
+					<Button
+							Classes="close-button"
+							Click="CloseAuthPanel">
+						<PathIcon Data="{StaticResource Close}"
+						  Width="11"
+						  Height="11"/>
+					</Button>
+				</DockPanel>
+			</Border>
+
+			
+			<TabControl Grid.Row="1">
                 <TabItem>
                     <TabItem.Header>
                         <TextBlock Text="Accounts"/>
@@ -1034,28 +1056,14 @@
                     </StackPanel>
                 </TabItem>
             </TabControl>
-            <Button HorizontalAlignment="Right"
-                    VerticalAlignment="Top"
-                    Width="35" Height="35"
-                    Background="#00FF0000"
-                    Click="CloseAuthPanel">
-                <Button.Styles>
-                    <Style Selector="Button:pointerover /template/ ContentPresenter">
-                        <Setter Property="Background"
-                                Value="#50FF0000"/>
-                    </Style>
-                </Button.Styles>
-                <PathIcon Data="{StaticResource Close}"
-                          Opacity="100"/>
-            </Button>
+			</Grid>
         </Panel>
-
 		<!-- Loading overlay -->
         <Panel IsVisible="True"
+			   
                Name="Loading">
             <Rectangle HorizontalAlignment="Stretch"
-                       VerticalAlignment="Stretch"
-                        Opacity="255"/>
+                       VerticalAlignment="Stretch"/>
             <StackPanel HorizontalAlignment="Center"
                 VerticalAlignment="Center">
                 <TextBlock FontSize="24"
@@ -1092,5 +1100,6 @@
                            FontWeight="Bold"/>
             </StackPanel>
         </Panel>
-    </Panel>
+	</Panel>
+	
 </Window>
