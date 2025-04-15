@@ -18,7 +18,7 @@
 				HorizontalAlignment="Center"
 				ToolTip.Placement="Bottom">
 
-			<Grid Margin="5,0,0,0" Height="100" Width="160">
+			<Grid Margin="5,5,5,0" Height="100" Width="160">
 
 				<Grid.RowDefinitions>
 					<RowDefinition Height="30"></RowDefinition>
@@ -35,15 +35,16 @@
 				<!--
 				<Image Grid.Column="0" Grid.Row="0" Width="100" Height="70" Name="ModPackImage"  Grid.ColumnSpan="1"/>
 				-->
-				<Button Grid.Column="0" Grid.Row="0" Content="X" FontSize="8"  Background="Gray" x:Name="ModPackEraseBtn" Click="OnEraseModPack" ToolTip.Tip="Erase modpack"/>
-				<Button Grid.Column="1" Grid.Row="0" Content="C" FontSize="8"  Background="Gray" x:Name="ModPackChangeBtn" ToolTip.Tip="Change modpack options"/>
-				<Button Grid.Column="2" Grid.Row="0" Content="I" FontSize="8"  Background="Gray" x:Name="ModPackInfoBtn" Click="OnEraseModPack" ToolTip.Tip="Under construction"/>
-				<Button Grid.Column="3" Grid.Row="0" Content="P" FontSize="8"  Background="Gray" x:Name="ModPackPlayBtn" ToolTip.Tip="Start the game"/>
+				<Button Grid.Column="0" Grid.Row="0" Content="X" FontSize="10"   x:Name="ModPackEraseBtn" Click="OnEraseModPack" Classes="Button.add-button" ToolTip.Tip="Erase modpack"/>
+				<Button Grid.Column="1" Grid.Row="0" Content="C" FontSize="10"   x:Name="ModPackChangeBtn" ToolTip.Tip="Change modpack options"/>
+				<Button Grid.Column="2" Grid.Row="0" Content="I" FontSize="10"   x:Name="ModPackInfoBtn" Click="OnEraseModPack" ToolTip.Tip="Under construction"/>
+				<Button Grid.Column="3" Grid.Row="0" Content="P" FontSize="10"   x:Name="ModPackPlayBtn" ToolTip.Tip="Start the game"/>
 				
 
-				<TextBlock Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="3"
+				<TextBlock Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="4"
 					HorizontalAlignment="Center"
-								   FontSize="8"
+						   Margin="0 5 0 0"
+								   FontSize="16"
 						   Background="Wheat"
 								
 								   TextWrapping="WrapWithOverflow"

@@ -19,6 +19,7 @@
 
     
     <Panel>
+		
         <SplitView IsPaneOpen="True"
                    DisplayMode="Inline"
                    OpenPaneLength="280">
@@ -1060,9 +1061,10 @@
         </Panel>
 		<!-- Loading overlay -->
         <Panel IsVisible="True"
-			   
+			   Panel.ZIndex="2"
                Name="Loading">
             <Rectangle HorizontalAlignment="Stretch"
+					   Fill="{DynamicResource OverlayBackground}"
                        VerticalAlignment="Stretch"/>
             <StackPanel HorizontalAlignment="Center"
                 VerticalAlignment="Center">
@@ -1080,9 +1082,17 @@
         <!-- Progress Bar -->
         <Panel Height="35" VerticalAlignment="Bottom"
                IsVisible="False" Name="ProgressPanel">
+			
             <ProgressBar Height="35" CornerRadius="0"
-                         Opacity="2" Value="0"
-                         Name="ProgressBar"/>
+                         Value="0"
+                         Name="ProgressBar">
+				<ProgressBar.Foreground>
+					<LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+						<GradientStop Color="#1fa803" Offset="0"/>
+						<GradientStop Color="#22cb00" Offset="1"/>
+					</LinearGradientBrush>
+				</ProgressBar.Foreground>
+			</ProgressBar>
             <TextBlock Name="ProgressInfo"
                        Margin="10 10 0 0"
                        HorizontalAlignment="Left"
