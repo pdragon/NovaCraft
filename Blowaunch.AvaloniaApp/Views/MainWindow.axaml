@@ -26,14 +26,55 @@
             <SplitView.Pane>
                 <!-- Left Panel -->
                 <StackPanel>
-                    <Panel>
+					<Panel>
+						<Canvas Width="282" Height="50">
+							
+							<Canvas.Background>
+								<LinearGradientBrush StartPoint="0,0" EndPoint="100,50">
+									<GradientStop Offset="0" Color="#0A0316"/>
+									<GradientStop Offset="1" Color="#1F1CF9"/>
+								</LinearGradientBrush>
+							</Canvas.Background>
+							<Path
+								Canvas.Left="145"
+								Canvas.Top="-30"
+								Width="50" Height="50"
+								Fill="#FF6B35"
+								Stroke="#FFD700"
+								StrokeThickness="4"
+								Data="{StaticResource
+							NovaStar}">
+								<Path.RenderTransform>
+									<!-- Все трансформации внутри одной группы -->
+									<TransformGroup>
+										<ScaleTransform ScaleX="0.120" ScaleY="0.120"/>
+										<RotateTransform Angle="110" CenterX="0" CenterY="0"/>
+									</TransformGroup>
+								</Path.RenderTransform>
+							</Path>
+							
+						<!--
                         <Image Source="/Assets/logo.png"
+							   
                                Margin="20 -10 20 10"/>
+						-->
+						<TextBlock HorizontalAlignment="Center"
+						        Text="NovaCraft launcher"
+								Foreground="AliceBlue"
+								FontSize="32"
+                                Margin="5 10 0 10"
+								ToolTip.Tip="open-source soon"
+								/>
+							
                         <TextBlock HorizontalAlignment="Center"
 						           Text="Crossplatform simple launcher"
-                                   Margin="0 60 0 10"
+								   Foreground="AliceBlue"
+                                   Margin="10 60 0 10"
 								   ToolTip.Tip="open-source soon"
 								   />
+							</Canvas>
+
+						
                     </Panel>
                     <Border 
                            

@@ -1713,8 +1713,8 @@ partial class MainWindow : Window
             shareFile.Account.Password = "32";
             shareFile.Account.Login = "d";
             shareFile.Account.NeedAuth = true;
-            shareFile.Account.UploadThrough = ExportFileParams.ShareType.Ssh;//ExportFileParams.ShareType.Ssh;
-            shareFile.Type = ExportFileParams.ShareType.Http;
+            shareFile.Account.UploadThrough = ExportFileParams.ShareType.Synthing;//ExportFileParams.ShareType.Ssh;
+            shareFile.Type = ExportFileParams.ShareType.Synthing;
             // Url must be destination to modpack file, but for now we'll do it this way (test purposes)
             shareFile.Url = $"{shareFile.Account.Server}/temp/share.json";
 
@@ -2230,6 +2230,7 @@ partial class MainWindow : Window
             
             //menuItem.Click =
             var config = ExportFileParams.LoadConfig();
+            config.Add(new ShareAccount() { UploadThrough = ShareType.Synthing, Name = "Synthing" });
             if (config == null || config.Count == 0)
             {
                 List<MenuItem?> menuItems = new List<MenuItem?>();

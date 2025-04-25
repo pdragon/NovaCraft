@@ -8,19 +8,17 @@ using System.Threading.Tasks;
 
 namespace Blowaunch.Library.UsableClasses.ShareModPack
 {
-
-
-
     public class ExportFileParams
     {
         
         public enum ShareType
         {
-            Ftp,
-            Http,
-            Ssh,
-            DropMeFiles,
-            BitTorrent
+            //Ftp,
+            //Http,
+            //Ssh,
+            //DropMeFiles,
+            BitTorrent,
+            Synthing
         }
 
         public class NamedPair
@@ -30,11 +28,12 @@ namespace Blowaunch.Library.UsableClasses.ShareModPack
         }
 
         public static List<NamedPair> ShareTypeList = new List<NamedPair>() {
-            new NamedPair(){ Name = ShareType.Ftp.ToString(), Value = ShareType.Ftp },
-            new NamedPair(){ Name = ShareType.Http.ToString(), Value = ShareType.Http },
-            new NamedPair(){ Name = ShareType.Ssh.ToString(), Value = ShareType.Ssh },
-            new NamedPair(){ Name = ShareType.DropMeFiles.ToString(), Value = ShareType.DropMeFiles },
+            //new NamedPair(){ Name = ShareType.Ftp.ToString(), Value = ShareType.Ftp },
+            //new NamedPair(){ Name = ShareType.Http.ToString(), Value = ShareType.Http },
+            //new NamedPair(){ Name = ShareType.Ssh.ToString(), Value = ShareType.Ssh },
+            //new NamedPair(){ Name = ShareType.DropMeFiles.ToString(), Value = ShareType.DropMeFiles },
             new NamedPair(){ Name = ShareType.BitTorrent.ToString(), Value = ShareType.BitTorrent },
+            new NamedPair(){ Name = ShareType.Synthing.ToString(), Value = ShareType.Synthing },
         };
 
         public class ShareAccount
