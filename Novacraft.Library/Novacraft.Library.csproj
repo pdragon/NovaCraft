@@ -12,14 +12,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <None Remove="Common.cs.bak" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Compile Include="Common.cs.bak" />
-    </ItemGroup>
-
-    <ItemGroup>
       <Content Include="minecraft.ico" />
     </ItemGroup>
 

@@ -52,7 +52,7 @@
         <PackageReference Include="System.Drawing.Common" Version="4.7.2" />
     </ItemGroup>
     <ItemGroup>
-      <ProjectReference Include="..\Blowaunch.ConsoleApp\Novacraft.ConsoleApp.csproj" />
+      <ProjectReference Include="..\NovaCraft.ConsoleApp\Novacraft.ConsoleApp.csproj" />
       <ProjectReference Include="..\Novacraft.ConsoleApp\Novacraft.ConsoleApp.csproj" />
       <ProjectReference Include="..\Novacraft.Library\Novacraft.Library.csproj" />
     </ItemGroup>
