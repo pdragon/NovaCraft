@@ -3,11 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.33530.505
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Blowaunch.Library", "Blowaunch.Library\Blowaunch.Library.csproj", "{27DC3015-615E-4B0E-B6C0-A59228F8695C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Novacraft.Library", "Novacraft.Library\Novacraft.Library.csproj", "{27DC3015-615E-4B0E-B6C0-A59228F8695C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Blowaunch.AvaloniaApp", "Blowaunch.AvaloniaApp\Blowaunch.AvaloniaApp.csproj", "{D91F826B-1969-4DE4-B602-61AD0D6F20BA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Novacraft.AvaloniaApp", "Novacraft.AvaloniaApp\Novacraft.AvaloniaApp.csproj", "{D91F826B-1969-4DE4-B602-61AD0D6F20BA}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Blowaunch.ConsoleApp", "Blowaunch.ConsoleApp\Blowaunch.ConsoleApp.csproj", "{BE2C2273-B13C-4803-B100-4EA1B5D46131}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Novacraft.ConsoleApp", "Novacraft.ConsoleApp\Novacraft.ConsoleApp.csproj", "{BE2C2273-B13C-4803-B100-4EA1B5D46131}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

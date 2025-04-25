@@ -1,0 +1,37 @@
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using static Novacraft.Library.FilesManager;
+
+namespace Novacraft.Library
+{
+    public class Common
+    {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="value">Needed path to setup</param>
+        public void SetNovacraftEnvToPathEnv(string value)
+        {
+            var IdValue = Environment.OSVersion.Platform == PlatformID.Unix ? "$NovacraftJavaPath" : "%NovacraftJavaPath%";
+            var separator = Environment.OSVersion.Platform == PlatformID.Unix ? ":" : ";";
+            string path = System.Environment.GetEnvironmentVariable("NovacraftJavaPath", EnvironmentVariableTarget.User);
+            if (string.IsNullOrEmpty(path) || path != value)
+            {
+                System.Environment.SetEnvironmentVariable("NovacraftJavaPath", value, EnvironmentVariableTarget.User);
+            }
+            string envPath = System.Environment.GetEnvironmentVariable("Path", EnvironmentVariableTarget.User);
+            string[] envArr = envPath.Split(separator);
+            if (!envArr.Contains(IdValue))
+            {
+                System.Environment.SetEnvironmentVariable("Path", IdValue + separator + envPath, EnvironmentVariableTarget.User);
+            }
+            
+            return;
+
+        }
+    }
+}

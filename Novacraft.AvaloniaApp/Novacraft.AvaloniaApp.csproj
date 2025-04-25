@@ -1,0 +1,65 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net7.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <PlatformTarget>x64</PlatformTarget>
+        <Description>Запускальщик minecraft alpha version</Description>
+        <RepositoryType>git</RepositoryType>
+		<Copyright>https://github.com/pdragon/NovacraftData</Copyright>
+		<InformationalVersion>0.0.4 alpha</InformationalVersion>
+		<FileVersion>0.0.4.1</FileVersion>
+        <AnalysisLevel>none</AnalysisLevel>
+        <StartupObject>Novacraft.AvaloniaApp.Program</StartupObject>
+        <ApplicationIcon>minecraft.ico</ApplicationIcon>
+        <AssemblyName>NovacraftLauncher</AssemblyName>
+        <AssemblyVersion>0.0.0.4</AssemblyVersion>
+        <Platforms>AnyCPU;x64</Platforms>
+		<BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+      <FileAlignment>1024</FileAlignment>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+      <FileAlignment>1024</FileAlignment>
+    </PropertyGroup>
+    <ItemGroup>
+        <Folder Include="Models\" />
+        <AvaloniaResource Include="Assets\**" />
+        <None Remove=".gitignore" />
+    </ItemGroup>
+    <ItemGroup>
+      <Content Include="minecraft.ico" />
+    </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Avalonia" Version="11.2.3" />
+        <PackageReference Include="Avalonia.Desktop" Version="11.2.3" />
+        <PackageReference Include="Avalonia.Diagnostics" Version="11.2.3" />
+        <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
+        <PackageReference Include="Avalonia.ReactiveUI" Version="11.2.3" />
+        <PackageReference Include="Avalonia.Themes.Fluent" Version="11.2.3" />
+        <PackageReference Include="Classic.Avalonia.Theme" Version="11.2.0.7" />
+        <PackageReference Include="Classic.CommonControls.Avalonia" Version="11.2.0.7" />
+        <PackageReference Include="Deadpikle.AvaloniaProgressRing" Version="0.10.8" />
+        <PackageReference Include="Hardware.Info" Version="10.0.0" />
+        <PackageReference Include="MessageBox.Avalonia" Version="3.1.6" />
+        <PackageReference Include="Serilog" Version="3.0.1" />
+        <PackageReference Include="Serilog.Sinks.Console" Version="4.1.0" />
+        <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
+        <PackageReference Include="SkiaSharp" Version="2.88.9" />
+        <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="2.88.9" />
+        <PackageReference Include="SSH.NET" Version="2024.1.0" />
+        <PackageReference Include="System.Drawing.Common" Version="4.7.2" />
+    </ItemGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\Blowaunch.ConsoleApp\Novacraft.ConsoleApp.csproj" />
+      <ProjectReference Include="..\Novacraft.ConsoleApp\Novacraft.ConsoleApp.csproj" />
+      <ProjectReference Include="..\Novacraft.Library\Novacraft.Library.csproj" />
+    </ItemGroup>
+
+	<Target Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU' or '$(Configuration)|$(Platform)' == 'Release|AnyCPU'" Name="CopyFiles" BeforeTargets="PrepareForBuild">
+		<Message Text="Coping config file to output dir" Importance="normal" /><!--<Exec Command="xcopy /y $(ProjectDir)..\config.json $(ProjectDir)config.json" />-->
+		<Copy SourceFiles="$(ProjectDir)..\config.json" DestinationFiles="$(OutDir)config.json" />
+	</Target>
+	<Import Project="local.properties" Condition="Exists('local.properties')" />
+</Project>

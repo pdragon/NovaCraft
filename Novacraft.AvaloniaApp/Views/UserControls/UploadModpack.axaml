@@ -1,0 +1,370 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Novacraft.AvaloniaApp.Views.UserControls.UploadModpack">
+   
+	<Border 
+						BorderBrush="Gray"
+						BorderThickness="2"
+						CornerRadius="3"
+						Padding="5"
+						Margin="5 5 5 5"
+						Name="ShareBorder">
+		<!--
+		<Rectangle HorizontalAlignment="Stretch"
+		   VerticalAlignment="Stretch"
+		   Fill="Black" Opacity="0"></Rectangle>
+		   -->
+			<StackPanel VerticalAlignment="Top" Orientation="Vertical">
+				<Border Background="#000080" Height="24">
+					<DockPanel Margin="0,0">
+						<TextBlock Text="ModPack Edit"
+								   Foreground="White"
+								   FontWeight="Bold"
+								   VerticalAlignment="Center"
+								   Margin="4,0"
+								   FontSize="12"
+								   Padding="4"
+								   />
+
+						<Button  Classes="close-button"
+						 Click="ShareClose">
+					<PathIcon Data="{StaticResource Close}"
+					  Width="11"
+					  Height="11"/>
+				</Button>
+						</DockPanel>
+					</Border>
+				<!--
+				<Button HorizontalAlignment="Right"
+				VerticalAlignment="Top"
+				Click="ShareClose">
+					<Button.Styles>
+						<Style Selector="Button:pointerover /template/ ContentPresenter">
+							<Setter Property="Background"
+									Value="#50FF0000"/>
+						</Style>
+					</Button.Styles>
+					<PathIcon Data="{StaticResource Close}"
+							  Opacity="100"/>
+				</Button>
+				-->
+				<StackPanel Orientation="Horizontal"
+							VerticalAlignment="Center"
+							HorizontalAlignment="Center"
+							Margin="0 10 0 0">
+
+					<TextBlock Text="Connections"
+					FontSize="24" FontWeight="Bold"
+					HorizontalAlignment="Left"/>
+					<ComboBox HorizontalAlignment="Left"
+							  MaxDropDownHeight="350"
+							  Margin="10 0 0 0"
+							  Width="200" Name="AccountsCombo"
+							  
+							  SelectedIndex="0">
+						<ComboBox.ItemTemplate>
+							<DataTemplate>
+								<TextBlock Text="{Binding Name}" />
+							</DataTemplate>
+						</ComboBox.ItemTemplate>
+					</ComboBox>
+					<Button Height="35" Width="100"
+							Background="#1fa803"
+							CornerRadius="5"
+							HorizontalAlignment="Left"
+							Margin="10 0 10 0"
+							Click="ShareModpackAdd"
+							>
+						<Button.Styles>
+							<Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+								<Setter Property="Background"
+										Value="#22cb00"/>
+							</Style>
+						</Button.Styles>
+						<TextBlock Text="Add"
+								   HorizontalAlignment="Center"
+								   VerticalAlignment="Center"
+										   />
+					</Button>
+					<Button Height="35" Width="70"
+							Background="#e63f29"
+							CornerRadius="5"
+							HorizontalAlignment="Center"
+							Margin="0 0 0 0"
+							Click="EraseInstance"
+							>
+						<Button.Styles>
+							<Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+								<Setter Property="Background"
+										Value="#a32d1d"/>
+							</Style>
+						</Button.Styles>
+						<TextBlock Text="Delete" 
+								   HorizontalAlignment="Center"
+								   VerticalAlignment="Center"/>
+					</Button>
+
+				</StackPanel>
+				<TabControl>
+					
+					<TabItem>
+						<TabItem.Header>
+							<TextBlock Text="Synthing"/>
+						</TabItem.Header>
+						<StackPanel VerticalAlignment="Center">
+							<TextBlock Text="Connection through synthing"
+									   FontSize="24" FontWeight="Bold"
+									   HorizontalAlignment="Center"/>
+							<TextBlock Text="This type of connection is p2p"
+									   FontSize="16"
+									   HorizontalAlignment="Center"/>
+							<TextBlock Text="you will need receive and enter deviceId of client device"
+									   FontSize="16" Margin="0 0 0 25"
+									   HorizontalAlignment="Center"/>
+							<TextBox Width="300" Watermark="Connection name"
+									 Name="ConnectionName"/>
+							<Button Height="35" Width="125"
+									CornerRadius="5"
+									HorizontalAlignment="Center"
+									Margin="0 10 0 0"
+									ClickMode="Press"
+									Click="SynthingSave">
+								<Button.Styles>
+									<Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+								</Style>
+									<Style Selector="Button:pressed /template/ ContentPresenter#PART_ContentPresenter">
+									</Style>
+								</Button.Styles>
+								<StackPanel Orientation="Horizontal">
+									<PathIcon Data="{StaticResource
+                                AddRegular}"
+											  Foreground="White"/>
+									<TextBlock Text="Add connection"
+											   HorizontalAlignment="Center"
+											   VerticalAlignment="Center"
+											   Margin="5 0 0 0"/>
+								</StackPanel>
+							</Button>
+						</StackPanel>
+					</TabItem>
+					<TabItem>
+						<TabItem.Header>
+							<TextBlock Text="FTP"/>
+						</TabItem.Header>
+						<StackPanel VerticalAlignment="Top" Orientation="Vertical">
+							<StackPanel Orientation="Horizontal"
+										VerticalAlignment="Center"
+										HorizontalAlignment="Center">
+								<TextBlock Text="Guid" Name="GuidText"
+									   FontSize="12" FontWeight="Light"
+									   HorizontalAlignment="Left"/>
+							</StackPanel>
+
+							<StackPanel Orientation="Horizontal"
+										VerticalAlignment="Top"
+										HorizontalAlignment="Center">
+								<TextBlock Text="Profile name"
+										   FontSize="24" FontWeight="Bold"
+										   HorizontalAlignment="Left"/>
+								<TextBox Width="300" Watermark="Profile name"
+									 Name="ProfileName"/>
+							</StackPanel>
+
+							<StackPanel Orientation="Horizontal"
+										VerticalAlignment="Top"
+										HorizontalAlignment="Center">
+								<TextBlock Text="Login"
+										   FontSize="24" FontWeight="Bold"
+										   HorizontalAlignment="Left"/>
+								<TextBox Width="300" Watermark="Username"
+									 Name="ShareFTPUsername"/>
+							</StackPanel>
+
+							<StackPanel Orientation="Horizontal"
+											VerticalAlignment="Top"
+											HorizontalAlignment="Center">
+								<TextBlock Text="Password"
+										   FontSize="24" FontWeight="Bold"
+										   HorizontalAlignment="Left"/>
+								<TextBox Width="300" Watermark="Password"
+									 Name="ShareFTPPassword"/>
+							</StackPanel>
+							<StackPanel Orientation="Horizontal"
+											VerticalAlignment="Top"
+											HorizontalAlignment="Center">
+								<TextBlock Text="Server"
+										   FontSize="24" FontWeight="Bold"
+										   HorizontalAlignment="Left"/>
+								<TextBox Width="300" Watermark="Server url"
+									 Name="ShareFTPServer"/>
+							</StackPanel>
+							<StackPanel Orientation="Horizontal"
+											VerticalAlignment="Top"
+											HorizontalAlignment="Center">
+								<TextBlock Text="RootPath"
+										   FontSize="24" FontWeight="Bold"
+										   HorizontalAlignment="Left"/>
+								<TextBox Width="300" Watermark="RootPath"
+									 Name="ShareFTPRootPath"/>
+							</StackPanel>
+							<StackPanel Orientation="Horizontal"
+										VerticalAlignment="Top"
+										HorizontalAlignment="Center">
+								<TextBlock Text="Connection type"
+										   FontSize="24" FontWeight="Bold"
+										   HorizontalAlignment="Left"/>
+								<ComboBox HorizontalAlignment="Left"
+									  Width="200" Name="ShareType"
+									  SelectedIndex="0">
+									<ComboBox.ItemTemplate>
+										<DataTemplate>
+											<TextBlock Text="{Binding Name}" />
+										</DataTemplate>
+									</ComboBox.ItemTemplate>
+								</ComboBox>
+							</StackPanel>
+							<!--Error message-->
+							<StackPanel Orientation="Horizontal"
+											VerticalAlignment="Top"
+											HorizontalAlignment="Center">
+								<TextBlock Text="Error: Instance with this name already exist"
+										   HorizontalAlignment="Center"
+										   VerticalAlignment="Center"
+										   IsVisible="False"
+										   Foreground="#f00"
+										   Name="ErrorMessage"
+											   />
+
+							</StackPanel>
+							<StackPanel Orientation="Horizontal"
+											VerticalAlignment="Top"
+											HorizontalAlignment="Center">
+								<Button Height="35" Width="100"
+											Background="#1fa803"
+											Opacity="20"
+											CornerRadius="5"
+											HorizontalAlignment="Left"
+											Margin="10 0 10 0"
+											ClickMode="Press"
+											Click="FtpSave"
+								>
+									<Button.Styles>
+										<Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+											<Setter Property="Background"
+													Value="#22cb00"/>
+										</Style>
+									</Button.Styles>
+									<TextBlock Text="Save"
+											   HorizontalAlignment="Center"
+											   VerticalAlignment="Center"
+											   />
+								</Button>
+							</StackPanel>
+						</StackPanel>
+					</TabItem>
+					<TabItem>
+						<TabItem.Header>
+							<TextBlock Text="Ssh"/>
+						</TabItem.Header>
+						<StackPanel VerticalAlignment="Center" ToolTip.Tip="Under Construction">
+							<TextBlock Text="Microsoft Account"
+									   FontSize="24" FontWeight="Bold"
+									   HorizontalAlignment="Center"/>
+							<TextBlock Text="This type of authentication will allow you"
+									   FontSize="16"
+									   HorizontalAlignment="Center"/>
+							<TextBlock Text="to play on online-mode servers. Browser"
+									   FontSize="16"
+									   HorizontalAlignment="Center"/>
+							<TextBlock Text="would open for you to login."
+									   FontSize="16"
+									   HorizontalAlignment="Center"/>
+							<StackPanel Orientation="Horizontal"
+										VerticalAlignment="Center"
+										HorizontalAlignment="Center">
+								<Button Height="35" Width="125"
+										Background="#1fa803"
+										CornerRadius="5"
+										HorizontalAlignment="Center"
+										Margin="0 10 0 0"
+										Name="LoginButton"
+										IsEnabled="False"
+							>
+									<Button.Styles>
+										<Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+											<Setter Property="Background"
+													Value="#22cb00"/>
+										</Style>
+									</Button.Styles>
+									<StackPanel Orientation="Horizontal">
+										<PathIcon Data="{StaticResource
+                                AddRegular}"
+												  Foreground="White"/>
+										<TextBlock Text="Add account"
+												   HorizontalAlignment="Center"
+												   VerticalAlignment="Center"
+												   Margin="5 0 0 0"/>
+									</StackPanel>
+								</Button>
+							</StackPanel>
+						</StackPanel>
+					</TabItem>
+					<TabItem>
+						<TabItem.Header>
+							<TextBlock Text="BitTorrent"/>
+						</TabItem.Header>
+						<StackPanel VerticalAlignment="Center">
+							<TextBlock Text="Mojang Account"
+									   FontSize="24" FontWeight="Bold"
+									   HorizontalAlignment="Center"/>
+							<TextBlock Text="This type of authentication will allow you"
+									   FontSize="16"
+									   HorizontalAlignment="Center"/>
+							<TextBlock Text="to play on online-mode servers"
+									   FontSize="16" Margin="0 0 0 25"
+									   HorizontalAlignment="Center"/>
+							<TextBox Width="300" Watermark="Username"
+									 Name="UsernameMojang"
+									 Margin="0 0 0 10"/>
+							<TextBox Width="300" Watermark="Password"
+									 Name="PasswordMojang"
+									 PasswordChar="*"/>
+							<Button Height="35" Width="125"
+									Background="#1fa803"
+									CornerRadius="5"
+									HorizontalAlignment="Center"
+									Margin="0 10 0 0"
+									Name="MojangButton">
+								<Button.Styles>
+									<Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+										<Setter Property="Background"
+												Value="#22cb00"/>
+									</Style>
+									<Style Selector="Button:pressed /template/ ContentPresenter#PART_ContentPresenter">
+										<Setter Property="Background"
+												Value="#27d803"/>
+									</Style>
+								</Button.Styles>
+								<StackPanel Orientation="Horizontal">
+									<PathIcon Data="{StaticResource
+                                AddRegular}"
+											  Foreground="White"/>
+									<TextBlock Text="Add account"
+											   HorizontalAlignment="Center"
+											   VerticalAlignment="Center"
+											   Margin="5 0 0 0"/>
+								</StackPanel>
+							</Button>
+						</StackPanel>
+					</TabItem>
+				</TabControl>
+
+			</StackPanel>
+		
+	</Border>
+
+</UserControl>
+
