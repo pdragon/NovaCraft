@@ -49,6 +49,8 @@ using Avalonia.Styling;
 using static Novacraft.Library.UsableClasses.ShareModPack.ExportFileParams;
 using Renci.SshNet.Common;
 using Avalonia.Platform.Storage;
+using Tmds.DBus.Protocol;
+using Novacraft.Library.Common;
 
 namespace Novacraft.AvaloniaApp.Views;
 
@@ -1689,15 +1691,20 @@ partial class MainWindow : Window
             Verb = "open"
         });
 
+    public async void ShareModPackManager(object? sender, RoutedEventArgs e)
+    {
+        _uploadModpack!._shareBorder!.IsVisible = true;
+        _modPackPanel!.IsVisible = false;
+        _sharePanel!.IsVisible = true;
+
+    }
+
     public async void ShareModPack(object? sender, RoutedEventArgs e)
     {
         ModPack? modpack = Config.ModPacks.Find(mp => mp.Id == ModpackId);
         // This code bottom need transfer to library project in future 
         if (modpack != null)
         {
-            _uploadModpack!._shareBorder!.IsVisible = true;
-            _modPackPanel!.IsVisible = false;
-            _sharePanel!.IsVisible = true;
             //TODO: Selector types of share file: ftp, ssh, http, torrent, option, download source and so on.
             // Save this info to sharefile 
             var shareFile =  new ExportFileParams();
@@ -1706,21 +1713,51 @@ partial class MainWindow : Window
                 await ShowMessage("Instance path not found","Error");
                 return;
             }
-            shareFile.Account = new ExportFileParams.ShareAccount();
-            shareFile.InstanceUUID = modpack.Id;
-            // Temporary hardcoded created Account data
-            shareFile.Account.Server = "files.mpa8.ru";
-            shareFile.Account.Password = "32";
-            shareFile.Account.Login = "d";
-            shareFile.Account.NeedAuth = true;
-            shareFile.Account.UploadThrough = ExportFileParams.ShareType.Synthing;//ExportFileParams.ShareType.Ssh;
-            shareFile.Type = ExportFileParams.ShareType.Synthing;
+            FolderArchiver archiver = new FolderArchiver();
+            List<string> ex = new List<string>();
+            ex.Add(".tmp-forge");
+            ex.Add("config/forge.cfg");
+            ex.Add("a.zip");
+            var tmpPath = FolderArchiver.CreateUniqueTempDirectory("Novacraft");
+            var tmpArchPath = Path.Combine(tmpPath, "a.zip");
+            archiver.Start(FolderArchiver.OperationType.Pack, modpack.PackPath, tmpArchPath, ex);
+            var creator = new BundleCreator();
+            //string exePath = Env.GetExecutablePath();
+            //var exePathSplit = exePath.Split();
+            //string execName = Path.Combine(Path.GetTempPath(), exePathSplit[exePathSplit.Length - 1]);
+
+            try
+            {
+                var finalFile = Path.Combine(tmpPath, "upd.exe");
+                creator.CreateInstaller(Env.CopyUpdaterToTemp(), tmpArchPath, finalFile);
+                Console.WriteLine("Копирование успешно!");
+                string finalPath = Path.Combine(AppContext.BaseDirectory, "exports");
+                if (!Directory.Exists(finalPath)) 
+                { 
+                    Directory.CreateDirectory(finalPath); 
+                }
+                File.Move(finalFile, Path.Combine(AppContext.BaseDirectory, "exports", "update.exe"), true);
+            }
+            catch (Exception exc)
+            {
+                Console.WriteLine($"Ошибка: {exc.Message}");
+            }
+
+            //shareFile.Account = new ExportFileParams.ShareAccount();
+            //shareFile.InstanceUUID = modpack.Id;
+            //// Temporary hardcoded created Account data
+            //shareFile.Account.Server = "files.mpa8.ru";
+            //shareFile.Account.Password = "32";
+            //shareFile.Account.Login = "d";
+            //shareFile.Account.NeedAuth = true;
+            //shareFile.Account.UploadThrough = ExportFileParams.ShareType.Synthing;//ExportFileParams.ShareType.Ssh;
+            //shareFile.Type = ExportFileParams.ShareType.Synthing;
             // Url must be destination to modpack file, but for now we'll do it this way (test purposes)
-            shareFile.Url = $"{shareFile.Account.Server}/temp/share.json";
+            //shareFile.Url = $"{shareFile.Account.Server}/temp/share.json";
 
             string filePath = Path.Combine(modpack.PackPath, $"share.json");
             File.WriteAllText(filePath, JsonConvert.SerializeObject(shareFile));
-            var Ssh = new Ssh(shareFile.Account.Server, 21, shareFile.Account.Login, shareFile.Account.Password);
+            //var Ssh = new Ssh(shareFile.Account.Server, 21, shareFile.Account.Login, shareFile.Account.Password);
             //return;
             //var ftp = new FTP();
             //ftp.UploadFile(filePath, shareFile.Account.Server,  (int i) => { Console.WriteLine(i); }, new NetworkCredential() {
@@ -2230,10 +2267,20 @@ partial class MainWindow : Window
             
             //menuItem.Click =
             var config = ExportFileParams.LoadConfig();
-            config.Add(new ShareAccount() { UploadThrough = ShareType.Synthing, Name = "Synthing" });
+            //config.Add(new ShareAccount() { UploadThrough = ShareType.Synthing, Name = "Synthing" });
+            List<MenuItem?> menuItems = new List<MenuItem?>();
+            //MenuItem? menuItem = new MenuItem();
+            //menuItem.Header = ShareType.File.ToString();
+            //menuItem.Tag = new ModPackShareInfoTransfer()
+            //{
+            //    ShareModPackAccount = new ShareAccount() { Name = ShareType.File.ToString(), UploadThrough = ShareType.File, Guid = "File" },
+            //    Modpack = modpack
+            //};
+            //menuItem.Click += ModpackShareContextMenuHandler;
+            //menuItems.Add(menuItem);
             if (config == null || config.Count == 0)
             {
-                List<MenuItem?> menuItems = new List<MenuItem?>();
+                //List<MenuItem?> menuItems = new List<MenuItem?>();
                 menuItems.Clear();
                 MenuItem? menuItem = new MenuItem();
                 menuItem.Header = "Please create connection";
@@ -2244,19 +2291,19 @@ partial class MainWindow : Window
             }
             if (config != null && config.Count() > 0)
             {
-                List<MenuItem?> menuItems = new List<MenuItem?>();
+                //List<MenuItem?> menuItems = new List<MenuItem?>();
                 foreach (var connection in config)
                 {
-                    MenuItem? menuItem = new MenuItem();
-                    menuItem.Header = connection.Name;
+                    MenuItem? menuItem2 = new MenuItem();
+                    menuItem2.Header = connection.Name;
                     //menuItem.Tag = connection;
-                    menuItem.Tag = new ModPackShareInfoTransfer()
+                    menuItem2.Tag = new ModPackShareInfoTransfer()
                     {
                         ShareModPackAccount = connection,
                         Modpack = modpack
                     };
-                    menuItem.Click += ModpackShareContextMenuHandler;
-                    menuItems.Add(menuItem);
+                    menuItem2.Click += ModpackShareContextMenuHandler;
+                    menuItems.Add(menuItem2);
                 }
                 _shareModPackMenu.ItemsSource = new List<MenuItem?>();
                 _shareModPackMenu.ItemsSource = menuItems;

@@ -13,12 +13,13 @@ namespace Novacraft.Library.UsableClasses.ShareModPack
         
         public enum ShareType
         {
-            //Ftp,
-            //Http,
-            //Ssh,
-            //DropMeFiles,
-            BitTorrent,
-            Synthing
+            //Ftp = 0,
+            //Http = 1,
+            //Ssh = 2,
+            //DropMeFiles = 3,
+            BitTorrent = 4,
+            Synthing = 5,
+            File = 6
         }
 
         public class NamedPair
@@ -32,8 +33,9 @@ namespace Novacraft.Library.UsableClasses.ShareModPack
             //new NamedPair(){ Name = ShareType.Http.ToString(), Value = ShareType.Http },
             //new NamedPair(){ Name = ShareType.Ssh.ToString(), Value = ShareType.Ssh },
             //new NamedPair(){ Name = ShareType.DropMeFiles.ToString(), Value = ShareType.DropMeFiles },
-            new NamedPair(){ Name = ShareType.BitTorrent.ToString(), Value = ShareType.BitTorrent },
-            new NamedPair(){ Name = ShareType.Synthing.ToString(), Value = ShareType.Synthing },
+            //new NamedPair(){ Name = ShareType.BitTorrent.ToString(), Value = ShareType.BitTorrent },
+            //new NamedPair(){ Name = ShareType.Synthing.ToString(), Value = ShareType.Synthing },
+            new NamedPair(){ Name = ShareType.File.ToString(), Value = ShareType.File },
         };
 
         public class ShareAccount

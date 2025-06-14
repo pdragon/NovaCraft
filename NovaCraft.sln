@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Novacraft.AvaloniaApp", "No
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Novacraft.ConsoleApp", "Novacraft.ConsoleApp\Novacraft.ConsoleApp.csproj", "{BE2C2273-B13C-4803-B100-4EA1B5D46131}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Updater", "Updater\Updater.csproj", "{495560A8-A899-4091-8E6F-9773360B5744}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -41,6 +43,14 @@ Global
 		{BE2C2273-B13C-4803-B100-4EA1B5D46131}.Release|Any CPU.Build.0 = Release|Any CPU
 		{BE2C2273-B13C-4803-B100-4EA1B5D46131}.Release|x64.ActiveCfg = Release|x64
 		{BE2C2273-B13C-4803-B100-4EA1B5D46131}.Release|x64.Build.0 = Release|x64
+		{495560A8-A899-4091-8E6F-9773360B5744}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{495560A8-A899-4091-8E6F-9773360B5744}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{495560A8-A899-4091-8E6F-9773360B5744}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{495560A8-A899-4091-8E6F-9773360B5744}.Debug|x64.Build.0 = Debug|Any CPU
+		{495560A8-A899-4091-8E6F-9773360B5744}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{495560A8-A899-4091-8E6F-9773360B5744}.Release|Any CPU.Build.0 = Release|Any CPU
+		{495560A8-A899-4091-8E6F-9773360B5744}.Release|x64.ActiveCfg = Release|Any CPU
+		{495560A8-A899-4091-8E6F-9773360B5744}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

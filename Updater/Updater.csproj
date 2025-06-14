@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	  <IncludeAllContentForSelfExtract>true</IncludeAllContentForSelfExtract>
+	  <SelfContained>true</SelfContained>
+	  <!--<RuntimeIdentifier>win-x64</RuntimeIdentifier>-->
+	  <TargetFramework>net8.0</TargetFramework>
+	  
+    <OutputType>Exe</OutputType>
+    
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <PublishAot>true</PublishAot>
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+<!--
+	<Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU' or '$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
+		<Message Text="Creating exec as single file and coping updater exec file to GUI project dir" Importance="normal" />
+		<Exec Command="$(ProjectDir)win_x64aot.cmd $(TargetFileName)" />
+	</Target>
+	-->
+	<!--
+	<Target  Name="CopyFiles" AfterTargets="PrepareForBuild">
+		<Exec Command="xcopy /y $(ProjectDir)..\config.json $(ProjectDir)config.json" />
+	</Target>
+	-->
+
+</Project>

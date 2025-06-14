@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <OutputType>Exe</OutputType>
-        <TargetFramework>net7.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <Nullable>enable</Nullable>
         <PlatformTarget>x64</PlatformTarget>
         <Description>Запускальщик minecraft alpha version</Description>
@@ -56,10 +56,16 @@
       <ProjectReference Include="..\Novacraft.ConsoleApp\Novacraft.ConsoleApp.csproj" />
       <ProjectReference Include="..\Novacraft.Library\Novacraft.Library.csproj" />
     </ItemGroup>
-
+<!--
+	<Target Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" Name="BuildUpdater" BeforeTargets="PrepareForBuild">
+		<Message Text="Building Updater" Importance="normal" />
+		<Exec Command="$(SolutionDir)Updater\build.cmd" />
+	</Target>
+-->
 	<Target Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU' or '$(Configuration)|$(Platform)' == 'Release|AnyCPU'" Name="CopyFiles" BeforeTargets="PrepareForBuild">
 		<Message Text="Coping config file to output dir" Importance="normal" /><!--<Exec Command="xcopy /y $(ProjectDir)..\config.json $(ProjectDir)config.json" />-->
 		<Copy SourceFiles="$(ProjectDir)..\config.json" DestinationFiles="$(OutDir)config.json" />
+		<Copy SourceFiles="$(ProjectDir)Updater.exe" DestinationFiles="$(OutDir)Updater.exe" />
 	</Target>
 	<Import Project="local.properties" Condition="Exists('local.properties')" />
 </Project>
