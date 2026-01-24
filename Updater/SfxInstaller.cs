@@ -8,7 +8,7 @@ namespace Updater
 {
     public class SfxInstaller
     {
-        public void Main()
+        public bool Installing()
         {
             try
             {
@@ -35,11 +35,6 @@ namespace Updater
                     fs.Read(sizeBytes, 0, 8);
                 }
 
-                if (sizeBytes.Where(a => a == 0).Count() == 8)
-                {
-                    throw new InvalidDataException("File not contain archive");
-                }
-
                 long launcherSize = BitConverter.ToInt64(sizeBytes, 0);
                 long zipStart = launcherSize;
                 long zipSize = totalSize - launcherSize - 8;
@@ -47,6 +42,11 @@ namespace Updater
                 // 4. Проверка валидности размеров
                 if (launcherSize <= 0 || zipSize <= 0 || zipStart + zipSize > totalSize)
                 {
+                    if (sizeBytes.Where(a => a == 0).Count() == 8)
+                    {
+                        //throw new InvalidDataException("File not contain archive");
+                        return false;
+                    }
                     throw new InvalidOperationException("Invalid bundle structure");
                 }
 
@@ -72,6 +72,7 @@ namespace Updater
                 Console.WriteLine($"Installation failed: {ex.Message}");
                 Console.ReadKey();
             }
+            return true;
         }
 
         // Кроссплатформенное определение пути к исполняемому файлу

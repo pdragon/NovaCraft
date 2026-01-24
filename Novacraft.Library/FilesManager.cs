@@ -180,7 +180,7 @@ public static class FilesManager
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
         if (!File.Exists(path) && online)
         {
-            AnsiConsole.MarkupLine($"[green] Downoading asset: {asset.Name} ({asset.ShaHash}), " + $"[/]");
+            AnsiConsole.MarkupLine($"[green] Downloading asset: {asset.Name} ({asset.ShaHash}), " + $"[/]");
             Fetcher.Download(asset.Url, path);
         }
             
@@ -485,6 +485,7 @@ public static class FilesManager
                 {
                     task.Description = "Fetching";
                 }
+                var openjdkFile = Fetcher.Fetch(Fetcher.NovacraftEndpoints.OpenJdk);
                 var openjdk = JsonConvert.DeserializeObject<OpenJdkJson>(Fetcher.Fetch(Fetcher.NovacraftEndpoints.OpenJdk));
                 if (!openjdk!.Versions.ContainsKey(main.JavaMajor))
                 {

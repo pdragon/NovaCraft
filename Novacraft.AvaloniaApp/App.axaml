@@ -21,6 +21,12 @@
 	</Application.Resources>
 
     <Application.Styles>
+		<!--
+		<Style Selector="TextBlock">
+            <Setter Property="FontFamily"
+                    Value="avares://NovacraftLauncher/Assets/Fonts/InstrumentSerif-Regular.ttf#Instrument Serif"/>
+        </Style>
+		-->
 		
 		<StyleInclude Source="avares://NovacraftLauncher/Views/Styles/Themes/Classic/ButtonStyles.axaml"/>
 		<StyleInclude Source="avares://AvaloniaProgressRing/Styles/ProgressRing.xaml"/>

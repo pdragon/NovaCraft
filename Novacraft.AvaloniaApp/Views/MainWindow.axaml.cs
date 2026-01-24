@@ -187,8 +187,8 @@ partial class MainWindow : Window
 
     private class VersionsReturn
     {
-        public List<LauncherConfig.VersionClass> Versions = new List<LauncherConfig.VersionClass>();
-        public bool IsOffline = false;
+        [JsonProperty("versions")] public List<LauncherConfig.VersionClass> Versions = new List<LauncherConfig.VersionClass>();
+        [JsonProperty("isOfline")] public bool IsOffline = false;
     }
 
     /// <summary>
@@ -561,6 +561,7 @@ partial class MainWindow : Window
         }
         */
         var versions = GetVersions();
+        SaveVersionsToCache(versions);
         if (versions.IsOffline)
         {
             Logger.Warning("Internet unavailable!");
@@ -578,25 +579,7 @@ partial class MainWindow : Window
                 msBoxStandardWindow.ShowAsync();
             });
         }
-        /*
-        var index = versions.Versions.FindIndex(
-            x => x.Id == Config.Version.Id 
-                 && x.Name == Config.Version.Name);
-       
-        
-        await Dispatcher.UIThread.InvokeAsync(() => {
-            _versionsCombo.Items = versions.Versions;
-            _versionsCombo.SelectedIndex = index;
-            if (_selectionChanged) return;
-            _versionsCombo.SelectionChanged += (_, e) => {
-                if (e.AddedItems.Count == 0) return;
-                Config.Version = (e.AddedItems[0] 
-                    as LauncherConfig.VersionClass)!;
-                SaveConfig();
-            };
-            _selectionChanged = true;
-        });
-        */
+
     }
 
     private VersionsReturn GetVersions()
@@ -731,6 +714,7 @@ partial class MainWindow : Window
                 Logger.Error("Unable to load the version! {0}", e);
             }
         }
+
         return new VersionsReturn()
         {
             Versions = versions,
@@ -738,6 +722,43 @@ partial class MainWindow : Window
 
         };
     }
+
+    private static bool SaveVersionsToCache(VersionsReturn Versions)
+    {
+        try
+        {
+            Logger.Information("Saving versions to cache");
+            File.WriteAllText("versions-cache.json",
+            JsonConvert.SerializeObject(
+                Versions, Formatting.Indented,
+           new JsonConverter[] { new StringEnumConverter() }
+                ));
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Logger.Error("Unable to save versions cache! {0}", ex);
+        }
+        return false;
+    }
+
+    private static VersionsReturn? LoadVersionsCache()
+    {
+        VersionsReturn? versionsReturn = null;
+        try
+        {
+            Logger.Information("Loading versions from cache");
+            var jsonText = File.ReadAllText("versions-cache.json");
+            versionsReturn = JsonConvert.DeserializeObject<VersionsReturn>(jsonText);
+            return versionsReturn;
+        }
+        catch (Exception ex)
+        {
+            Logger.Error("Unable to load versions from cache! {0}", ex);
+        }
+        return null;
+    }
+
     #endregion
     #region Configuration
     /// <summary>
@@ -1945,6 +1966,7 @@ partial class MainWindow : Window
         //{
         LauncherConfig.ModPack modPack = Config.ModPacks.Find(mp => mp.Id == ModPackId) ?? new LauncherConfig.ModPack();
         int index = 1;
+        VersionsReturn? versionsClass = null;
         string? id = ModPackId == null ? Guid.NewGuid().ToString() : modPack.Id;
         //_modPackId.Text = id == "New Instance" ? "0" : id;
         if (modPack != null)
@@ -1979,8 +2001,11 @@ partial class MainWindow : Window
             //_modPackModProxyCombo.SelectedItem = modPack.ModProxy;
 
             _modPackPanel!.IsVisible = true;
-
-            var versionsClass = GetVersions();
+            versionsClass = LoadVersionsCache();
+            if (versionsClass == null)
+            {
+                versionsClass = GetVersions();
+            }
             if (versionsClass != null)
             {
                 //if (id != "")
@@ -2095,7 +2120,7 @@ partial class MainWindow : Window
         {
             ProgressModal("Loading client", "please wait");
             FilesManager.DownloadClient(currentModpack, main, online);
-            AnsiConsole.MarkupLine($"[grey] checking and downdloadeing needed libraries " + $"[/]");
+            AnsiConsole.MarkupLine($"[grey] checking and downloading needed libraries " + $"[/]");
             int itemsDownloaded = 0;
 
             foreach (NovacraftMainJson.JsonLibrary library in main.Libraries)
@@ -2118,7 +2143,7 @@ partial class MainWindow : Window
                 //ProgressModal("Loading assets...", (i + 1)  + " in " + assetsJson.Assets.Length + "(" + percent + " %)", (short)percent);
                 ProgressModal(assetsJson.Assets[i].Name, (i + 1) + " in " + assetsJson.Assets.Length + "(" + percent + " %)", (short)percent, "Loading assets...");
             }
-            AnsiConsole.MarkupLine($"[yellow] downoading complete " + $"[/]");
+            AnsiConsole.MarkupLine($"[yellow] downloading complete " + $"[/]");
             ProgressModal("", "", "Loading Java");
             JavaDownloadError javaDownloadResult = FilesManager.JavaDownload(main, null, currentModpack, online);
             switch (javaDownloadResult)

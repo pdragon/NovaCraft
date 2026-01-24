@@ -276,8 +276,6 @@ public static class Runner
             .Replace("${version_type}", main.Type.ToString().ToLower())
             .Replace("${assets_index_name}", main.Assets.Id).Replace("${version_name}", main.Version)
             // .Replace("${assets_index_name}", main.Version).Replace("${version_name}", main.Version)
-
-
             .Replace("${user_properties}", "{}");
         newstr = newstr.Replace("${user_type}", config.Account.Type.ToString().ToLower());
         switch (config.Account.Type)

@@ -67,7 +67,7 @@ partial class ModPackControl : UserControl
             else
             {
                 _image.Tag = "If you what see here your own image here, please copy you png file into: " + targetIconPath;
-                iconPath = Path.Combine(path, "minecraft-small.png");
+                iconPath = Path.Combine(path, "Assets", "minecraft-small.png");
             }
             if (File.Exists("minecraft-small.png"))
             {

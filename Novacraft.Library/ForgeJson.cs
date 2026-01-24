@@ -17,7 +17,7 @@ public class ForgeJson
         Legacy,
         Ordinary
             // Modern,
-            // PstModern
+            // PostModern
     }
 
     public static bool IsForgeJSONFilename(string filename)

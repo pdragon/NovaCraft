@@ -15,7 +15,7 @@ public static class MojangFetcher
     /// </summary>
     /// <returns>Mojang Versions JSON</returns>
     public static MojangVersionsJson GetVersions() 
-        => JsonConvert.DeserializeObject<MojangVersionsJson>(Fetcher.Fetch(Fetcher.MojangEndpoints.Versions));
+        => JsonConvert.DeserializeObject<MojangVersionsJson>(Fetcher.Fetch(Fetcher.MojangEndpoints.Versions, 5));
         
     /// <summary>
     /// Get Main JSON for Mojang Version

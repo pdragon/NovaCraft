@@ -344,21 +344,7 @@ namespace Novacraft.Library
                         libraries.Add(forgeUniversalLib);
                     }
                 }
-                /*
-                foreach (var lib in dataInst.Libraries)
-                {
-                    if (string.IsNullOrEmpty(lib.Url))
-                    {
-                        var dest = Path.Combine(selectedModPack.PackPath, "forge", $"{lib.Name}-{lib.Version}.jar");
-                        if (!Directory.Exists(Path.GetDirectoryName(dest))) Directory.CreateDirectory(Path.GetDirectoryName(dest)!);
-                        if (!File.Exists(dest)) File.Copy(Path.Combine(dir, "maven", lib.Path.Replace('/',
-                            Path.DirectorySeparatorChar)), dest);
-                        lib.Url = $"file://{dest}"; // :bigbrain:
-                        //lib.Url = $"https://maven.minecraftforge.net/{lib.Path}";
-                    }
-                    libraries.Add(lib);
-                }
-                */
+
                 addon.Arguments.Game = data.Arguments.Game;
                 addon.Arguments.Java = data.Arguments.Java;
                 addon.Libraries = libraries.ToArray();

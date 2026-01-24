@@ -7,7 +7,7 @@
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="Novacraft.AvaloniaApp.Views.MainWindow"
 		
-        Icon="/Assets/avalonia-logo.ico"
+		Icon="/Assets/logo.png"
         Title="Novacraft"
         Width="800" Height="450"
         CanResize="False">
@@ -495,8 +495,7 @@
 									  ItemsSource="{Binding Name}" Name="ModPackVersions">
 								<ComboBox.ItemTemplate>
 									<DataTemplate>
-										<TextBlock Text="{Binding 
-                                Name}" />
+										<TextBlock Text="{Binding Name}" />
 									</DataTemplate>
 								</ComboBox.ItemTemplate>
 								<ComboBoxItem>
@@ -1101,56 +1100,68 @@
 			</Grid>
         </Panel>
 		<!-- Loading overlay -->
-        <Panel IsVisible="True"
-			   Panel.ZIndex="2"
-               Name="Loading">
-            <Rectangle HorizontalAlignment="Stretch"
-					   Fill="{DynamicResource OverlayBackground}"
-                       VerticalAlignment="Stretch"/>
-            <StackPanel HorizontalAlignment="Center"
-                VerticalAlignment="Center">
-                <TextBlock FontSize="24"
-						    Name="LoadingTextBlock">
-                    Novacrafter is currently loading,
-                </TextBlock>
-                <TextBlock HorizontalAlignment="Center"
-                           FontSize="24">
-                    please wait a few seconds...
-                </TextBlock>
-            </StackPanel>
-        </Panel>
-        
-        <!-- Progress Bar -->
-        <Panel Height="35" VerticalAlignment="Bottom"
-               IsVisible="False" Name="ProgressPanel">
+		<Panel Name="Loading" 
+		   IsVisible="True"
+		   Panel.ZIndex="100">
+			<Panel.Styles>
+				<Style Selector="TextBlock">
+					<Setter Property="Foreground" Value="White"/>
+				</Style>
+			</Panel.Styles>
+
+		<!-- Затемнение - самый нижний слой -->
+		<Rectangle
+			Fill="#E0000000"
+			HorizontalAlignment="Stretch"
+			VerticalAlignment="Stretch"
+			Rectangle.ZIndex="0"/>
+    
+		<!-- Контент - самый верхний слой -->
+		<StackPanel HorizontalAlignment="Center"
+					VerticalAlignment="Center"
+					Panel.ZIndex="1">
+			<TextBlock FontSize="24" Name="LoadingTextBlock">
+				Novacrafter is currently loading,
+			</TextBlock>
+			<TextBlock HorizontalAlignment="Center" FontSize="24">
+				please wait a few seconds...
+			</TextBlock>
+		</StackPanel>
+
+		<!-- Progress Bar -->
+			<Panel Height="35" VerticalAlignment="Bottom"
+				   IsVisible="False" Name="ProgressPanel">
 			
-            <ProgressBar Height="35" CornerRadius="0"
-                         Value="0"
-                         Name="ProgressBar">
-				<ProgressBar.Foreground>
-					<LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-						<GradientStop Color="#1fa803" Offset="0"/>
-						<GradientStop Color="#22cb00" Offset="1"/>
-					</LinearGradientBrush>
-				</ProgressBar.Foreground>
-			</ProgressBar>
-            <TextBlock Name="ProgressInfo"
-                       Margin="10 10 0 0"
-                       HorizontalAlignment="Left"
-                       FontWeight="Bold"/>
-            <StackPanel HorizontalAlignment="Right"
-                        Margin="0 0 10 0"
-                        Orientation="Horizontal">
-                <PathIcon Data="{StaticResource Document}"
-                          Foreground="White"/>
-                <TextBlock Name="ProgressFiles"
-                           Text="0/1 files"
-                           Margin="5 0 0 8"
-                           VerticalAlignment="Bottom"
-                           HorizontalAlignment="Left"
-                           FontWeight="Bold"/>
-            </StackPanel>
-        </Panel>
+				<ProgressBar Height="35" CornerRadius="0"
+							 Value="0"
+							 Name="ProgressBar">
+					<ProgressBar.Foreground>
+						<LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+							<GradientStop Color="#1fa803" Offset="0"/>
+							<GradientStop Color="#22cb00" Offset="1"/>
+						</LinearGradientBrush>
+					</ProgressBar.Foreground>
+				</ProgressBar>
+				<TextBlock Name="ProgressInfo"
+						   Margin="10 10 0 0"
+						   HorizontalAlignment="Left"
+						   FontWeight="Bold"/>
+				<StackPanel HorizontalAlignment="Right"
+							Margin="0 0 10 0"
+							Orientation="Horizontal">
+					<PathIcon Data="{StaticResource Document}"
+							  Foreground="White"/>
+					<TextBlock Name="ProgressFiles"
+							   Text="0/1 files"
+							   Margin="5 0 0 8"
+							   VerticalAlignment="Bottom"
+							   HorizontalAlignment="Left"
+							   FontWeight="Bold"/>
+				</StackPanel>
+			</Panel>
+	</Panel>
+        
+        
 	</Panel>
 	
 </Window>
