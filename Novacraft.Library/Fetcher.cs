@@ -76,7 +76,31 @@ public static class Fetcher
 
     public static void Download(string url, string path)
     {
-        using var client = new WebClient();
-        client.DownloadFile(url, path);
+        try
+        {
+            using var client = new WebClient();
+            client.DownloadFile(url, path);
+        }
+        catch (Exception ex)
+        {
+            Logger.Error(ex.Message);
+        }
+    }
+
+    public static void Download(string url, string path, short attempts)
+    {
+        while (attempts > 0)
+        {
+            try
+            {
+                using var client = new WebClient();
+                client.DownloadFile(url, path);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex.Message);
+                attempts--;
+            }
+        }
     }
 }
