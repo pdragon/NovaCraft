@@ -1,3 +1,27 @@
+using Avalonia.Controls;
+using Avalonia.Interactivity;
+using Avalonia.Markup.Xaml;
+using Avalonia.Platform.Storage;
+using Avalonia.Threading;
+using Hardware.Info;
+using MonoTorrent;
+using MsBox.Avalonia;
+using MsBox.Avalonia.Dto;
+using MsBox.Avalonia.Enums;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+using Newtonsoft.Json.Linq;
+using Novacraft.AvaloniaApp.Views.UserControls;
+using Novacraft.ConsoleApp;
+using Novacraft.Library;
+using Novacraft.Library.Authentication;
+using Novacraft.Library.Common;
+using Novacraft.Library.ShareModPack;
+using Novacraft.Library.UsableClasses;
+using Novacraft.Library.UsableClasses.ShareModPack;
+using Serilog;
+using Serilog.Core;
+using Spectre.Console;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -7,50 +31,16 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Avalonia.Controls;
-using Avalonia.Interactivity;
-using Avalonia.Markup.Xaml;
-using Avalonia.Threading;
-using Novacraft.Library;
-using Novacraft.Library.Authentication;
-using Hardware.Info;
-//using MessageBox.Avalonia;
-//using MessageBox.Avalonia.DTO;
-//using MessageBox.Avalonia.Enums;
-using MsBox.Avalonia;
-using MsBox.Avalonia.Dto;
-using MsBox.Avalonia.Enums;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
-using Newtonsoft.Json.Linq;
-using Serilog;
-using Serilog.Core;
-using Spectre.Console;
-using static Novacraft.Library.LauncherConfig;
-using static Novacraft.Library.Runner;
-using Panel = Avalonia.Controls.Panel;
-using ForgeThingy = Novacraft.Library.ForgeThingy;
 using static Novacraft.Library.FilesManager;
-using Novacraft.AvaloniaApp.Views.UserControls;
-using DynamicData;
-using Avalonia.OpenGL;
 using static Novacraft.Library.ForgeThingy;
-using Novacraft.ConsoleApp;
-using Novacraft.Library.UsableClasses;
-using System.Runtime.InteropServices;
-using Avalonia;
-using Novacraft.Library.UsableClasses.ShareModPack;
-//using System.Timers;
-using Novacraft.Library.ShareModPack;
-using Avalonia.Styling;
+using static Novacraft.Library.LauncherConfig;
 using static Novacraft.Library.UsableClasses.ShareModPack.ExportFileParams;
-using Renci.SshNet.Common;
-using Avalonia.Platform.Storage;
-using Tmds.DBus.Protocol;
-using Novacraft.Library.Common;
+using ForgeThingy = Novacraft.Library.ForgeThingy;
+using Panel = Avalonia.Controls.Panel;
 
 namespace Novacraft.AvaloniaApp.Views;
 
@@ -1735,34 +1725,74 @@ partial class MainWindow : Window
                 return;
             }
             FolderArchiver archiver = new FolderArchiver();
-            List<string> ex = new List<string>();
-            ex.Add(".tmp-forge");
-            ex.Add("config/forge.cfg");
-            ex.Add("a.zip");
             var tmpPath = FolderArchiver.CreateUniqueTempDirectory("Novacraft");
-            var tmpArchPath = Path.Combine(tmpPath, "a.zip");
-            archiver.Start(FolderArchiver.OperationType.Pack, modpack.PackPath, tmpArchPath, ex);
-            var creator = new BundleCreator();
+            var tmpArchPath = Path.Combine(tmpPath, "share.novacraft");
+
+            MenuItem? item = (MenuItem?)e.Source;
+            var shareInfo = (ModPackShareInfoTransfer?)item!.Tag;
+            var exportType = shareInfo!.ShareModPackAccount.UploadThrough;
+            shareFile.modPack = modpack;
+            shareFile.Account = new ShareAccount();
+            shareFile.Account.UploadThrough = exportType;
+
+            string filePath = Path.Combine(modpack.PackPath, $"share.json");
+            File.WriteAllText(filePath, JsonConvert.SerializeObject(shareFile));
+
+            switch (exportType)
+            {
+                case ShareType.BitTorrent:
+                    var exportPath = Path.Combine(modpack.PackPath, "Export");
+                    if (Directory.Exists(exportPath)) {
+                        Directory.Delete(exportPath, recursive: true);
+                    }
+
+                    await DHT.CreateAsync(modpack.PackPath, Path.Combine(exportPath, "share.torrent"));
+                    //string torrentFilePath = "";
+
+                    filePath = Path.Combine(modpack.PackPath, "Export", $"share.json");
+                    if (!Directory.Exists(exportPath))
+                    {
+                        Directory.CreateDirectory(exportPath);
+                    }
+
+                    File.WriteAllText(filePath, JsonConvert.SerializeObject(shareFile, Formatting.Indented));
+                    // creating torrent file
+                    
+                    archiver.Start(FolderArchiver.OperationType.Pack, exportPath, tmpArchPath, []);
+                    break;
+                case ShareType.File:
+                    List<string> excludeObjects = new List<string>();
+                    excludeObjects.Add(".tmp-forge");
+                    excludeObjects.Add("config/forge.cfg");
+                    excludeObjects.Add("a.zip");
+                    excludeObjects.Add("Export");
+                    archiver.Start(FolderArchiver.OperationType.Pack, modpack.PackPath, tmpArchPath, excludeObjects);
+                    try
+                    {
+                        var creator = new BundleCreator();
+                        var finalFile = Path.Combine(tmpPath, "upd.exe");
+                        creator.CreateInstaller(Env.CopyUpdaterToTemp(), tmpArchPath, finalFile);
+                        Console.WriteLine("Копирование успешно!");
+                        string finalPath = Path.Combine(AppContext.BaseDirectory, "exports");
+                        if (!Directory.Exists(finalPath))
+                        {
+                            Directory.CreateDirectory(finalPath);
+                        }
+                        File.Move(finalFile, Path.Combine(AppContext.BaseDirectory, "exports", "update.exe"), true);
+                    }
+                    catch (Exception exc)
+                    {
+                        Console.WriteLine($"Ошибка: {exc.Message}");
+                    }
+                    break;
+            }
+            
+
             //string exePath = Env.GetExecutablePath();
             //var exePathSplit = exePath.Split();
             //string execName = Path.Combine(Path.GetTempPath(), exePathSplit[exePathSplit.Length - 1]);
 
-            try
-            {
-                var finalFile = Path.Combine(tmpPath, "upd.exe");
-                creator.CreateInstaller(Env.CopyUpdaterToTemp(), tmpArchPath, finalFile);
-                Console.WriteLine("Копирование успешно!");
-                string finalPath = Path.Combine(AppContext.BaseDirectory, "exports");
-                if (!Directory.Exists(finalPath)) 
-                { 
-                    Directory.CreateDirectory(finalPath); 
-                }
-                File.Move(finalFile, Path.Combine(AppContext.BaseDirectory, "exports", "update.exe"), true);
-            }
-            catch (Exception exc)
-            {
-                Console.WriteLine($"Ошибка: {exc.Message}");
-            }
+            
 
             //shareFile.Account = new ExportFileParams.ShareAccount();
             //shareFile.InstanceUUID = modpack.Id;
@@ -1776,8 +1806,7 @@ partial class MainWindow : Window
             // Url must be destination to modpack file, but for now we'll do it this way (test purposes)
             //shareFile.Url = $"{shareFile.Account.Server}/temp/share.json";
 
-            string filePath = Path.Combine(modpack.PackPath, $"share.json");
-            File.WriteAllText(filePath, JsonConvert.SerializeObject(shareFile));
+            
             //var Ssh = new Ssh(shareFile.Account.Server, 21, shareFile.Account.Login, shareFile.Account.Password);
             //return;
             //var ftp = new FTP();
@@ -2294,26 +2323,27 @@ partial class MainWindow : Window
             var config = ExportFileParams.LoadConfig();
             //config.Add(new ShareAccount() { UploadThrough = ShareType.Synthing, Name = "Synthing" });
             List<MenuItem?> menuItems = new List<MenuItem?>();
-            //MenuItem? menuItem = new MenuItem();
-            //menuItem.Header = ShareType.File.ToString();
-            //menuItem.Tag = new ModPackShareInfoTransfer()
-            //{
-            //    ShareModPackAccount = new ShareAccount() { Name = ShareType.File.ToString(), UploadThrough = ShareType.File, Guid = "File" },
-            //    Modpack = modpack
-            //};
-            //menuItem.Click += ModpackShareContextMenuHandler;
-            //menuItems.Add(menuItem);
-            if (config == null || config.Count == 0)
+            MenuItem? menuItem = new MenuItem();
+            menuItem.Header = ShareType.BitTorrent.ToString();
+            menuItem.Tag = new ModPackShareInfoTransfer()
             {
-                //List<MenuItem?> menuItems = new List<MenuItem?>();
-                menuItems.Clear();
-                MenuItem? menuItem = new MenuItem();
-                menuItem.Header = "Please create connection";
-                menuItems.Add(menuItem);
-                _shareModPackMenu.ItemsSource = new List<MenuItem?>();
-                _shareModPackMenu.ItemsSource = menuItems;
-                return;
-            }
+                ShareModPackAccount = new ShareAccount() { Name = ShareType.BitTorrent.ToString(), UploadThrough = ShareType.BitTorrent, Guid = "BitTorrent" },
+                Modpack = modpack
+            };
+            menuItem.Click += ModpackShareContextMenuHandler;
+            menuItems.Add(menuItem);
+
+            //if (config == null || config.Count == 0)
+            //{
+            //    //List<MenuItem?> menuItems = new List<MenuItem?>();
+            //    menuItems.Clear();
+            //    MenuItem? menuItem = new MenuItem();
+            //    menuItem.Header = "Please create connection";
+            //    menuItems.Add(menuItem);
+            //    _shareModPackMenu.ItemsSource = new List<MenuItem?>();
+            //    _shareModPackMenu.ItemsSource = menuItems;
+            //    return;
+            //}
             if (config != null && config.Count() > 0)
             {
                 //List<MenuItem?> menuItems = new List<MenuItem?>();

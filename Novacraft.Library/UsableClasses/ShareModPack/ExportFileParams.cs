@@ -1,10 +1,6 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System.IO;
+using Newtonsoft.Json;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Novacraft.Library.UsableClasses.ShareModPack
 {
@@ -33,7 +29,7 @@ namespace Novacraft.Library.UsableClasses.ShareModPack
             //new NamedPair(){ Name = ShareType.Http.ToString(), Value = ShareType.Http },
             //new NamedPair(){ Name = ShareType.Ssh.ToString(), Value = ShareType.Ssh },
             //new NamedPair(){ Name = ShareType.DropMeFiles.ToString(), Value = ShareType.DropMeFiles },
-            //new NamedPair(){ Name = ShareType.BitTorrent.ToString(), Value = ShareType.BitTorrent },
+            new NamedPair(){ Name = ShareType.BitTorrent.ToString(), Value = ShareType.BitTorrent },
             //new NamedPair(){ Name = ShareType.Synthing.ToString(), Value = ShareType.Synthing },
             new NamedPair(){ Name = ShareType.File.ToString(), Value = ShareType.File },
         };
@@ -50,13 +46,15 @@ namespace Novacraft.Library.UsableClasses.ShareModPack
             /// <summary>
             /// if http selected then ShareAccount is upload only credentials
             /// </summary>
-            public ShareType UploadThrough { get; set; }
+            [JsonProperty("type")] public ShareType UploadThrough { get; set; }
         }
+        
+        [JsonProperty("modpack")] public LauncherConfig.ModPack? modPack { get; set; }
 
-        [JsonProperty("type")] public ShareType Type { get; set; }
-        [JsonProperty("url")] public string Url { get; set; }
+        //[JsonProperty("type")] public ShareType Type { get; set; }
+        //[JsonProperty("url")] public string Url { get; set; }
         [JsonProperty("account")] public ShareAccount Account { get; set; }
-        [JsonProperty("instance_uuid")] public string InstanceUUID { get; set; }
+        //[JsonProperty("instance_uuid")] public string InstanceUUID { get; set; }
 
         static public List<ShareAccount> LoadConfig()
         {
