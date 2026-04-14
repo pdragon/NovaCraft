@@ -614,6 +614,26 @@
 									 Height="24"
 									 Name="ModPackName">
 							</TextBox>
+							<!-- Кнопка раздачи -->
+							<StackPanel HorizontalAlignment="Center" VerticalAlignment="Bottom" Spacing="10" Margin="0,0,0,20">
+								<Button x:Name="SeedButton" 
+										Content="🚀 Начать раздачу" 
+										Padding="16,10" 
+										FontSize="14"
+										Click="SeedButton_Click"
+										ToolTip.Tip="{Binding #StatusText.Text}"/>
+    
+								<ProgressBar x:Name="UploadProgressBar" 
+											 Minimum="0" Maximum="100" 
+											 Height="8" Width="250"/>
+    
+								<TextBlock x:Name="StatusText" 
+										   Text="Ожидание" 
+										   HorizontalAlignment="Center" 
+										   FontSize="12" 
+										   Opacity="0.7"/>
+							</StackPanel>
+
 							<!--<StackPanel Orientation="Horizontal">-->
 							    <Button Height="35" Width="35"
 										Grid.Column="0"
