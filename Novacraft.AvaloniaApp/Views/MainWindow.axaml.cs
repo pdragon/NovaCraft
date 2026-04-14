@@ -1,8 +1,9 @@
-using Avalonia.Controls;
+п»їusing Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
+using csdl;
 using Hardware.Info;
 using MonoTorrent;
 using MsBox.Avalonia;
@@ -28,7 +29,6 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Numerics;
 using System.Runtime.InteropServices;
@@ -58,6 +58,8 @@ partial class MainWindow : Window
     [DllImport("libdl.so")]
     protected static extern IntPtr dlsym(IntPtr handle, string symbol);
 
+    private IProgress<TorrentSessionState>? Progress;
+
     #region UI Elements
     // All fields used
     private Panel? _sharePanel;
@@ -77,6 +79,8 @@ partial class MainWindow : Window
     private ProgressBar? _progressBar;
     private Button? _mojangLoginButton;
     private Button? _microsoftLoginButton;
+    private Button? _seedButton;
+    private TextBlock? _statusText;
 
     private TextBlock? _loadingTextBlock;
     private Panel? _modPackPanel;
@@ -120,6 +124,7 @@ partial class MainWindow : Window
     private UploadModpack? _uploadModpack;
     private Border? _shareBorder;
     private TextBlock? _shareTypeText;
+    private ProgressBar _uploadProgressBar;
 
     //private ComboBox _modProxyPanelMcVersion;
     //private ComboBox _modProxyPanelForgeVersion;
@@ -186,6 +191,11 @@ partial class MainWindow : Window
     /// </summary>
     private bool MessageBoxIsShown = false;
 
+    private CancellationTokenSource? Cts;
+    private TorrentClient? Client;
+    private TorrentManager? Manager;
+    private string ShareFilePath = "";
+
     #endregion
     #region Initialization
     /// <summary>
@@ -204,6 +214,16 @@ partial class MainWindow : Window
                 System.Environment.Exit(2);
             }
         }
+
+        // Progress<double> РІ Avalonia Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєРё Р·Р°С…РІР°С‚С‹РІР°РµС‚ SynchronizationContext.
+        // Р’СЃРµ РІС‹Р·РѕРІС‹ Report() РїСЂРёРґСѓС‚ РІ СЌС‚РѕС‚ (UI) РїРѕС‚РѕРє Р±РµР· Dispatcher.Invoke.
+        Progress = new Progress<TorrentSessionState>(state =>
+        {
+            // РўСѓС‚ РїРѕС‚РѕРј РґРѕР±Р°РІРёРј СЂР°Р·РІРёР»РєСѓ РЅР° С‚РёРї РєР°С‡РєРё, Р° РїРѕРєР° Сѓ РЅР°СЃ С‚РѕР»СЊРєРѕ DHT РїСЂРѕС‚РѕРєРѕР» Р±СѓРґРµС‚ С‚РѕР»СЊРєРєРѕ РѕРЅ
+            _seedButton.Content = state.State == csdl.Enums.TorrentState.Seeding ? "вЏ№ РћСЃС‚Р°РЅРѕРІРёС‚СЊ СЂР°Р·РґР°С‡Сѓ" : "рџљЂ РќР°С‡Р°С‚СЊ СЂР°Р·РґР°С‡Сѓ";
+            _statusText.Text = state.StatusText;
+            _uploadProgressBar.Value = state.Progress * 100;
+        });
 
         InitializeComponent();
         InitializeFields();
@@ -347,6 +367,8 @@ partial class MainWindow : Window
 
         _shareModPackMenu = this.FindControl<ContextMenu>("ShareModPackMenu");
         _shareTypeText = this.FindControl<TextBlock>("ShareTypeText");
+        _uploadProgressBar = this.FindControl<ProgressBar>("UploadProgressBar");
+
 
         //_modProxyPanelMcVersion = this.FindControl<ComboBox>("ModProxyPanelMcVersion");
         //_modProxyPanelForgeVersion = this.FindControl<ComboBox>("ModProxyPanelForgeVersion");
@@ -364,6 +386,9 @@ partial class MainWindow : Window
             _ramSlider.Value = e.NewValue;
         };
         */
+        _seedButton = this.FindControl<Button>("SeedButton");
+        _statusText = this.FindControl<TextBlock>("StatusText");
+
         if (_modPackRamManual != null)
         {
             _modPackRamManual.ValueChanged += (_, e) =>
@@ -966,7 +991,7 @@ partial class MainWindow : Window
             Button? eraseBtn;
             Button? changeBtn;
             Image? modPackImage;
-            // Так делать нельзя, надо переделать так чтобы не создавались новые объекты окна при создании контрола.
+            // РўР°Рє РґРµР»Р°С‚СЊ РЅРµР»СЊР·СЏ, РЅР°РґРѕ РїРµСЂРµРґРµР»Р°С‚СЊ С‚Р°Рє С‡С‚РѕР±С‹ РЅРµ СЃРѕР·РґР°РІР°Р»РёСЃСЊ РЅРѕРІС‹Рµ РѕР±СЉРµРєС‚С‹ РѕРєРЅР° РїСЂРё СЃРѕР·РґР°РЅРёРё РєРѕРЅС‚СЂРѕР»Р°.
             ModPackControl? modpackItem = new ModPackControl(Config.ModPacks.ToArray()[i]);
 
             eraseBtn = modpackItem.Find<Button>("ModPackEraseBtn");
@@ -1725,6 +1750,8 @@ partial class MainWindow : Window
                 return;
             }
             FolderArchiver archiver = new FolderArchiver();
+            string tempDir = Path.GetTempPath();
+            //Console.WriteLine(tempDir);
             var tmpPath = FolderArchiver.CreateUniqueTempDirectory("Novacraft");
             var tmpArchPath = Path.Combine(tmpPath, "share.novacraft");
 
@@ -1746,7 +1773,8 @@ partial class MainWindow : Window
                         Directory.Delete(exportPath, recursive: true);
                     }
 
-                    await DHT.CreateAsync(modpack.PackPath, Path.Combine(exportPath, "share.torrent"));
+                   
+                    //ShareFilePath = await TorrentService.CreateAsync(modpack.PackPath, Path.Combine(tempDir, "Novacraft", "share.torrent"));
                     //string torrentFilePath = "";
 
                     filePath = Path.Combine(modpack.PackPath, "Export", $"share.json");
@@ -1755,8 +1783,8 @@ partial class MainWindow : Window
                         Directory.CreateDirectory(exportPath);
                     }
 
+                    ShareFilePath = await TorrentService.CreateAsync(modpack.PackPath, Path.Combine(exportPath, "share.torrent"));
                     File.WriteAllText(filePath, JsonConvert.SerializeObject(shareFile, Formatting.Indented));
-                    // creating torrent file
                     
                     archiver.Start(FolderArchiver.OperationType.Pack, exportPath, tmpArchPath, []);
                     break;
@@ -1772,7 +1800,7 @@ partial class MainWindow : Window
                         var creator = new BundleCreator();
                         var finalFile = Path.Combine(tmpPath, "upd.exe");
                         creator.CreateInstaller(Env.CopyUpdaterToTemp(), tmpArchPath, finalFile);
-                        Console.WriteLine("Копирование успешно!");
+                        Console.WriteLine("РљРѕРїРёСЂРѕРІР°РЅРёРµ СѓСЃРїРµС€РЅРѕ!");
                         string finalPath = Path.Combine(AppContext.BaseDirectory, "exports");
                         if (!Directory.Exists(finalPath))
                         {
@@ -1782,7 +1810,7 @@ partial class MainWindow : Window
                     }
                     catch (Exception exc)
                     {
-                        Console.WriteLine($"Ошибка: {exc.Message}");
+                        Console.WriteLine($"РћС€РёР±РєР°: {exc.Message}");
                     }
                     break;
             }
@@ -2066,10 +2094,43 @@ partial class MainWindow : Window
         ModPack? modpack = Config.ModPacks.Find(mp => mp.Id == ModpackId);
     }
 
+    private async void SeedButton_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_seedButton.Content?.ToString() == "вЏ№ РћСЃС‚Р°РЅРѕРІРёС‚СЊ")
+        {
+            Cts?.Cancel();
+            _seedButton.Content = "рџљЂ РќР°С‡Р°С‚СЊ СЂР°Р·РґР°С‡Сѓ";
+            _seedButton.Classes.Remove("active");
+            _statusText.Text = "РћСЃС‚Р°РЅРѕРІР»РµРЅРѕ";
+            return;
+        }
+
+        _seedButton.Content = "вЏ№ РћСЃС‚Р°РЅРѕРІРёС‚СЊ";
+        _seedButton.Classes.Add("active");
+        _statusText.Text = "РРЅРёС†РёР°Р»РёР·Р°С†РёСЏ...";
+        Cts = new CancellationTokenSource();
+        ModPack? modpack = Config.ModPacks.Find(mp => mp.Id == ModpackId);
+        //TorrentService dht = new TorrentService(ShareFilePath, modpack.PackPath);
+        TorrentService dht = new TorrentService();
+        //ShareFilePath = "C:\\Users\\UserA\\AppData\\Local\\Temp\\Novacraft\\share.torrent";
+        await dht.StartSeedAsync(
+                torrentPath: ShareFilePath,
+                contentPath: modpack.PackPath,
+                progress: Progress
+            );
+        //catch (OperationCanceledException) { StatusText.Text = "РћСЃС‚Р°РЅРѕРІР»РµРЅРѕ РїРѕР»СЊР·РѕРІР°С‚РµР»РµРј"; }
+        //catch (Exception ex) { StatusText.Text = $"вќЊ РћС€РёР±РєР°: {ex.Message}"; }
+        //finally
+        //{
+        //    SeedButton.Content = "рџљЂ РќР°С‡Р°С‚СЊ СЂР°Р·РґР°С‡Сѓ";
+        //    SeedButton.Classes.Remove("active");
+        //}
+    }
+
     #endregion
     #region Runner
 
-    // Это на удаление скорее всего ибо модпака по сути то не откуда кнопке брать в таком разе, если нет выпадающего списка.
+    // Р­С‚Рѕ РЅР° СѓРґР°Р»РµРЅРёРµ СЃРєРѕСЂРµРµ РІСЃРµРіРѕ РёР±Рѕ РјРѕРґРїР°РєР° РїРѕ СЃСѓС‚Рё С‚Рѕ РЅРµ РѕС‚РєСѓРґР° РєРЅРѕРїРєРµ Р±СЂР°С‚СЊ РІ С‚Р°РєРѕРј СЂР°Р·Рµ, РµСЃР»Рё РЅРµС‚ РІС‹РїР°РґР°СЋС‰РµРіРѕ СЃРїРёСЃРєР°.
     public async void RunMinecraft(object? sender, RoutedEventArgs e)
     {
         /*
@@ -2412,7 +2473,6 @@ partial class MainWindow : Window
     }
     */
     #endregion
-
     #region Helpers
 
     private void ProgressModal(string progressInfo, string progressFiles, short value, string? loadingTextBlock = null)
@@ -2522,7 +2582,7 @@ partial class MainWindow : Window
         switch (textBox)
         {
             case "Forge":
-                //TODO: Если в конфигурации версия есть и режим офлайн, то показываем все версии из конфигурации в рамках версии майнкрафта.
+                //TODO: Р•СЃР»Рё РІ РєРѕРЅС„РёРіСѓСЂР°С†РёРё РІРµСЂСЃРёСЏ РµСЃС‚СЊ Рё СЂРµР¶РёРј РѕС„Р»Р°Р№РЅ, С‚Рѕ РїРѕРєР°Р·С‹РІР°РµРј РІСЃРµ РІРµСЂСЃРёРё РёР· РєРѕРЅС„РёРіСѓСЂР°С†РёРё РІ СЂР°РјРєР°С… РІРµСЂСЃРёРё РјР°Р№РЅРєСЂР°С„С‚Р°.
                 List<ForgeThingy.Versions> versions = await ForgeThingy.GetLinks(selectedModPack.Version.Id);
                 _modPackModProxyComboVersions.IsVisible = true;
                 _modPackModProxyComboVersions.Items = versions;
